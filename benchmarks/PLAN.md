@@ -92,7 +92,7 @@ bench Mac should replace them with full-length runs (`-update-baseline`). Rows m
 | # | Finding | Number | Bar |
 |---|---|---|---|
 | 4 | Per-redraw scan grows with the script and the highlight's position | 50k words at 90%: **19 ms per redraw**; 10k: 3.9 ms → **fixed: 0.046 ms** | — |
-| 4 | Frame pacing collapses on long scripts | 50k words: **26–46 ms/s hitching, worst frame 380–706 ms**; 1k–10k: 0–12 ms/s | < 5 ms/s ❌ |
+| 4 | Frame pacing on long scripts | 50k words: 26–46 ms/s hitching, worst frame 380–706 ms, mostly the first layout of the script → **fixed: worst frame 48 ms**; ~13 ms/s of small hitches remain | < 5 ms/s ❌ |
 | 7 | Browser/director encode the whole script on every 100 ms tick | 50k words: **13 ms per encode, 4.2 MB/s to every client**, 18–20% app CPU, ~95 ms delay → **fixed: 0.012 ms, 32 KB/s** | — |
 | 5 | The open overlay keeps timers running while paused | **31–34 wakeups/s** (pinned/floating), up to 1.6% CPU → **fixed: 11–14/s** | < 20/s ✅ |
 | 5 | Moving the highlight is expensive | classic scroll 28–31% CPU, ~440–530 mW; tracking UI (no ASR) 18–26% CPU | — |
@@ -105,7 +105,7 @@ bench Mac should replace them with full-length runs (`-update-baseline`). Rows m
 | 3 | First model load after install compiles Metal shaders | **10.2 s** once, then 0.1 s (fresh process), 0.05 s reload → moved to right after download | — |
 | 8 | Launch is dominated by work before `didFinishLaunching` | main window first frame 575 ms (didFinishLaunching at 288 ms; its own steps < 3 ms) | < 400 ms ❌ |
 | 8 | Time to first prompt | not running 454 ms; running 112 ms; first highlight (local whisper-tiny) 1.77 s | < 300 ms ✅ (running) |
-| 6 | Rehearsal soak with whisper-tiny (one script read 18× in 30 min, jumping to the top each time; the committed baseline) | memory **+23 MB/h** after 10 min (peak 218 MB); 194 leaks / 9.6 KB, stable across runs, not yet attributed; loop 1: 0 lost-place events, lag p95 2.0 s → loop 18: 5.75 lost / 10 min, **lag p95 6.1 s**, final error 12 words | < 5 MB/h ❌; last loop tracks like the first ❌ |
+| 6 | Rehearsal soak with whisper-tiny (one script read 18× in 30 min, jumping to the top each time) | no degradation across loops (lag p95 1.8–6 s varies per take, no trend; cadence, matcher and CPU flat); footprint swings 145–218 MB per recognition window; 194 leaks / 9.6 KB, stable across runs | see the baseline soak for the current numbers |
 | 1 | Layer B now records per engine | `baseline-us`: Apple on-device lag p95 0.78 s ✅; whisper-tiny 1.64 s ❌ (report-only: only the default engine gates CI, `GATE_ENGINES` overrides) | §8 bar |
 
 Measurement pitfalls found while building this (now handled in the runner):
@@ -124,30 +124,48 @@ Measurement pitfalls found while building this (now handled in the runner):
 | Fix | Where | Before → after |
 |---|---|---|
 | Next-word search is a binary search over precomputed letter counts (equivalence-tested against the old scan) | `MarqueeTextView.swift` `nextWordIndex` | per-redraw work at 50k words, highlight at 90%: **19.35 → 0.046 ms**; 10k: 3.85 → 0.010 ms. Layout build on a new script is 4–9% slower (letter counts computed once) |
+| Line layout measures each distinct word's width once per pass | `MarqueeTextView.swift` `buildLines` | first layout of a 50k-word script **455 → 60 ms**; worst frame when starting a 50k-word read ~520 → 48 ms |
 | Director broadcasts no longer carry the script (its page never read it) | `DirectorServer.swift` | encode per 100 ms tick at 50k words: **13 → 0.012 ms** |
 | Browser broadcasts send the script once per connection, and skip unchanged ticks | `BrowserServer.swift` (+ page keeps the last words) | per client at 50k words: **4.2 MB/s → 32 KB/s** (mostly the one-time script); encode per tick 13 → 0.012 ms |
 | The 50 ms scroll tick runs only in classic/voice-activated modes and while not paused, and advances by real elapsed time | `NotchOverlayController.swift` (×2), `ExternalDisplayController.swift` | paused overlay: **31–34 → 11–14 wakeups/s** (bar < 20 ✅) |
 | A downloaded model's GPU pipelines are built right after download, on a throwaway `Model` | `ModelDownloadManager.swift`, `LocalSpeechEngine.warmUp` | moves the one-time 10 s Metal compile out of the first reading session (not re-measurable on this Mac: its shader cache is already warm) |
 
-**Measured and not fixed (needs a design decision):** overlay frame pacing.
-- **What a fair A/B shows:** the pre-fix and post-fix builds, run back to back (median
-  of 3, same session), are the same. 1k words: 44.5 vs 40.4 ms/s of hitching; 50k
-  words: 69 vs 68 ms/s.
-- **Where the time goes:** sampling during playback shows the cost is in SwiftUI's
-  view-graph update (`AttributeGraph` dirty propagation and update), not in app code.
-  The freezes start when the text begins to scroll. From then on, every word step costs
-  100–380 ms at 50k words, and the first layout of a 50k script costs about 480 ms.
-- **Why script length matters:** only visible lines are built, but the scroll animates
-  the offset of one view as tall as the whole script (spacers above and below the
-  visible lines), so the cost still grows with length.
-- **Likely fix:** render only a window of lines, positioned in a fixed-height container.
-  That restructures `SpeechScrollView`/`WordFlowLayout`, so it's left for a deliberate
-  change, with `render` and `micro` as the proof.
+**Overlay frame pacing on long scripts: diagnosed, then fixed where reproducible.**
+- **The 2–5 AM runs misled.** The first post-fix render runs showed 100–380 ms freezes
+  on every word step once scrolling began. Later runs in the same conditions don't
+  reproduce them: starting the highlight halfway into a 50k-word script
+  (`render -from 0.5`), deep-script playback costs about 2% CPU. The night runs were
+  environmental. Overnight, the Mac sat in deep idle until the runner woke the display.
+- **Not the tall spacer.** Removing the transparent spacer below the visible lines
+  made no difference in an A/B (15–16 ms/s of hitching in both builds), so that
+  change was reverted.
+- **The one reproducible freeze was the first layout of a long script:** about 520 ms
+  at 50k words, almost all of it spent measuring each word's width. `buildLines` now
+  measures each distinct word once per pass:
 
-**Measured and not fixed (needs investigation):** the long-session drift in #6. Over 30
-minutes, memory grows about 23 MB/h and the local engine's lag climbs from 2 s to 6 s
-p95, even though every loop starts a fresh recognizer session. The soak now detects
-this every night, so a fix can be checked against it.
+| | Before | After |
+|---|---|---|
+| First layout, 50k words (micro) | 455 ms | 60 ms |
+| First layout, 10k words (micro) | 91 ms | 13 ms |
+| Worst frame at the start of a 50k-word read | ~520 ms | 48 ms (no frame over 100 ms) |
+
+  The generated test script has about 60 distinct words, so that's a best case. A real
+  50k-word script has thousands of distinct words, so its gain is smaller but still large.
+- **What's left:** about 13 ms/s of small hitches (bar < 5 ms/s), with no visible freezes.
+
+**The "long-session drift" in #6 was a measurement artifact, not the app.** Per-loop
+scoring of the 30-minute soak shows no trend: lag p95 varies from 1.8 to 6 s from take
+to take, and loop 17 is among the best. Partial cadence (1.5 s), matcher time and CPU
+are flat across all 18 loops. Two harness problems caused it, both fixed:
+- **The last loop was cut short.** The runner assumed each loop was 1 s longer than the
+  transcript, but the audio has about 1.3 s of lead-in and tail silence, so the session
+  quit before the final words. That was the "final error 12 words".
+- **The memory figure was a straight line fitted through noise.** Footprint rises and
+  falls 145–218 MB with every recognition window. The soak now compares the median
+  footprint of the first and last quarter after warm-up.
+
+On that measure, 30 minutes shows about 4 MB of growth, inside the per-window swing.
+Whether there's a slow leak is for the 90-minute nightly soak to settle.
 
 Not changed (product decisions): offering moonshine-streaming-tiny for word tracking
 (it falls behind real time even on an M1 Max), and shipping the `OSSignposter` hooks

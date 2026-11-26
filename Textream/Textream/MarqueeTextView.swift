@@ -899,6 +899,10 @@ struct WordFlowLayout: View {
         var lines: [[WordItem]] = [[]]
         var currentLineWidth: CGFloat = 0
         let spaceWidth = (" " as NSString).size(withAttributes: [.font: font]).width
+        // Scripts repeat words constantly; text measurement is the expensive part of
+        // laying out a long script (≈480 ms for 50k words), so measure each distinct
+        // word once per layout pass (benchmarks/PLAN.md #4).
+        var widths: [String: CGFloat] = [:]
 
         for item in items {
             if paragraphBreakBeforeWordIndices.contains(item.id),
@@ -906,7 +910,13 @@ struct WordFlowLayout: View {
                 lines.append([])
                 currentLineWidth = 0
             }
-            let wordWidth = (item.word as NSString).size(withAttributes: [.font: font]).width + spaceWidth
+            let wordWidth: CGFloat
+            if let cached = widths[item.word] {
+                wordWidth = cached
+            } else {
+                wordWidth = (item.word as NSString).size(withAttributes: [.font: font]).width + spaceWidth
+                widths[item.word] = wordWidth
+            }
             if currentLineWidth + wordWidth > containerWidth && !lines[lines.count - 1].isEmpty {
                 lines.append([])
                 currentLineWidth = 0

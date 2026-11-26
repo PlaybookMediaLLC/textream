@@ -50,6 +50,9 @@ enum Bench {
     static let scriptSpec = defaults.string(forKey: "bench-script")
     static let readAfter = defaults.double(forKey: "bench-read-after")
     static let autoplayWPM = defaults.double(forKey: "bench-autoplay")
+    /// Where autoplay starts, as a fraction of the script (0 = top): long-script costs
+    /// that grow with the scroll position only show up deep in the text.
+    static let autoplayFrom = min(1, max(0, defaults.double(forKey: "bench-autoplay-from")))
     static let quitAfter = defaults.double(forKey: "bench-quit-after")
     /// Quit this many seconds after file-fed audio starts (model load time excluded).
     static let quitAfterAudioStart = defaults.double(forKey: "bench-quit-after-audio-start")
@@ -206,8 +209,9 @@ enum Bench {
             ends.append(offset)
             offset += 1
         }
-        var index = 0
-        log("autoplay.start", ["wpm": autoplayWPM, "words": ends.count])
+        var index = min(ends.count - 1, Int(Double(ends.count) * autoplayFrom))
+        if index > 0 { recognizer.recognizedCharCount = ends[index - 1] }
+        log("autoplay.start", ["wpm": autoplayWPM, "words": ends.count, "fromWord": index])
         autoplayTimer = Timer.scheduledTimer(withTimeInterval: 60 / autoplayWPM, repeats: true) { [weak recognizer] timer in
             guard let recognizer, index < ends.count else {
                 timer.invalidate()

@@ -95,7 +95,7 @@ func scoreApp(root: URL, caseDir: URL, log: URL, loops: Int) throws -> String {
     // shifted back to time 0 and char offset 0.
     if loops > 1 {
         var rows = ""
-        for k in [0, loops - 1] {
+        for k in 0..<loops {
             let start = Double(k) * period
             // Ends just before the loop boundary, where the app jumps back to the top.
             let loopTrack = shown.filter { $0.t >= start && $0.t < start + period - 1 }
@@ -103,7 +103,7 @@ func scoreApp(root: URL, caseDir: URL, log: URL, loops: Int) throws -> String {
             let r = score(script: PromptScript(scriptOnce), tl: baseTL, partials: [], track: loopTrack)
             rows += reportRow(dimension: "soak", name: "loop \(k + 1) of \(loops)", gating: info.gating, runs: [r]).row
         }
-        out += "First vs last loop:\n\n" + tableHeader + rows + "\n"
+        out += "Every loop (loop 1 starts fresh; each later loop starts with a jump to the top):\n\n" + tableHeader + rows + "\n"
     }
 
     // Per-word latency, split by stage, for fresh forward progress outside recovery windows.
@@ -153,17 +153,24 @@ func scoreApp(root: URL, caseDir: URL, log: URL, loops: Int) throws -> String {
     // Resources over the run (soak): memory slope after warm-up, CPU, sessions.
     let samples = events.filter { $0.e == "sample" }
     if let first = samples.first, let last = samples.last, last.mono > first.mono {
+        // Memory rises and falls with every recognition window, so a fitted line
+        // over a short session reports noise as growth. Compare the median footprint
+        // of the first and last quarter after warm-up (10 min) instead.
         let warm = samples.filter { t($0.mono) >= 600 }
-        let points = warm.map { (x: t($0.mono) / 3600, y: Double($0.int("physFootprint") ?? 0) / 1_048_576) }
-        let mx = points.map(\.x).reduce(0, +) / Double(points.count), my = points.map(\.y).reduce(0, +) / Double(points.count)
-        let sxx = points.map { ($0.x - mx) * ($0.x - mx) }.reduce(0, +)
-        let slope = sxx > 0 ? points.map { ($0.x - mx) * ($0.y - my) }.reduce(0, +) / sxx : 0
+        let quarter = max(1, warm.count / 4)
+        func medianMB(_ xs: ArraySlice<AppEvent>) -> Double {
+            let v = xs.map { Double($0.int("physFootprint") ?? 0) / 1_048_576 }.sorted()
+            return v.isEmpty ? 0 : v[v.count / 2]
+        }
+        let early = warm.prefix(quarter), late = warm.suffix(quarter)
+        let hours = warm.count >= 4 ? (t(late[late.startIndex + late.count / 2].mono) - t(early[early.startIndex + early.count / 2].mono)) / 3600 : 0
+        let slope = hours > 0 ? (medianMB(late) - medianMB(early)) / hours : 0
         let cpu = { (s: AppEvent) in Double((s.int("cpuUserNs") ?? 0) + (s.int("cpuSystemNs") ?? 0)) / 1e9 }
         let seconds = Double(last.mono - first.mono) / 1e9
         let sessions = Dictionary(grouping: events.filter { $0.e == "asr.session" }, by: { $0.string("reason") ?? "?" })
             .map { "\($0.key) \($0.value.count)" }.sorted().joined(separator: ", ")
         let peak = samples.compactMap { $0.int("physFootprint") }.max() ?? 0
-        if warm.count >= 3 { metrics["memSlopeMBPerHour"] = slope }
+        if warm.count >= 4 { metrics["memSlopeMBPerHour"] = slope }
         metrics["peakMemoryMB"] = Double(peak) / 1_048_576
         metrics["cpuPercent"] = (cpu(last) - cpu(first)) / seconds * 100
         out += """
@@ -171,7 +178,7 @@ func scoreApp(root: URL, caseDir: URL, log: URL, loops: Int) throws -> String {
         |---|---|
         | Duration | \(fmt(seconds / 60)) min |
         | Memory start → end (peak) | \(fmt(Double(first.int("physFootprint") ?? 0) / 1_048_576)) → \(fmt(Double(last.int("physFootprint") ?? 0) / 1_048_576)) MB (\(fmt(Double(peak) / 1_048_576)) MB) |
-        | Memory slope after 10 min | \(warm.count >= 3 ? "\(fmt(slope)) MB/h" : "– (run shorter than 10 min: growth is warm-up)") |
+        | Memory growth after 10 min (median of last vs first quarter) | \(warm.count >= 4 ? "\(fmt(slope)) MB/h" : "– (run shorter than 10 min: growth is warm-up)") |
         | CPU average | \(fmt((cpu(last) - cpu(first)) / seconds * 100)) % |
         | Recognition sessions | \(sessions.isEmpty ? "–" : sessions) |
 
