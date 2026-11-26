@@ -1,0 +1,655 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-26T03:47:42-05:00",
+  "commit": "8cee918",
+  "metrics": {
+    "render.10k.dyslexia.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        15.687277382659943,
+        15.861091136161754,
+        16.628813646553674
+      ],
+      "median": 15.861091136161754,
+      "mad": 0.17381375350181116,
+      "gate": true
+    },
+    "render.10k.dyslexia.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        75.6389022911555,
+        37.70409200494288,
+        25.12172172875643
+      ],
+      "median": 37.70409200494288,
+      "mad": 12.582370276186449,
+      "gate": true
+    },
+    "render.10k.dyslexia.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        448.7625416368246,
+        157.866416615434,
+        74.09162499243394
+      ],
+      "median": 157.866416615434,
+      "mad": 83.77479162300006,
+      "gate": false
+    },
+    "render.10k.dyslexia.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        17.81331364243732,
+        17.361018611059706,
+        14.821263250739323
+      ],
+      "median": 17.361018611059706,
+      "mad": 0.45229503137761284,
+      "gate": true
+    },
+    "render.10k.dyslexia.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        26.407727306720105,
+        32.32660207745367,
+        84.07383906505305
+      ],
+      "median": 32.32660207745367,
+      "mad": 5.9188747707335665,
+      "gate": true
+    },
+    "render.10k.dyslexia.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        77.09620834793895,
+        104.83766661491245,
+        690.4677500133403
+      ],
+      "median": 104.83766661491245,
+      "mad": 27.741458266973495,
+      "gate": false
+    },
+    "render.10k.dyslexia.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        17.466109802588374,
+        18.688571410594175,
+        17.95613682133604
+      ],
+      "median": 17.95613682133604,
+      "mad": 0.49002701874766785,
+      "gate": true
+    },
+    "render.10k.dyslexia.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        43.71485924060664,
+        46.40593772576028,
+        43.568434604056094
+      ],
+      "median": 43.71485924060664,
+      "mad": 0.14642463655054883,
+      "gate": true
+    },
+    "render.10k.dyslexia.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        156.13220835803077,
+        184.6617916598916,
+        182.7014166628942
+      ],
+      "median": 182.7014166628942,
+      "mad": 1.960374996997416,
+      "gate": false
+    },
+    "render.10k.sans.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        16.54430700168025,
+        15.766419298260113,
+        16.57629738130261
+      ],
+      "median": 16.54430700168025,
+      "mad": 0.03199037962236062,
+      "gate": true
+    },
+    "render.10k.sans.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        41.126413141683756,
+        53.20067083471457,
+        46.39757625605892
+      ],
+      "median": 46.39757625605892,
+      "mad": 5.271163114375163,
+      "gate": true
+    },
+    "render.10k.sans.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        185.65437500365078,
+        241.0866250284016,
+        116.66562501341105
+      ],
+      "median": 185.65437500365078,
+      "mad": 55.43225002475083,
+      "gate": false
+    },
+    "render.10k.sans.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        17.41210402770998,
+        17.455811633340947,
+        14.28447749287733
+      ],
+      "median": 17.41210402770998,
+      "mad": 0.043707605630967095,
+      "gate": true
+    },
+    "render.10k.sans.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        49.31908167833474,
+        19.604390749747807,
+        68.1288135048944
+      ],
+      "median": 49.31908167833474,
+      "mad": 18.809731826559656,
+      "gate": true
+    },
+    "render.10k.sans.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        713.7045832932927,
+        70.33537497045472,
+        337.0403749868274
+      ],
+      "median": 337.0403749868274,
+      "mad": 266.70500001637265,
+      "gate": false
+    },
+    "render.10k.sans.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        15.996262441846829,
+        16.89201376644773,
+        17.518452861540617
+      ],
+      "median": 16.89201376644773,
+      "mad": 0.6264390950928878,
+      "gate": true
+    },
+    "render.10k.sans.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        93.73993438355278,
+        42.689260046808016,
+        32.36281363845319
+      ],
+      "median": 42.689260046808016,
+      "mad": 10.326446408354826,
+      "gate": true
+    },
+    "render.10k.sans.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        912.127583345864,
+        157.34658332075924,
+        55.13320834143087
+      ],
+      "median": 157.34658332075924,
+      "mad": 102.21337497932836,
+      "gate": false
+    },
+    "render.1k.dyslexia.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        16.609680212743346,
+        16.353581366735227,
+        16.55605139476603
+      ],
+      "median": 16.55605139476603,
+      "mad": 0.05362881797731589,
+      "gate": true
+    },
+    "render.1k.dyslexia.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        28.812426960051855,
+        44.318610165853094,
+        39.421380804391895
+      ],
+      "median": 39.421380804391895,
+      "mad": 4.8972293614612,
+      "gate": true
+    },
+    "render.1k.dyslexia.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        105.42341665131971,
+        263.24012503027916,
+        193.27195832738653
+      ],
+      "median": 193.27195832738653,
+      "mad": 69.96816670289263,
+      "gate": false
+    },
+    "render.1k.dyslexia.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        16.15313231985145,
+        17.791042644964104,
+        16.629531360807178
+      ],
+      "median": 16.629531360807178,
+      "mad": 0.4763990409557266,
+      "gate": true
+    },
+    "render.1k.dyslexia.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        28.07266715165277,
+        21.602503368363234,
+        70.35393695073289
+      ],
+      "median": 28.07266715165277,
+      "mad": 6.470163783289536,
+      "gate": true
+    },
+    "render.1k.dyslexia.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        139.31670831516385,
+        64.4988749991171,
+        623.3311666292138
+      ],
+      "median": 139.31670831516385,
+      "mad": 74.81783331604674,
+      "gate": false
+    },
+    "render.1k.dyslexia.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        18.572845874522997,
+        18.555403011662523,
+        18.399278546063996
+      ],
+      "median": 18.555403011662523,
+      "mad": 0.017442862860473696,
+      "gate": true
+    },
+    "render.1k.dyslexia.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        37.80158247398083,
+        27.86598106573596,
+        41.12827425391378
+      ],
+      "median": 37.80158247398083,
+      "mad": 3.3266917799329505,
+      "gate": true
+    },
+    "render.1k.dyslexia.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        107.28683334309608,
+        97.41045831469819,
+        126.48991664173082
+      ],
+      "median": 107.28683334309608,
+      "mad": 9.876375028397888,
+      "gate": false
+    },
+    "render.1k.sans.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        15.55858767048707,
+        15.416837227399213,
+        16.33784751751153
+      ],
+      "median": 15.55858767048707,
+      "mad": 0.14175044308785623,
+      "gate": true
+    },
+    "render.1k.sans.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        43.843674844430154,
+        52.24535793979741,
+        47.966051121570565
+      ],
+      "median": 47.966051121570565,
+      "mad": 4.122376277140411,
+      "gate": true
+    },
+    "render.1k.sans.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        127.50470830360427,
+        247.6787082850933,
+        196.93700002972037
+      ],
+      "median": 196.93700002972037,
+      "mad": 50.74170825537294,
+      "gate": false
+    },
+    "render.1k.sans.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        16.41742551864516,
+        17.47228299458082,
+        15.047064625211618
+      ],
+      "median": 16.41742551864516,
+      "mad": 1.054857475935659,
+      "gate": true
+    },
+    "render.1k.sans.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        36.71753183263674,
+        31.569153955564,
+        20.841372527735334
+      ],
+      "median": 31.569153955564,
+      "mad": 5.148377877072736,
+      "gate": true
+    },
+    "render.1k.sans.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        79.96379164978862,
+        84.8393333144486,
+        66.04208331555128
+      ],
+      "median": 79.96379164978862,
+      "mad": 4.875541664659977,
+      "gate": false
+    },
+    "render.1k.sans.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        17.404561827604805,
+        16.572235071671287,
+        16.54584552482089
+      ],
+      "median": 16.572235071671287,
+      "mad": 0.026389546850396073,
+      "gate": true
+    },
+    "render.1k.sans.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        45.90776639509705,
+        44.69847921429678,
+        43.14028366288836
+      ],
+      "median": 44.69847921429678,
+      "mad": 1.209287180800267,
+      "gate": true
+    },
+    "render.1k.sans.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        131.31799997063354,
+        119.38716663280502,
+        243.45837504370138
+      ],
+      "median": 131.31799997063354,
+      "mad": 11.930833337828517,
+      "gate": false
+    },
+    "render.50k.dyslexia.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        17.231938923031766,
+        17.359113374616992,
+        17.52568130742108
+      ],
+      "median": 17.359113374616992,
+      "mad": 0.12717445158522622,
+      "gate": true
+    },
+    "render.50k.dyslexia.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        83.08395838072025,
+        39.261401722343635,
+        117.43648906423284
+      ],
+      "median": 83.08395838072025,
+      "mad": 34.3525306835126,
+      "gate": true
+    },
+    "render.50k.dyslexia.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        782.2508333483711,
+        110.42533331783488,
+        685.8559583197348
+      ],
+      "median": 685.8559583197348,
+      "mad": 96.3948750286363,
+      "gate": false
+    },
+    "render.50k.dyslexia.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        18.877718343557046,
+        18.41585930256163,
+        18.219316575090893
+      ],
+      "median": 18.41585930256163,
+      "mad": 0.1965427274707352,
+      "gate": true
+    },
+    "render.50k.dyslexia.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        72.99901951389921,
+        76.92716179593958,
+        38.50825098721033
+      ],
+      "median": 72.99901951389921,
+      "mad": 3.928142282040369,
+      "gate": true
+    },
+    "render.50k.dyslexia.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        782.4900833657011,
+        785.0342500023544,
+        66.30708335433155
+      ],
+      "median": 782.4900833657011,
+      "mad": 2.5441666366532445,
+      "gate": false
+    },
+    "render.50k.dyslexia.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        18.670453746601872,
+        18.74438017632426,
+        19.86051934718304
+      ],
+      "median": 18.74438017632426,
+      "mad": 0.07392642972238761,
+      "gate": true
+    },
+    "render.50k.dyslexia.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        61.64028374853056,
+        81.82881961633625,
+        87.69234014238084
+      ],
+      "median": 81.82881961633625,
+      "mad": 5.863520526044596,
+      "gate": true
+    },
+    "render.50k.dyslexia.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        499.5692916563712,
+        1091.802708338946,
+        786.72591666691
+      ],
+      "median": 786.72591666691,
+      "mad": 287.15662501053885,
+      "gate": false
+    },
+    "render.50k.sans.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        17.562445474702315,
+        18.017170691935874,
+        15.738333624540557
+      ],
+      "median": 17.562445474702315,
+      "mad": 0.45472521723355896,
+      "gate": true
+    },
+    "render.50k.sans.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        73.95020552202645,
+        61.0811173363162,
+        51.44983960422183
+      ],
+      "median": 61.0811173363162,
+      "mad": 9.631277732094368,
+      "gate": true
+    },
+    "render.50k.sans.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        791.9902083231136,
+        797.8281250107102,
+        358.5074166767299
+      ],
+      "median": 791.9902083231136,
+      "mad": 5.837916687596589,
+      "gate": false
+    },
+    "render.50k.sans.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        17.081432450994733,
+        19.440618482582824,
+        17.264833042982797
+      ],
+      "median": 17.264833042982797,
+      "mad": 0.18340059198806458,
+      "gate": true
+    },
+    "render.50k.sans.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        111.81236438477244,
+        70.03756046182994,
+        48.516775406376254
+      ],
+      "median": 70.03756046182994,
+      "mad": 21.520785055453686,
+      "gate": true
+    },
+    "render.50k.sans.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        678.3952499972656,
+        800.9093333384953,
+        91.8867916916497
+      ],
+      "median": 678.3952499972656,
+      "mad": 122.5140833412297,
+      "gate": false
+    },
+    "render.50k.sans.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        15.303402752370978,
+        13.37473727535699,
+        16.46028337782954
+      ],
+      "median": 15.303402752370978,
+      "mad": 1.1568806254585624,
+      "gate": true
+    },
+    "render.50k.sans.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        94.84672552262616,
+        88.22101597961418,
+        91.3390988274145
+      ],
+      "median": 91.3390988274145,
+      "mad": 3.1180828478003235,
+      "gate": true
+    },
+    "render.50k.sans.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        849.3610416771844,
+        496.27337499987334,
+        505.0422083004378
+      ],
+      "median": 505.0422083004378,
+      "mad": 8.768833300564438,
+      "gate": false
+    }
+  }
+}

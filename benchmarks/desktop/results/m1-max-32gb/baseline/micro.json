@@ -1,0 +1,343 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-26T02:32:30-05:00",
+  "commit": "b60167a",
+  "metrics": {
+    "browser.encode.10k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        344,
+        344,
+        344,
+        344,
+        344
+      ],
+      "median": 344,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.011708,
+        0.01175,
+        0.011709,
+        0.01175,
+        0.011667
+      ],
+      "median": 0.011709,
+      "mad": 0.00004099999999999937,
+      "gate": true
+    },
+    "browser.encode.1k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        342,
+        342,
+        342,
+        342,
+        342
+      ],
+      "median": 342,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.01175,
+        0.011709,
+        0.011791,
+        0.01175,
+        0.011875
+      ],
+      "median": 0.01175,
+      "mad": 0.00004099999999999937,
+      "gate": true
+    },
+    "browser.encode.50k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        346,
+        346,
+        346,
+        346,
+        346
+      ],
+      "median": 346,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.011834,
+        0.01175,
+        0.011834,
+        0.011875,
+        0.012125
+      ],
+      "median": 0.011834,
+      "mad": 0.00004099999999999937,
+      "gate": true
+    },
+    "director.encode.10k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        302,
+        302,
+        302,
+        302,
+        302
+      ],
+      "median": 302,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.011333,
+        0.011375,
+        0.011292,
+        0.011375,
+        0.011416
+      ],
+      "median": 0.011375,
+      "mad": 0.000041000000000001105,
+      "gate": true
+    },
+    "director.encode.1k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        300,
+        300,
+        300,
+        300,
+        300
+      ],
+      "median": 300,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.011834,
+        0.011375,
+        0.011416,
+        0.011459,
+        0.011417
+      ],
+      "median": 0.011417,
+      "mad": 0.00004200000000000037,
+      "gate": true
+    },
+    "director.encode.50k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        304,
+        304,
+        304,
+        304,
+        304
+      ],
+      "median": 304,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.0115,
+        0.011416,
+        0.011416,
+        0.011458,
+        0.011709
+      ],
+      "median": 0.011458,
+      "mad": 0.000041999999999998636,
+      "gate": true
+    },
+    "layout.cold.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        93.369208,
+        93.675209,
+        91.092167,
+        90.47925,
+        87.786125
+      ],
+      "median": 91.092167,
+      "mad": 2.277040999999997,
+      "gate": true
+    },
+    "layout.cold.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        9.610875,
+        9.710167,
+        9.480917,
+        9.405875,
+        9.156792
+      ],
+      "median": 9.480917,
+      "mad": 0.12995800000000024,
+      "gate": true
+    },
+    "layout.cold.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        438.019125,
+        455.258458,
+        470.706125,
+        453.912,
+        458.285542
+      ],
+      "median": 455.258458,
+      "mad": 3.027084000000002,
+      "gate": true
+    },
+    "layout.redraw.10k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.009708,
+        0.009375,
+        0.009208,
+        0.009416,
+        0.009625
+      ],
+      "median": 0.009416,
+      "mad": 0.00020800000000000159,
+      "gate": true
+    },
+    "layout.redraw.10k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.009125,
+        0.009333,
+        0.009458,
+        0.009542,
+        0.009583
+      ],
+      "median": 0.009458,
+      "mad": 0.0001250000000000001,
+      "gate": true
+    },
+    "layout.redraw.10k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.009125,
+        0.009292,
+        0.009459,
+        0.009458,
+        0.009583
+      ],
+      "median": 0.009458,
+      "mad": 0.0001250000000000001,
+      "gate": true
+    },
+    "layout.redraw.1k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.001292,
+        0.001292,
+        0.001292,
+        0.001333,
+        0.001292
+      ],
+      "median": 0.001292,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.1k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.001333,
+        0.001292,
+        0.001292,
+        0.001292,
+        0.001292
+      ],
+      "median": 0.001292,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.1k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.001375,
+        0.001292,
+        0.001292,
+        0.001292,
+        0.001292
+      ],
+      "median": 0.001292,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.50k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.046792,
+        0.046458,
+        0.045792,
+        0.046584,
+        0.048042
+      ],
+      "median": 0.046584,
+      "mad": 0.00020799999999999985,
+      "gate": true
+    },
+    "layout.redraw.50k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.046667,
+        0.04625,
+        0.045875,
+        0.04625,
+        0.047875
+      ],
+      "median": 0.04625,
+      "mad": 0.00037500000000000033,
+      "gate": true
+    },
+    "layout.redraw.50k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.046542,
+        0.046292,
+        0.04575,
+        0.046292,
+        0.047875
+      ],
+      "median": 0.046292,
+      "mad": 0.0002500000000000002,
+      "gate": true
+    }
+  }
+}
