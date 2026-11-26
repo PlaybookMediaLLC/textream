@@ -72,6 +72,7 @@ var (
 	xctrace        = flag.Bool("xctrace", false, "render: also record an Instruments Animation Hitches trace per scenario")
 	backendFlag    = flag.String("backend", "auto", "engine: transcribe.cpp backend (auto, cpu, metal)")
 	only           = flag.String("only", "", "idle/render: run only scenarios whose name contains this text")
+	appFlag        = flag.String("app", "", "use this BENCHMARK app binary instead of building one (A/B against another build)")
 )
 
 func main() {
@@ -93,6 +94,10 @@ func main() {
 	cacheDir = filepath.Join(here, ".cache")
 	must(os.MkdirAll(cacheDir, 0o755))
 	appBinary = filepath.Join(cacheDir, "dd", "Build", "Products", "Release", "Textream.app", "Contents", "MacOS", "Textream")
+	if *appFlag != "" {
+		appBinary = *appFlag
+		*skipBuild = true
+	}
 	harnessBin = filepath.Join(cacheDir, "speech-tracking")
 	engineBin = filepath.Join(cacheDir, "engine")
 	hostName = *hostFlag

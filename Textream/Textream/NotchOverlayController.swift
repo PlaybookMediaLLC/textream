@@ -700,7 +700,6 @@ struct NotchOverlayView: View {
     @State private var timerWordProgress: Double = 0
     @State private var isPaused: Bool = false
     @State private var isUserScrolling: Bool = false
-    private let scrollTimer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
 
     // Auto next page countdown
     @State private var countdownRemaining: Int = 0
@@ -889,20 +888,31 @@ struct NotchOverlayView: View {
                 cancelCountdown()
             }
         }
-        .onReceive(scrollTimer) { _ in
-            guard !isDone, !isUserScrolling else { return }
-            let speed = NotchSettings.shared.scrollSpeed // words per second
-            switch listeningMode {
-            case .classic:
-                if !isPaused {
-                    timerWordProgress += speed * 0.05
+        // Classic and voice-activated scrolling tick every 50 ms, only while they
+        // can move: word tracking and pause used to keep a 20 Hz timer running for
+        // nothing (benchmarks/PLAN.md #5). Advances by the real elapsed time.
+        .task(id: listeningMode != .wordTracking && !isPaused) {
+            guard listeningMode != .wordTracking && !isPaused else { return }
+            var last = ContinuousClock.now
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(50))
+                let now = ContinuousClock.now
+                let dt = Double((now - last).components.attoseconds) / 1e18 + Double((now - last).components.seconds)
+                last = now
+                guard !isDone, !isUserScrolling else { continue }
+                let speed = NotchSettings.shared.scrollSpeed // words per second
+                switch listeningMode {
+                case .classic:
+                    if !isPaused {
+                        timerWordProgress += speed * dt
+                    }
+                case .silencePaused:
+                    if !isPaused && speechRecognizer.isListening && speechRecognizer.isSpeaking {
+                        timerWordProgress += speed * dt
+                    }
+                case .wordTracking:
+                    break
                 }
-            case .silencePaused:
-                if !isPaused && speechRecognizer.isListening && speechRecognizer.isSpeaking {
-                    timerWordProgress += speed * 0.05
-                }
-            case .wordTracking:
-                break
             }
         }
         .onChange(of: content.totalCharCount) { _, _ in
@@ -1296,7 +1306,6 @@ struct FloatingOverlayView: View {
     @State private var timerWordProgress: Double = 0
     @State private var isPaused: Bool = false
     @State private var isUserScrolling: Bool = false
-    private let scrollTimer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
 
     private var listeningMode: ListeningMode {
         NotchSettings.shared.listeningMode
@@ -1419,20 +1428,31 @@ struct FloatingOverlayView: View {
                 cancelCountdown()
             }
         }
-        .onReceive(scrollTimer) { _ in
-            guard !isDone, !isUserScrolling else { return }
-            let speed = NotchSettings.shared.scrollSpeed // words per second
-            switch listeningMode {
-            case .classic:
-                if !isPaused {
-                    timerWordProgress += speed * 0.05
+        // Classic and voice-activated scrolling tick every 50 ms, only while they
+        // can move: word tracking and pause used to keep a 20 Hz timer running for
+        // nothing (benchmarks/PLAN.md #5). Advances by the real elapsed time.
+        .task(id: listeningMode != .wordTracking && !isPaused) {
+            guard listeningMode != .wordTracking && !isPaused else { return }
+            var last = ContinuousClock.now
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(50))
+                let now = ContinuousClock.now
+                let dt = Double((now - last).components.attoseconds) / 1e18 + Double((now - last).components.seconds)
+                last = now
+                guard !isDone, !isUserScrolling else { continue }
+                let speed = NotchSettings.shared.scrollSpeed // words per second
+                switch listeningMode {
+                case .classic:
+                    if !isPaused {
+                        timerWordProgress += speed * dt
+                    }
+                case .silencePaused:
+                    if !isPaused && speechRecognizer.isListening && speechRecognizer.isSpeaking {
+                        timerWordProgress += speed * dt
+                    }
+                case .wordTracking:
+                    break
                 }
-            case .silencePaused:
-                if !isPaused && speechRecognizer.isListening && speechRecognizer.isSpeaking {
-                    timerWordProgress += speed * 0.05
-                }
-            case .wordTracking:
-                break
             }
         }
         .onChange(of: content.totalCharCount) { _, _ in

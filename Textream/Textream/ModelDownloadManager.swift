@@ -227,6 +227,8 @@ final class ModelDownloadManager {
         }
 
         try FileManager.default.moveItem(at: partial, to: destination)
+        let installedPath = destination.path
+        Task.detached(priority: .utility) { LocalSpeechEngine.warmUp(modelAt: installedPath) }
     }
 
     /// Appends the remote file to `partial` starting at `resumeFrom` and returns

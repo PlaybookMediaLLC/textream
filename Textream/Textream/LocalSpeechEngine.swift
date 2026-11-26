@@ -103,6 +103,15 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
 
     // MARK: - Model lifecycle
 
+    /// Builds a freshly installed model's GPU pipelines once, then releases it. Metal
+    /// compiles them on the first load after install (10 s for whisper-tiny on an M1 Max;
+    /// the system caches them for every later process, 0.1 s), so doing it right after
+    /// download keeps that wait out of the first reading session (benchmarks/PLAN.md #3).
+    /// Uses its own Model: the shared engine and any running session are untouched.
+    nonisolated static func warmUp(modelAt path: String) {
+        _ = try? Model(path: path).session()
+    }
+
     /// Loads (or reuses) a model and reports its capabilities on the main queue.
     func loadModel(at path: String, completion: @escaping (Result<LocalSpeechEngineInfo, Error>) -> Void) {
         if isSessionActive { stop() }

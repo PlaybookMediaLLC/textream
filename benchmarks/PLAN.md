@@ -43,10 +43,15 @@ any sandbox. Results land in `desktop/results/<host>/<bench>.{md,json}`.
 
 **How it differs from the plan text below** (each choice keeps the same measurement
 with less machinery):
-- **No new Xcode test targets.** The micro benchmarks (#4 layout, #7 encode) run inside
-  the BENCHMARK app (`-bench-micro`), and launch (#8) is measured from the kernel's
-  process start time to the main window's first display refresh. That matches what
-  `XCTApplicationLaunchMetric` measures, minus LaunchServices.
+- **Both measurement routes exist.** The test targets from Phase 0 are built:
+  `TextreamTests` (macOS unit tests, including a check that the redraw search matches
+  the old linear scan, plus `XCTClockMetric`/`XCTCPUMetric` performance tests) and
+  `TextreamUITests` (`XCTApplicationLaunchMetric`), in a shared `Textream` scheme.
+  The runner also measures the same paths inside the BENCHMARK app (`-bench-micro`;
+  launch from the kernel's process start time to the main window's first display
+  refresh, which excludes LaunchServices). UI tests need automation mode on the Mac
+  that runs them: `sudo automationmodetool enable-automationmode-without-authentication`,
+  once. GitHub's hosted runners already have it.
 - **No `top` or `powermetrics`.** The app samples itself with `task_info`: CPU time,
   idle and interrupt wakeups, the kernel's energy estimate (Apple silicon), and
   `phys_footprint`. No sudo is needed. Sampling every 10 s adds about 0.1 wakeups/s.
@@ -64,12 +69,13 @@ with less machinery):
 - **#7 clients use browser mode** (no auth token). Director mode's encode cost is in
   the micro benchmark.
 
-**Not built, because it needs people or hardware this session doesn't have:**
+**Not done, because it needs people or hardware this session doesn't have:**
 - the real-reader corpus (#1 step 3)
 - a dedicated bench Mac registered as the `textream-bench` self-hosted runner
 - the Intel and base-M1 matrix
 - Sidecar
 - the manual sleep/wake, mic-switch and display hot-plug checklist (#6)
+- running the UI launch test here (automation mode needs an admin prompt)
 
 The workflows that use them are written (`.github/workflows/desktop-bench.yml`) and
 start working once the runner exists.
@@ -82,17 +88,18 @@ run per scenario, shortened durations), **not baselines**. Full tables are in
 
 | # | Finding | Number | Bar |
 |---|---|---|---|
-| 4 | Per-redraw scan grows with the script and the highlight's position | 50k words at 90%: **19 ms per redraw**; 10k: 3.9 ms | — |
+| 4 | Per-redraw scan grows with the script and the highlight's position | 50k words at 90%: **19 ms per redraw**; 10k: 3.9 ms → **fixed: 0.046 ms** | — |
 | 4 | Frame pacing collapses on long scripts | 50k words: **26–46 ms/s hitching, worst frame 380–706 ms**; 1k–10k: 0–12 ms/s | < 5 ms/s ❌ |
-| 7 | Browser/director encode the whole script on every 100 ms tick | 50k words: **13 ms per encode, 4.2 MB/s to every client**, 18–20% app CPU, ~95 ms delay | — |
-| 5 | The open overlay keeps timers running while paused | **31–34 wakeups/s** (pinned/floating), up to 1.6% CPU | < 20/s ❌ |
+| 7 | Browser/director encode the whole script on every 100 ms tick | 50k words: **13 ms per encode, 4.2 MB/s to every client**, 18–20% app CPU, ~95 ms delay → **fixed: 0.012 ms, 32 KB/s** | — |
+| 5 | The open overlay keeps timers running while paused | **31–34 wakeups/s** (pinned/floating), up to 1.6% CPU → **fixed: 11–14/s** | < 20/s ✅ |
 | 5 | Moving the highlight is expensive | classic scroll 28–31% CPU, ~440–530 mW; tracking UI (no ASR) 18–26% CPU | — |
 | 5 | Idle in the menu bar, main window, servers on | ≤ 0.01% CPU, 0.2–0.4 wakeups/s | ✅ |
+| 2 | Apple on-device keeps up | end to end p50 367–424 ms / p95 641–794 ms across clean, UK voice and babble 10 dB; 0 lost-place events | p95 < 1.2 s ✅ |
 | 2 | With local whisper-tiny, recognition is nearly all of the latency | end to end p50 0.7 s / p95 1.4 s (clean), 2.4 s (babble 10 dB); hop ≤ 5 ms, matcher ≤ 1 ms, render ~13 ms | p95 < 1.2 s ❌ |
 | 2 | Babble at 10 dB through whisper-tiny loses the place | 6.7 lost-place events / 10 min | ≤ 0.5 ❌ |
 | 3 | whisper-tiny keeps up easily | 26-s decode 0.22 s, partials every 1.5 s, 153 MB | ✅ |
 | 3 | moonshine-streaming-tiny falls behind | chunk RTF p50 0.08 but **p95 9.5**: 60 s of audio took 120 s; partials every 4.6 s (p95); 550 MB | ❌ |
-| 3 | First model load after install compiles Metal shaders | **10.2 s** once, then 0.1 s (fresh process), 0.05 s reload | — |
+| 3 | First model load after install compiles Metal shaders | **10.2 s** once, then 0.1 s (fresh process), 0.05 s reload → moved to right after download | — |
 | 8 | Launch is dominated by work before `didFinishLaunching` | main window first frame 575 ms (didFinishLaunching at 288 ms; its own steps < 3 ms) | < 400 ms ❌ |
 | 8 | Time to first prompt | not running 454 ms; running 112 ms; first highlight (local whisper-tiny) 1.77 s | < 300 ms ✅ (running) |
 | 6 | 14-min rehearsal soak (whisper-tiny, 8 reads with a jump to the top each time) | memory slope 4.8 MB/h; 194 leaks / 9.6 KB (stable across runs; not yet attributed to app or system code); loop 1: 0 lost-place events / 10 min; loop 8: 11.5, lag p95 1.96 → 3.33 s | < 5 MB/h ✅; last loop tracks like the first ❌ (confirm on the nightly 90-min run) |
@@ -109,16 +116,34 @@ Measurement pitfalls found while building this (now handled in the runner):
 - **Reaching the last word closes the overlay**, so the soak script ends with a sentence
   the audio never speaks.
 
-Fix candidates the numbers point to (none implemented here; each one's benchmark is
-already in place to prove it):
-- `WordFlowLayout`: key the layout cache on script identity, and binary-search
-  `charOffset` in `nextWordIndex`.
-- Broadcast: send the script once per connection, then only positions, and skip
-  ticks that didn't change anything (browser mode sends every tick unconditionally).
-- Overlay: stop the 50 ms scroll timer and the 0.1 s dismiss poll while paused, or
-  when the mode doesn't use them.
-- Local models: warm the Metal pipeline at install or download time, and don't offer
-  moonshine-streaming-tiny for word tracking on this class of Mac.
+### Fixes made from these numbers
+
+| Fix | Where | Before → after |
+|---|---|---|
+| Next-word search is a binary search over precomputed letter counts (equivalence-tested against the old scan) | `MarqueeTextView.swift` `nextWordIndex` | per-redraw work at 50k words, highlight at 90%: **19.35 → 0.046 ms**; 10k: 3.85 → 0.010 ms. Layout build on a new script is 4–9% slower (letter counts computed once) |
+| Director broadcasts no longer carry the script (its page never read it) | `DirectorServer.swift` | encode per 100 ms tick at 50k words: **13 → 0.012 ms** |
+| Browser broadcasts send the script once per connection, and skip unchanged ticks | `BrowserServer.swift` (+ page keeps the last words) | per client at 50k words: **4.2 MB/s → 32 KB/s** (mostly the one-time script); encode per tick 13 → 0.012 ms |
+| The 50 ms scroll tick runs only in classic/voice-activated modes and while not paused, and advances by real elapsed time | `NotchOverlayController.swift` (×2), `ExternalDisplayController.swift` | paused overlay: **31–34 → 11–14 wakeups/s** (bar < 20 ✅) |
+| A downloaded model's GPU pipelines are built right after download, on a throwaway `Model` | `ModelDownloadManager.swift`, `LocalSpeechEngine.warmUp` | moves the one-time 10 s Metal compile out of the first reading session (not re-measurable on this Mac: its shader cache is already warm) |
+
+**Measured and not fixed (needs a design decision):** overlay frame pacing.
+- **What a fair A/B shows:** the pre-fix and post-fix builds, run back to back (median
+  of 3, same session), are the same. 1k words: 44.5 vs 40.4 ms/s of hitching; 50k
+  words: 69 vs 68 ms/s.
+- **Where the time goes:** sampling during playback shows the cost is in SwiftUI's
+  view-graph update (`AttributeGraph` dirty propagation and update), not in app code.
+  The freezes start when the text begins to scroll. From then on, every word step costs
+  100–380 ms at 50k words, and the first layout of a 50k script costs about 480 ms.
+- **Why script length matters:** only visible lines are built, but the scroll animates
+  the offset of one view as tall as the whole script (spacers above and below the
+  visible lines), so the cost still grows with length.
+- **Likely fix:** render only a window of lines, positioned in a fixed-height container.
+  That restructures `SpeechScrollView`/`WordFlowLayout`, so it's left for a deliberate
+  change, with `render` and `micro` as the proof.
+
+Not changed (product decisions): offering moonshine-streaming-tiny for word tracking
+(it falls behind real time even on an M1 Max), and shipping the `OSSignposter` hooks
+in Release (decision 4).
 
 ---
 

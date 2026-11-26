@@ -401,6 +401,7 @@ final class BenchFrameProbe: NSView {
             if interval > expected * 1.5 {
                 hitches += 1
                 hitchSeconds += interval - expected
+                if interval > 0.1 { Bench.log("hitch", ["probe": label, "ms": interval * 1000, "chars": chars()]) }
             }
         }
         lastTimestamp = link.timestamp
