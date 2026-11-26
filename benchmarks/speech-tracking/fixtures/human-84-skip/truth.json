@@ -1,0 +1,1122 @@
+{
+  "end" : 64.9450625,
+  "pauses" : [
+
+  ],
+  "resumes" : [
+    21.17,
+    48.05
+  ],
+  "tokens" : [
+    {
+      "end" : 1.41,
+      "index" : 0,
+      "start" : 1.0465624999999998,
+      "text" : "go"
+    },
+    {
+      "end" : 1.8900000000000001,
+      "index" : 1,
+      "start" : 1.68,
+      "text" : "do"
+    },
+    {
+      "end" : 2.0100000000000002,
+      "index" : 2,
+      "start" : 1.8900000000000001,
+      "text" : "you"
+    },
+    {
+      "end" : 2.30275,
+      "index" : 3,
+      "start" : 2.0100000000000002,
+      "text" : "hear"
+    },
+    {
+      "end" : 3.35,
+      "index" : 4,
+      "start" : 3.220375,
+      "text" : "but"
+    },
+    {
+      "end" : 3.47,
+      "index" : 5,
+      "start" : 3.35,
+      "text" : "in"
+    },
+    {
+      "end" : 3.6500000000000004,
+      "index" : 6,
+      "start" : 3.47,
+      "text" : "less"
+    },
+    {
+      "end" : 3.7700000000000005,
+      "index" : 7,
+      "start" : 3.6500000000000004,
+      "text" : "than"
+    },
+    {
+      "end" : 4.01,
+      "index" : 8,
+      "start" : 3.7700000000000005,
+      "text" : "five"
+    },
+    {
+      "end" : 4.34,
+      "index" : 9,
+      "start" : 4.01,
+      "text" : "minutes"
+    },
+    {
+      "end" : 4.49,
+      "index" : 10,
+      "start" : 4.34,
+      "text" : "the"
+    },
+    {
+      "end" : 5,
+      "index" : 11,
+      "start" : 4.49,
+      "text" : "staircase"
+    },
+    {
+      "end" : 5.42,
+      "index" : 12,
+      "start" : 5,
+      "text" : "groaned"
+    },
+    {
+      "end" : 5.74,
+      "index" : 13,
+      "start" : 5.42,
+      "text" : "beneath"
+    },
+    {
+      "end" : 6.0600000000000005,
+      "index" : 14,
+      "start" : 5.74,
+      "text" : "an"
+    },
+    {
+      "end" : 6.380000000000001,
+      "index" : 15,
+      "start" : 6.0600000000000005,
+      "text" : "extraordinary"
+    },
+    {
+      "end" : 6.6836875,
+      "index" : 16,
+      "start" : 6.380000000000001,
+      "text" : "weight"
+    },
+    {
+      "end" : 7.64,
+      "index" : 17,
+      "start" : 7.5116875,
+      "text" : "at"
+    },
+    {
+      "end" : 7.82,
+      "index" : 18,
+      "start" : 7.64,
+      "text" : "this"
+    },
+    {
+      "end" : 8.3,
+      "index" : 19,
+      "start" : 7.82,
+      "text" : "moment"
+    },
+    {
+      "end" : 8.45,
+      "index" : 20,
+      "start" : 8.3,
+      "text" : "the"
+    },
+    {
+      "end" : 8.69,
+      "index" : 21,
+      "start" : 8.45,
+      "text" : "whole"
+    },
+    {
+      "end" : 9.2,
+      "index" : 22,
+      "start" : 8.69,
+      "text" : "soul"
+    },
+    {
+      "end" : 9.32,
+      "index" : 23,
+      "start" : 9.2,
+      "text" : "of"
+    },
+    {
+      "end" : 9.44,
+      "index" : 24,
+      "start" : 9.32,
+      "text" : "the"
+    },
+    {
+      "end" : 9.62,
+      "index" : 25,
+      "start" : 9.44,
+      "text" : "old"
+    },
+    {
+      "end" : 9.89,
+      "index" : 26,
+      "start" : 9.62,
+      "text" : "man"
+    },
+    {
+      "end" : 10.16,
+      "index" : 27,
+      "start" : 9.89,
+      "text" : "seemed"
+    },
+    {
+      "end" : 10.58,
+      "index" : 28,
+      "start" : 10.16,
+      "text" : "centred"
+    },
+    {
+      "end" : 10.64,
+      "index" : 29,
+      "start" : 10.58,
+      "text" : "in"
+    },
+    {
+      "end" : 10.879999999999999,
+      "index" : 30,
+      "start" : 10.64,
+      "text" : "his"
+    },
+    {
+      "end" : 11.21,
+      "index" : 31,
+      "start" : 10.879999999999999,
+      "text" : "eyes"
+    },
+    {
+      "end" : 11.36,
+      "index" : 32,
+      "start" : 11.21,
+      "text" : "which"
+    },
+    {
+      "end" : 11.809999999999999,
+      "index" : 33,
+      "start" : 11.36,
+      "text" : "became"
+    },
+    {
+      "end" : 12.530000000000001,
+      "index" : 34,
+      "start" : 11.809999999999999,
+      "text" : "bloodshot"
+    },
+    {
+      "end" : 12.8,
+      "index" : 35,
+      "start" : 12.620000000000001,
+      "text" : "the"
+    },
+    {
+      "end" : 13.1,
+      "index" : 36,
+      "start" : 12.8,
+      "text" : "veins"
+    },
+    {
+      "end" : 13.19,
+      "index" : 37,
+      "start" : 13.1,
+      "text" : "of"
+    },
+    {
+      "end" : 13.280000000000001,
+      "index" : 38,
+      "start" : 13.19,
+      "text" : "the"
+    },
+    {
+      "end" : 13.58,
+      "index" : 39,
+      "start" : 13.280000000000001,
+      "text" : "throat"
+    },
+    {
+      "end" : 14.120000000000001,
+      "index" : 40,
+      "start" : 13.58,
+      "text" : "swelled"
+    },
+    {
+      "end" : 14.36,
+      "index" : 41,
+      "start" : 14.120000000000001,
+      "text" : "his"
+    },
+    {
+      "end" : 14.75,
+      "index" : 42,
+      "start" : 14.36,
+      "text" : "cheeks"
+    },
+    {
+      "end" : 14.84,
+      "index" : 43,
+      "start" : 14.75,
+      "text" : "and"
+    },
+    {
+      "end" : 15.23,
+      "index" : 44,
+      "start" : 14.84,
+      "text" : "temples"
+    },
+    {
+      "end" : 15.59,
+      "index" : 45,
+      "start" : 15.23,
+      "text" : "became"
+    },
+    {
+      "end" : 16.04,
+      "index" : 46,
+      "start" : 15.59,
+      "text" : "purple"
+    },
+    {
+      "end" : 16.189999999999998,
+      "index" : 47,
+      "start" : 16.04,
+      "text" : "as"
+    },
+    {
+      "end" : 16.28,
+      "index" : 48,
+      "start" : 16.189999999999998,
+      "text" : "though"
+    },
+    {
+      "end" : 16.369999999999997,
+      "index" : 49,
+      "start" : 16.28,
+      "text" : "he"
+    },
+    {
+      "end" : 16.52,
+      "index" : 50,
+      "start" : 16.369999999999997,
+      "text" : "was"
+    },
+    {
+      "end" : 16.79,
+      "index" : 51,
+      "start" : 16.52,
+      "text" : "struck"
+    },
+    {
+      "end" : 16.97,
+      "index" : 52,
+      "start" : 16.79,
+      "text" : "with"
+    },
+    {
+      "end" : 17.630000000000003,
+      "index" : 53,
+      "start" : 16.97,
+      "text" : "epilepsy"
+    },
+    {
+      "end" : 18.05,
+      "index" : 54,
+      "start" : 17.689999999999998,
+      "text" : "nothing"
+    },
+    {
+      "end" : 18.23,
+      "index" : 55,
+      "start" : 18.05,
+      "text" : "was"
+    },
+    {
+      "end" : 18.560000000000002,
+      "index" : 56,
+      "start" : 18.23,
+      "text" : "wanting"
+    },
+    {
+      "end" : 18.68,
+      "index" : 57,
+      "start" : 18.560000000000002,
+      "text" : "to"
+    },
+    {
+      "end" : 19.04,
+      "index" : 58,
+      "start" : 18.68,
+      "text" : "complete"
+    },
+    {
+      "end" : 19.28,
+      "index" : 59,
+      "start" : 19.04,
+      "text" : "this"
+    },
+    {
+      "end" : 19.43,
+      "index" : 60,
+      "start" : 19.28,
+      "text" : "but"
+    },
+    {
+      "end" : 19.55,
+      "index" : 61,
+      "start" : 19.43,
+      "text" : "the"
+    },
+    {
+      "end" : 19.939999999999998,
+      "index" : 62,
+      "start" : 19.55,
+      "text" : "utterance"
+    },
+    {
+      "end" : 20.03,
+      "index" : 63,
+      "start" : 19.939999999999998,
+      "text" : "of"
+    },
+    {
+      "end" : 20.09,
+      "index" : 64,
+      "start" : 20.03,
+      "text" : "a"
+    },
+    {
+      "end" : 20.557375,
+      "index" : 65,
+      "start" : 20.09,
+      "text" : "cry"
+    },
+    {
+      "end" : 21.930000000000003,
+      "index" : 84,
+      "start" : 21.66,
+      "text" : "davrigny"
+    },
+    {
+      "end" : 22.200000000000003,
+      "index" : 85,
+      "start" : 21.930000000000003,
+      "text" : "rushed"
+    },
+    {
+      "end" : 22.470000000000002,
+      "index" : 86,
+      "start" : 22.200000000000003,
+      "text" : "towards"
+    },
+    {
+      "end" : 22.590000000000003,
+      "index" : 87,
+      "start" : 22.470000000000002,
+      "text" : "the"
+    },
+    {
+      "end" : 22.740000000000002,
+      "index" : 88,
+      "start" : 22.590000000000003,
+      "text" : "old"
+    },
+    {
+      "end" : 23.040000000000003,
+      "index" : 89,
+      "start" : 22.740000000000002,
+      "text" : "man"
+    },
+    {
+      "end" : 23.160000000000004,
+      "index" : 90,
+      "start" : 23.040000000000003,
+      "text" : "and"
+    },
+    {
+      "end" : 23.430000000000003,
+      "index" : 91,
+      "start" : 23.160000000000004,
+      "text" : "made"
+    },
+    {
+      "end" : 23.520000000000003,
+      "index" : 92,
+      "start" : 23.430000000000003,
+      "text" : "him"
+    },
+    {
+      "end" : 23.880000000000003,
+      "index" : 93,
+      "start" : 23.520000000000003,
+      "text" : "inhale"
+    },
+    {
+      "end" : 23.910000000000004,
+      "index" : 94,
+      "start" : 23.880000000000003,
+      "text" : "a"
+    },
+    {
+      "end" : 24.360000000000003,
+      "index" : 95,
+      "start" : 23.910000000000004,
+      "text" : "powerful"
+    },
+    {
+      "end" : 25.026000000000003,
+      "index" : 96,
+      "start" : 24.360000000000003,
+      "text" : "restorative"
+    },
+    {
+      "end" : 26.900000000000002,
+      "index" : 97,
+      "start" : 26.323875,
+      "text" : "davrigny"
+    },
+    {
+      "end" : 27.35,
+      "index" : 98,
+      "start" : 26.96,
+      "text" : "unable"
+    },
+    {
+      "end" : 27.470000000000002,
+      "index" : 99,
+      "start" : 27.35,
+      "text" : "to"
+    },
+    {
+      "end" : 27.68,
+      "index" : 100,
+      "start" : 27.470000000000002,
+      "text" : "bear"
+    },
+    {
+      "end" : 27.8,
+      "index" : 101,
+      "start" : 27.68,
+      "text" : "the"
+    },
+    {
+      "end" : 28.01,
+      "index" : 102,
+      "start" : 27.8,
+      "text" : "sight"
+    },
+    {
+      "end" : 28.07,
+      "index" : 103,
+      "start" : 28.01,
+      "text" : "of"
+    },
+    {
+      "end" : 28.19,
+      "index" : 104,
+      "start" : 28.07,
+      "text" : "this"
+    },
+    {
+      "end" : 28.52,
+      "index" : 105,
+      "start" : 28.19,
+      "text" : "touching"
+    },
+    {
+      "end" : 28.91,
+      "index" : 106,
+      "start" : 28.52,
+      "text" : "emotion"
+    },
+    {
+      "end" : 29.18,
+      "index" : 107,
+      "start" : 28.91,
+      "text" : "turned"
+    },
+    {
+      "end" : 29.57,
+      "index" : 108,
+      "start" : 29.18,
+      "text" : "away"
+    },
+    {
+      "end" : 29.810000000000002,
+      "index" : 109,
+      "start" : 29.69,
+      "text" : "and"
+    },
+    {
+      "end" : 30.470000000000002,
+      "index" : 110,
+      "start" : 30.080000000000002,
+      "text" : "villefort"
+    },
+    {
+      "end" : 30.92,
+      "index" : 111,
+      "start" : 30.5,
+      "text" : "without"
+    },
+    {
+      "end" : 31.400000000000002,
+      "index" : 112,
+      "start" : 30.92,
+      "text" : "seeking"
+    },
+    {
+      "end" : 31.67,
+      "index" : 113,
+      "start" : 31.400000000000002,
+      "text" : "any"
+    },
+    {
+      "end" : 31.970000000000002,
+      "index" : 114,
+      "start" : 31.67,
+      "text" : "further"
+    },
+    {
+      "end" : 32.81,
+      "index" : 115,
+      "start" : 31.970000000000002,
+      "text" : "explanation"
+    },
+    {
+      "end" : 32.99,
+      "index" : 116,
+      "start" : 32.81,
+      "text" : "and"
+    },
+    {
+      "end" : 33.47,
+      "index" : 117,
+      "start" : 32.99,
+      "text" : "attracted"
+    },
+    {
+      "end" : 33.8,
+      "index" : 118,
+      "start" : 33.47,
+      "text" : "towards"
+    },
+    {
+      "end" : 33.92,
+      "index" : 119,
+      "start" : 33.8,
+      "text" : "him"
+    },
+    {
+      "end" : 34.04,
+      "index" : 120,
+      "start" : 33.92,
+      "text" : "by"
+    },
+    {
+      "end" : 34.28,
+      "index" : 121,
+      "start" : 34.04,
+      "text" : "the"
+    },
+    {
+      "end" : 34.82,
+      "index" : 122,
+      "start" : 34.28,
+      "text" : "irresistible"
+    },
+    {
+      "end" : 35.39,
+      "index" : 123,
+      "start" : 34.82,
+      "text" : "magnetism"
+    },
+    {
+      "end" : 35.6,
+      "index" : 124,
+      "start" : 35.39,
+      "text" : "which"
+    },
+    {
+      "end" : 35.99,
+      "index" : 125,
+      "start" : 35.6,
+      "text" : "draws"
+    },
+    {
+      "end" : 36.17,
+      "index" : 126,
+      "start" : 35.99,
+      "text" : "us"
+    },
+    {
+      "end" : 36.5,
+      "index" : 127,
+      "start" : 36.17,
+      "text" : "towards"
+    },
+    {
+      "end" : 36.86,
+      "index" : 128,
+      "start" : 36.5,
+      "text" : "those"
+    },
+    {
+      "end" : 36.980000000000004,
+      "index" : 129,
+      "start" : 36.86,
+      "text" : "who"
+    },
+    {
+      "end" : 37.160000000000004,
+      "index" : 130,
+      "start" : 36.980000000000004,
+      "text" : "have"
+    },
+    {
+      "end" : 37.52,
+      "index" : 131,
+      "start" : 37.160000000000004,
+      "text" : "loved"
+    },
+    {
+      "end" : 37.64,
+      "index" : 132,
+      "start" : 37.52,
+      "text" : "the"
+    },
+    {
+      "end" : 38,
+      "index" : 133,
+      "start" : 37.64,
+      "text" : "people"
+    },
+    {
+      "end" : 38.150000000000006,
+      "index" : 134,
+      "start" : 38,
+      "text" : "for"
+    },
+    {
+      "end" : 38.36,
+      "index" : 135,
+      "start" : 38.150000000000006,
+      "text" : "whom"
+    },
+    {
+      "end" : 38.480000000000004,
+      "index" : 136,
+      "start" : 38.36,
+      "text" : "we"
+    },
+    {
+      "end" : 38.96,
+      "index" : 137,
+      "start" : 38.480000000000004,
+      "text" : "mourn"
+    },
+    {
+      "end" : 39.92,
+      "index" : 138,
+      "start" : 39.29,
+      "text" : "extended"
+    },
+    {
+      "end" : 40.13,
+      "index" : 139,
+      "start" : 39.92,
+      "text" : "his"
+    },
+    {
+      "end" : 40.46,
+      "index" : 140,
+      "start" : 40.13,
+      "text" : "hand"
+    },
+    {
+      "end" : 40.730000000000004,
+      "index" : 141,
+      "start" : 40.46,
+      "text" : "towards"
+    },
+    {
+      "end" : 40.910000000000004,
+      "index" : 142,
+      "start" : 40.730000000000004,
+      "text" : "the"
+    },
+    {
+      "end" : 41.03,
+      "index" : 143,
+      "start" : 40.910000000000004,
+      "text" : "young"
+    },
+    {
+      "end" : 41.436687500000005,
+      "index" : 144,
+      "start" : 41.03,
+      "text" : "man"
+    },
+    {
+      "end" : 42.59,
+      "index" : 145,
+      "start" : 42.4795625,
+      "text" : "for"
+    },
+    {
+      "end" : 42.64,
+      "index" : 146,
+      "start" : 42.59,
+      "text" : "some"
+    },
+    {
+      "end" : 43.220000000000006,
+      "index" : 147,
+      "start" : 42.64,
+      "text" : "time"
+    },
+    {
+      "end" : 43.550000000000004,
+      "index" : 148,
+      "start" : 43.220000000000006,
+      "text" : "nothing"
+    },
+    {
+      "end" : 43.730000000000004,
+      "index" : 149,
+      "start" : 43.550000000000004,
+      "text" : "was"
+    },
+    {
+      "end" : 43.97,
+      "index" : 150,
+      "start" : 43.730000000000004,
+      "text" : "heard"
+    },
+    {
+      "end" : 44.03,
+      "index" : 151,
+      "start" : 43.97,
+      "text" : "in"
+    },
+    {
+      "end" : 44.21,
+      "index" : 152,
+      "start" : 44.03,
+      "text" : "that"
+    },
+    {
+      "end" : 44.6,
+      "index" : 153,
+      "start" : 44.21,
+      "text" : "chamber"
+    },
+    {
+      "end" : 44.84,
+      "index" : 154,
+      "start" : 44.6,
+      "text" : "but"
+    },
+    {
+      "end" : 45.410000000000004,
+      "index" : 155,
+      "start" : 44.84,
+      "text" : "sobs"
+    },
+    {
+      "end" : 46.46,
+      "index" : 156,
+      "start" : 45.47,
+      "text" : "exclamations"
+    },
+    {
+      "end" : 46.67,
+      "index" : 157,
+      "start" : 46.46,
+      "text" : "and"
+    },
+    {
+      "end" : 47.1958125,
+      "index" : 158,
+      "start" : 46.67,
+      "text" : "prayers"
+    },
+    {
+      "end" : 48.48,
+      "index" : 184,
+      "start" : 48.413062499999995,
+      "text" : "do"
+    },
+    {
+      "end" : 48.629999999999995,
+      "index" : 185,
+      "start" : 48.48,
+      "text" : "you"
+    },
+    {
+      "end" : 48.839999999999996,
+      "index" : 186,
+      "start" : 48.629999999999995,
+      "text" : "know"
+    },
+    {
+      "end" : 48.989999999999995,
+      "index" : 187,
+      "start" : 48.839999999999996,
+      "text" : "the"
+    },
+    {
+      "end" : 49.529999999999994,
+      "index" : 188,
+      "start" : 48.989999999999995,
+      "text" : "assassin"
+    },
+    {
+      "end" : 49.769999999999996,
+      "index" : 189,
+      "start" : 49.529999999999994,
+      "text" : "asked"
+    },
+    {
+      "end" : 50.397,
+      "index" : 190,
+      "start" : 49.769999999999996,
+      "text" : "morrel"
+    },
+    {
+      "end" : 51.9250625,
+      "index" : 191,
+      "start" : 51.7550625,
+      "text" : "noirtier"
+    },
+    {
+      "end" : 52.1650625,
+      "index" : 192,
+      "start" : 51.9250625,
+      "text" : "looked"
+    },
+    {
+      "end" : 52.4650625,
+      "index" : 193,
+      "start" : 52.1650625,
+      "text" : "upon"
+    },
+    {
+      "end" : 52.7950625,
+      "index" : 194,
+      "start" : 52.4650625,
+      "text" : "morrel"
+    },
+    {
+      "end" : 53.0050625,
+      "index" : 195,
+      "start" : 52.7950625,
+      "text" : "with"
+    },
+    {
+      "end" : 53.1550625,
+      "index" : 196,
+      "start" : 53.0050625,
+      "text" : "one"
+    },
+    {
+      "end" : 53.2450625,
+      "index" : 197,
+      "start" : 53.1550625,
+      "text" : "of"
+    },
+    {
+      "end" : 53.4550625,
+      "index" : 198,
+      "start" : 53.2450625,
+      "text" : "those"
+    },
+    {
+      "end" : 53.9950625,
+      "index" : 199,
+      "start" : 53.4550625,
+      "text" : "melancholy"
+    },
+    {
+      "end" : 54.4750625,
+      "index" : 200,
+      "start" : 53.9950625,
+      "text" : "smiles"
+    },
+    {
+      "end" : 54.6250625,
+      "index" : 201,
+      "start" : 54.4750625,
+      "text" : "which"
+    },
+    {
+      "end" : 54.7450625,
+      "index" : 202,
+      "start" : 54.6250625,
+      "text" : "had"
+    },
+    {
+      "end" : 55.0750625,
+      "index" : 203,
+      "start" : 54.7450625,
+      "text" : "so"
+    },
+    {
+      "end" : 55.4350625,
+      "index" : 204,
+      "start" : 55.0750625,
+      "text" : "often"
+    },
+    {
+      "end" : 55.6750625,
+      "index" : 205,
+      "start" : 55.4350625,
+      "text" : "made"
+    },
+    {
+      "end" : 56.1550625,
+      "index" : 206,
+      "start" : 55.6750625,
+      "text" : "valentine"
+    },
+    {
+      "end" : 56.5750625,
+      "index" : 207,
+      "start" : 56.1550625,
+      "text" : "happy"
+    },
+    {
+      "end" : 56.8150625,
+      "index" : 208,
+      "start" : 56.6650625,
+      "text" : "and"
+    },
+    {
+      "end" : 57.1150625,
+      "index" : 209,
+      "start" : 56.8150625,
+      "text" : "thus"
+    },
+    {
+      "end" : 57.4450625,
+      "index" : 210,
+      "start" : 57.1150625,
+      "text" : "fixed"
+    },
+    {
+      "end" : 57.5650625,
+      "index" : 211,
+      "start" : 57.4450625,
+      "text" : "his"
+    },
+    {
+      "end" : 58.0359375,
+      "index" : 212,
+      "start" : 57.5650625,
+      "text" : "attention"
+    },
+    {
+      "end" : 59.025062500000004,
+      "index" : 213,
+      "start" : 58.70275,
+      "text" : "said"
+    },
+    {
+      "end" : 59.205062500000004,
+      "index" : 214,
+      "start" : 59.025062500000004,
+      "text" : "morrel"
+    },
+    {
+      "end" : 59.7450625,
+      "index" : 215,
+      "start" : 59.205062500000004,
+      "text" : "sadly"
+    },
+    {
+      "end" : 60.7650625,
+      "index" : 216,
+      "start" : 60.165062500000005,
+      "text" : "yes"
+    },
+    {
+      "end" : 61.2150625,
+      "index" : 217,
+      "start" : 60.7650625,
+      "text" : "replied"
+    },
+    {
+      "end" : 61.6605,
+      "index" : 218,
+      "start" : 61.5150625,
+      "text" : "noirtier"
+    },
+    {
+      "end" : 62.4850625,
+      "index" : 219,
+      "start" : 62.344875,
+      "text" : "the"
+    },
+    {
+      "end" : 62.6350625,
+      "index" : 220,
+      "start" : 62.4850625,
+      "text" : "old"
+    },
+    {
+      "end" : 62.9650625,
+      "index" : 221,
+      "start" : 62.6350625,
+      "text" : "mans"
+    },
+    {
+      "end" : 63.190062499999996,
+      "index" : 222,
+      "start" : 62.9650625,
+      "text" : "eyes"
+    },
+    {
+      "end" : 63.6400625,
+      "index" : 223,
+      "start" : 63.4150625,
+      "text" : "remained"
+    },
+    {
+      "end" : 63.8650625,
+      "index" : 224,
+      "start" : 63.6400625,
+      "text" : "fixed"
+    },
+    {
+      "end" : 63.9850625,
+      "index" : 225,
+      "start" : 63.8650625,
+      "text" : "on"
+    },
+    {
+      "end" : 64.0450625,
+      "index" : 226,
+      "start" : 63.9850625,
+      "text" : "the"
+    },
+    {
+      "end" : 64.3631875,
+      "index" : 227,
+      "start" : 64.0450625,
+      "text" : "door"
+    }
+  ]
+}

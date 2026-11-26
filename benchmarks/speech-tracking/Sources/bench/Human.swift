@@ -123,6 +123,10 @@ func offlineWordTimings(_ url: URL) throws -> [(word: String, start: Double, end
 /// Apple's on-device recognizer, fed one chunk faster than real time. Segment timestamps are in
 /// audio time. A new utterance after a pause starts the transcript over, so each utterance's
 /// last partial is kept.
+/// Wall-clock seconds per 1 s audio buffer when deriving truth timings. Faster than real time
+/// drops audio on some real voices (a LibriSpeech take lost 60% of its words at 4×).
+let truthFeedSeconds = Double(ProcessInfo.processInfo.environment["TRUTH_FEED_SECONDS"] ?? "1.0")!
+
 func recognizeChunk(_ audio: [Float]) throws -> [(word: String, start: Double, end: Double)] {
     guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")) else { throw usage("no en-US recognizer") }
     let request = SFSpeechAudioBufferRecognitionRequest()
@@ -146,8 +150,7 @@ func recognizeChunk(_ audio: [Float]) throws -> [(word: String, start: Double, e
             if result.isFinal { done = true }
             // The recognizer often ends with an empty final result; it isn't a transcript.
             guard !next.isEmpty else { return }
-            let k = min(3, next.count, current.count)
-            if k > 0, next.prefix(k).map(\.word) != current.prefix(k).map(\.word), next.count < current.count {
+            if PromptMatcher.startsOver(next.map(\.word), after: current.map(\.word)) {
                 committed += current   // the previous utterance ended
             }
             current = next
@@ -158,7 +161,7 @@ func recognizeChunk(_ audio: [Float]) throws -> [(word: String, start: Double, e
         }
     }
     let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
-    let chunk = Int(sampleRate)   // 1 s buffers at 4× real time (faster and it drops whole chunks)
+    let chunk = Int(sampleRate)   // 1 s buffers, paced by truthFeedSeconds
     var i = 0
     while i < audio.count {
         let n = min(chunk, audio.count - i)
@@ -167,7 +170,7 @@ func recognizeChunk(_ audio: [Float]) throws -> [(word: String, start: Double, e
         audio.withUnsafeBufferPointer { buffer.floatChannelData![0].update(from: $0.baseAddress! + i, count: n) }
         request.append(buffer)
         i += n
-        RunLoop.main.run(until: Date().addingTimeInterval(0.25))
+        RunLoop.main.run(until: Date().addingTimeInterval(truthFeedSeconds))
     }
     request.endAudio()
     let deadline = Date().addingTimeInterval(120)

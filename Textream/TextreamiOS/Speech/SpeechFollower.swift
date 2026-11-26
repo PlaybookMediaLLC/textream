@@ -22,6 +22,7 @@ final class SpeechFollower {
     @ObservationIgnored private var recognitionTask: SFSpeechRecognitionTask?
     @ObservationIgnored private var voiceActivityDetector = VoiceActivityDetector()
     @ObservationIgnored private var restartTimer: Timer?
+    @ObservationIgnored private var restartPolicy = RecognitionRestartPolicy()
     @ObservationIgnored private var pendingRestart: DispatchWorkItem?
     @ObservationIgnored private var retryCount = 0
     @ObservationIgnored private var generation = 0
@@ -127,6 +128,13 @@ final class SpeechFollower {
         voiceActivityDetector.process(level: level, at: now)
         let speaking = voiceActivityDetector.isActive(at: now)
         if isSpeaking != speaking { isSpeaking = speaking }
+        // Restart recognition in a pause near its ~1 min limit rather than mid-word.
+        if restartTimer != nil, shouldFollow, mode == .wordTracking,
+           restartPolicy.shouldRestart(level: level, at: now) {
+            restartTimer?.invalidate()
+            restartTimer = nil
+            beginRecognition()
+        }
     }
 
     nonisolated func consumeAudioSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
@@ -239,9 +247,12 @@ final class SpeechFollower {
         DispatchQueue.main.asyncAfter(deadline: .now() + min(Double(retryCount) * 0.35, 1.5), execute: work)
     }
 
+    /// Called whenever a recognition task starts. `RecognitionRestartPolicy` restarts in the first
+    /// pause after 45 s (from audio levels); this timer is only the backstop if levels stop.
     private func startPreemptiveRestartTimer() {
         restartTimer?.invalidate()
-        restartTimer = Timer.scheduledTimer(withTimeInterval: 55, repeats: false) { [weak self] _ in
+        restartPolicy.sessionStarted(at: ProcessInfo.processInfo.systemUptime)
+        restartTimer = Timer.scheduledTimer(withTimeInterval: 58, repeats: false) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.shouldFollow else { return }
                 self.beginRecognition()

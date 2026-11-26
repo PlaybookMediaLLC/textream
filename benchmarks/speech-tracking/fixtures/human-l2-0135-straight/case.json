@@ -1,0 +1,11 @@
+{
+  "dimension" : "human · baseline",
+  "gating" : true,
+  "hints" : true,
+  "id" : "human-l2-0135-straight",
+  "name" : "Speechocean762 speaker 0135 (Mandarin L1, F, age 20), straight",
+  "script" : "human\/speechocean-l2-0135",
+  "truthSource" : "auto-aligned",
+  "voice" : "human: Speechocean762 l2-0135",
+  "wpm" : 0
+}

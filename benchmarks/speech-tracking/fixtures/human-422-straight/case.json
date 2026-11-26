@@ -1,0 +1,11 @@
+{
+  "dimension" : "human · baseline",
+  "gating" : true,
+  "hints" : true,
+  "id" : "human-422-straight",
+  "name" : "LibriSpeech reader 422 (M), straight",
+  "script" : "human\/librispeech-422",
+  "truthSource" : "auto-aligned",
+  "voice" : "human: LibriSpeech 422",
+  "wpm" : 0
+}

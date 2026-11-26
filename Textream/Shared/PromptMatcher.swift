@@ -137,12 +137,9 @@ struct PromptMatcher {
     mutating func match(transcript: String) -> Int {
         let heard = Self.canonicalTokens(transcript)
         guard !heard.isEmpty else { return recognizedCharacterCount }
-        // A partial that starts over (different first words and shorter; revisions of
-        // the opening words keep or grow their length) is a new utterance: carry the words
-        // heard just before it, not the context from when the session began.
-        let prefixLength = min(3, heard.count, lastHeard.count)
-        if prefixLength > 0, heard.prefix(prefixLength) != lastHeard.prefix(prefixLength),
-           heard.count < lastHeard.count {
+        // A partial that starts over is a new utterance: carry the words heard just
+        // before it, not the context from when the session began.
+        if Self.startsOver(heard, after: lastHeard) {
             carriedTail = lastTail
         }
         lastHeard = heard
@@ -330,6 +327,16 @@ struct PromptMatcher {
 
     /// One more word (even "the") is enough to move one or two tokens; longer
     /// steps need proportionally more new, in-order matches.
+    /// Whether a recognizer's new transcript starts over instead of revising the last one.
+    /// Revisions keep (or grow) their length; a new utterance is shorter and starts
+    /// differently, or collapses to under half the length even when its first word happens
+    /// to match ("he had never been…" (61 words) → "he").
+    static func startsOver(_ new: [String], after old: [String]) -> Bool {
+        guard !new.isEmpty, new.count < old.count else { return false }
+        let k = min(3, new.count)
+        return new.count * 2 < old.count || new.prefix(k) != old.prefix(k)
+    }
+
     private static func requiredGain(forStep step: Int) -> Double {
         step <= 2 ? 0.35 : 0.8 + 0.06 * Double(step)
     }
@@ -381,11 +388,34 @@ struct PromptMatcher {
         var result: [String] = []
         for raw in splitPromptTextIntoWords(text.lowercased().replacingOccurrences(of: "’", with: "'")) {
             for piece in expandContraction(raw) {
-                let cleaned = piece.filter { $0.isLetter || $0.isNumber }
-                if !cleaned.isEmpty { result += expandScale(cleaned) }
+                for part in piece.split(separator: "-") {   // "forty-two" → "forty two"
+                    let cleaned = part.filter { $0.isLetter || $0.isNumber }
+                    guard !cleaned.isEmpty else { continue }
+                    for token in expandScale(cleaned) { result += spelledNumber(token) ?? [token] }
+                }
             }
         }
         return result
+    }
+
+    private static let ones = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+                               "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
+                               "nineteen"]
+    private static let tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+    /// "50" → ["fifty"], "42000" → ["forty", "two", "thousand"]: recognizers write numbers as
+    /// digits or words unpredictably, so both sides meet as words. Integers below a million.
+    private static func spelledNumber(_ token: String) -> [String]? {
+        guard token.allSatisfy(\.isNumber), token.count <= 6, let n = Int(token) else { return nil }
+        func words(_ n: Int) -> [String] {
+            switch n {
+            case ..<20: return [ones[n]]
+            case ..<100: return [tens[n / 10]] + (n % 10 > 0 ? [ones[n % 10]] : [])
+            case ..<1000: return [ones[n / 100], "hundred"] + (n % 100 > 0 ? words(n % 100) : [])
+            default: return words(n / 1000) + ["thousand"] + (n % 1000 > 0 ? words(n % 1000) : [])
+            }
+        }
+        return words(n)
     }
 
     private static let scales = ["k": "thousand", "m": "million", "bn": "billion", "b": "billion"]

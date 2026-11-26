@@ -1,0 +1,666 @@
+{
+  "end" : 69.238,
+  "pauses" : [
+
+  ],
+  "resumes" : [
+    13.291,
+    22.474
+  ],
+  "tokens" : [
+    {
+      "end" : 1.545,
+      "index" : 0,
+      "start" : 1.2,
+      "text" : "a"
+    },
+    {
+      "end" : 1.8900000000000001,
+      "index" : 1,
+      "start" : 1.545,
+      "text" : "light"
+    },
+    {
+      "end" : 2.2350000000000003,
+      "index" : 2,
+      "start" : 1.8900000000000001,
+      "text" : "rain"
+    },
+    {
+      "end" : 2.58,
+      "index" : 3,
+      "start" : 2.2350000000000003,
+      "text" : "was"
+    },
+    {
+      "end" : 3.24,
+      "index" : 4,
+      "start" : 2.58,
+      "text" : "falling"
+    },
+    {
+      "end" : 3.5100000000000002,
+      "index" : 5,
+      "start" : 3.24,
+      "text" : "at"
+    },
+    {
+      "end" : 3.63,
+      "index" : 6,
+      "start" : 3.5100000000000002,
+      "text" : "the"
+    },
+    {
+      "end" : 3.983,
+      "index" : 7,
+      "start" : 3.63,
+      "text" : "time"
+    },
+    {
+      "end" : 5.747,
+      "index" : 8,
+      "start" : 5.417,
+      "text" : "his"
+    },
+    {
+      "end" : 6.407,
+      "index" : 9,
+      "start" : 5.747,
+      "text" : "eyes"
+    },
+    {
+      "end" : 6.976999999999999,
+      "index" : 10,
+      "start" : 6.497,
+      "text" : "were"
+    },
+    {
+      "end" : 7.457,
+      "index" : 11,
+      "start" : 6.976999999999999,
+      "text" : "rolling"
+    },
+    {
+      "end" : 7.9571875,
+      "index" : 12,
+      "start" : 7.457,
+      "text" : "around"
+    },
+    {
+      "end" : 9.727,
+      "index" : 13,
+      "start" : 9.485125,
+      "text" : "i"
+    },
+    {
+      "end" : 9.997,
+      "index" : 14,
+      "start" : 9.727,
+      "text" : "go"
+    },
+    {
+      "end" : 10.357,
+      "index" : 15,
+      "start" : 9.997,
+      "text" : "on"
+    },
+    {
+      "end" : 10.597,
+      "index" : 16,
+      "start" : 10.357,
+      "text" : "the"
+    },
+    {
+      "end" : 11.257,
+      "index" : 17,
+      "start" : 10.597,
+      "text" : "field"
+    },
+    {
+      "end" : 11.707,
+      "index" : 18,
+      "start" : 11.257,
+      "text" : "and"
+    },
+    {
+      "end" : 11.887,
+      "index" : 19,
+      "start" : 11.707,
+      "text" : "i"
+    },
+    {
+      "end" : 12.2994375,
+      "index" : 20,
+      "start" : 11.887,
+      "text" : "play"
+    },
+    {
+      "end" : 13.931000000000001,
+      "index" : 31,
+      "start" : 13.87175,
+      "text" : "what"
+    },
+    {
+      "end" : 14.081,
+      "index" : 31,
+      "start" : 13.931000000000001,
+      "text" : "is"
+    },
+    {
+      "end" : 14.231,
+      "index" : 32,
+      "start" : 14.081,
+      "text" : "the"
+    },
+    {
+      "end" : 14.651,
+      "index" : 33,
+      "start" : 14.231,
+      "text" : "matter"
+    },
+    {
+      "end" : 14.861,
+      "index" : 34,
+      "start" : 14.651,
+      "text" : "with"
+    },
+    {
+      "end" : 15.281,
+      "index" : 35,
+      "start" : 14.861,
+      "text" : "us"
+    },
+    {
+      "end" : 17.016000000000002,
+      "index" : 36,
+      "start" : 16.6829375,
+      "text" : "cover"
+    },
+    {
+      "end" : 17.066000000000003,
+      "index" : 37,
+      "start" : 17.016000000000002,
+      "text" : "of"
+    },
+    {
+      "end" : 17.481,
+      "index" : 39,
+      "start" : 17.066000000000003,
+      "text" : "cover"
+    },
+    {
+      "end" : 17.481,
+      "index" : 38,
+      "start" : 17.481,
+      "text" : "a"
+    },
+    {
+      "end" : 18.081000000000003,
+      "index" : 40,
+      "start" : 17.481,
+      "text" : "a"
+    },
+    {
+      "end" : 20.274,
+      "index" : 41,
+      "start" : 19.929000000000002,
+      "text" : "i"
+    },
+    {
+      "end" : 20.619,
+      "index" : 42,
+      "start" : 20.274,
+      "text" : "bill"
+    },
+    {
+      "end" : 20.829,
+      "index" : 43,
+      "start" : 20.619,
+      "text" : "not"
+    },
+    {
+      "end" : 21.4409375,
+      "index" : 44,
+      "start" : 20.829,
+      "text" : "afraid"
+    },
+    {
+      "end" : 23.624,
+      "index" : 60,
+      "start" : 22.934,
+      "text" : "plus"
+    },
+    {
+      "end" : 24.224,
+      "index" : 61,
+      "start" : 24.014,
+      "text" : "they"
+    },
+    {
+      "end" : 24.524,
+      "index" : 62,
+      "start" : 24.224,
+      "text" : "can"
+    },
+    {
+      "end" : 24.704,
+      "index" : 63,
+      "start" : 24.524,
+      "text" : "be"
+    },
+    {
+      "end" : 24.9994375,
+      "index" : 64,
+      "start" : 24.704,
+      "text" : "fun"
+    },
+    {
+      "end" : 27.057,
+      "index" : 65,
+      "start" : 26.561999999999998,
+      "text" : "and"
+    },
+    {
+      "end" : 27.107,
+      "index" : 66,
+      "start" : 27.057,
+      "text" : "thank"
+    },
+    {
+      "end" : 27.552,
+      "index" : 67,
+      "start" : 27.107,
+      "text" : "you"
+    },
+    {
+      "end" : 27.791999999999998,
+      "index" : 68,
+      "start" : 27.552,
+      "text" : "for"
+    },
+    {
+      "end" : 28.362,
+      "index" : 69,
+      "start" : 27.791999999999998,
+      "text" : "pointing"
+    },
+    {
+      "end" : 29.652,
+      "index" : 70,
+      "start" : 29.172,
+      "text" : "this"
+    },
+    {
+      "end" : 30.222,
+      "index" : 71,
+      "start" : 29.652,
+      "text" : "out"
+    },
+    {
+      "end" : 30.402,
+      "index" : 72,
+      "start" : 30.222,
+      "text" : "to"
+    },
+    {
+      "end" : 30.7071875,
+      "index" : 73,
+      "start" : 30.402,
+      "text" : "us"
+    },
+    {
+      "end" : 32.712,
+      "index" : 74,
+      "start" : 32.292,
+      "text" : "and"
+    },
+    {
+      "end" : 33.132,
+      "index" : 75,
+      "start" : 32.712,
+      "text" : "it"
+    },
+    {
+      "end" : 33.552,
+      "index" : 76,
+      "start" : 33.132,
+      "text" : "seems"
+    },
+    {
+      "end" : 34.242000000000004,
+      "index" : 77,
+      "start" : 34.107,
+      "text" : "to"
+    },
+    {
+      "end" : 34.482,
+      "index" : 78,
+      "start" : 34.242000000000004,
+      "text" : "be"
+    },
+    {
+      "end" : 35.067,
+      "index" : 79,
+      "start" : 34.482,
+      "text" : "mostly"
+    },
+    {
+      "end" : 35.652,
+      "index" : 80,
+      "start" : 35.067,
+      "text" : "phones"
+    },
+    {
+      "end" : 37.955,
+      "index" : 81,
+      "start" : 37.336375,
+      "text" : "feeling"
+    },
+    {
+      "end" : 38.464999999999996,
+      "index" : 82,
+      "start" : 37.955,
+      "text" : "is"
+    },
+    {
+      "end" : 38.894999999999996,
+      "index" : 83,
+      "start" : 38.464999999999996,
+      "text" : "still"
+    },
+    {
+      "end" : 39.324999999999996,
+      "index" : 84,
+      "start" : 38.894999999999996,
+      "text" : "the"
+    },
+    {
+      "end" : 39.64,
+      "index" : 85,
+      "start" : 39.324999999999996,
+      "text" : "same"
+    },
+    {
+      "end" : 41.417,
+      "index" : 86,
+      "start" : 41.301874999999995,
+      "text" : "i"
+    },
+    {
+      "end" : 41.867,
+      "index" : 87,
+      "start" : 41.417,
+      "text" : "want"
+    },
+    {
+      "end" : 42.257,
+      "index" : 88,
+      "start" : 41.867,
+      "text" : "a"
+    },
+    {
+      "end" : 42.836999999999996,
+      "index" : 89,
+      "start" : 42.257,
+      "text" : "couple"
+    },
+    {
+      "end" : 42.887,
+      "index" : 90,
+      "start" : 42.836999999999996,
+      "text" : "of"
+    },
+    {
+      "end" : 43.417,
+      "index" : 91,
+      "start" : 42.887,
+      "text" : "weeks"
+    },
+    {
+      "end" : 43.9411875,
+      "index" : 92,
+      "start" : 43.417,
+      "text" : "off"
+    },
+    {
+      "end" : 45.625,
+      "index" : 93,
+      "start" : 45.41225,
+      "text" : "you"
+    },
+    {
+      "end" : 45.745,
+      "index" : 94,
+      "start" : 45.685,
+      "text" : "a"
+    },
+    {
+      "end" : 46.18,
+      "index" : 95,
+      "start" : 45.745,
+      "text" : "fan"
+    },
+    {
+      "end" : 46.586375000000004,
+      "index" : 96,
+      "start" : 46.18,
+      "text" : "of"
+    },
+    {
+      "end" : 46.586375000000004,
+      "index" : 97,
+      "start" : 46.586375000000004,
+      "text" : "them"
+    },
+    {
+      "end" : 48.758,
+      "index" : 98,
+      "start" : 48.188,
+      "text" : "yes"
+    },
+    {
+      "end" : 49.238,
+      "index" : 99,
+      "start" : 48.758,
+      "text" : "because"
+    },
+    {
+      "end" : 49.508,
+      "index" : 100,
+      "start" : 49.238,
+      "text" : "it"
+    },
+    {
+      "end" : 49.8455,
+      "index" : 101,
+      "start" : 49.508,
+      "text" : "is"
+    },
+    {
+      "end" : 50.183,
+      "index" : 102,
+      "start" : 49.8455,
+      "text" : "the"
+    },
+    {
+      "end" : 50.5205,
+      "index" : 103,
+      "start" : 50.183,
+      "text" : "next"
+    },
+    {
+      "end" : 50.8320625,
+      "index" : 104,
+      "start" : 50.5205,
+      "text" : "game"
+    },
+    {
+      "end" : 52.878,
+      "index" : 105,
+      "start" : 52.368,
+      "text" : "so"
+    },
+    {
+      "end" : 53.268,
+      "index" : 106,
+      "start" : 52.878,
+      "text" : "why"
+    },
+    {
+      "end" : 53.507999999999996,
+      "index" : 107,
+      "start" : 53.268,
+      "text" : "are"
+    },
+    {
+      "end" : 53.943,
+      "index" : 108,
+      "start" : 53.507999999999996,
+      "text" : "you"
+    },
+    {
+      "end" : 54.378,
+      "index" : 109,
+      "start" : 53.943,
+      "text" : "breath"
+    },
+    {
+      "end" : 56.330999999999996,
+      "index" : 110,
+      "start" : 56.18175,
+      "text" : "he"
+    },
+    {
+      "end" : 56.751,
+      "index" : 111,
+      "start" : 56.330999999999996,
+      "text" : "was"
+    },
+    {
+      "end" : 56.931,
+      "index" : 112,
+      "start" : 56.751,
+      "text" : "a"
+    },
+    {
+      "end" : 57.141,
+      "index" : 113,
+      "start" : 56.931,
+      "text" : "man"
+    },
+    {
+      "end" : 57.650999999999996,
+      "index" : 114,
+      "start" : 57.321,
+      "text" : "and"
+    },
+    {
+      "end" : 57.701,
+      "index" : 115,
+      "start" : 57.650999999999996,
+      "text" : "so"
+    },
+    {
+      "end" : 58.041,
+      "index" : 116,
+      "start" : 57.701,
+      "text" : "he"
+    },
+    {
+      "end" : 58.461,
+      "index" : 117,
+      "start" : 58.041,
+      "text" : "should"
+    },
+    {
+      "end" : 59.001,
+      "index" : 118,
+      "start" : 58.461,
+      "text" : "know"
+    },
+    {
+      "end" : 59.4375625,
+      "index" : 119,
+      "start" : 59.001,
+      "text" : "all"
+    },
+    {
+      "end" : 61.317,
+      "index" : 120,
+      "start" : 61.167,
+      "text" : "she"
+    },
+    {
+      "end" : 61.872,
+      "index" : 121,
+      "start" : 61.317,
+      "text" : "was"
+    },
+    {
+      "end" : 62.427,
+      "index" : 122,
+      "start" : 61.872,
+      "text" : "standing"
+    },
+    {
+      "end" : 62.667,
+      "index" : 123,
+      "start" : 62.427,
+      "text" : "in"
+    },
+    {
+      "end" : 62.907000000000004,
+      "index" : 124,
+      "start" : 62.727000000000004,
+      "text" : "a"
+    },
+    {
+      "end" : 63.2934375,
+      "index" : 125,
+      "start" : 62.907000000000004,
+      "text" : "boat"
+    },
+    {
+      "end" : 64.711,
+      "index" : 126,
+      "start" : 64.3670625,
+      "text" : "below"
+    },
+    {
+      "end" : 65.351,
+      "index" : 127,
+      "start" : 64.711,
+      "text" : "to"
+    },
+    {
+      "end" : 65.991,
+      "index" : 128,
+      "start" : 65.351,
+      "text" : "the"
+    },
+    {
+      "end" : 66.631,
+      "index" : 129,
+      "start" : 65.991,
+      "text" : "left"
+    },
+    {
+      "end" : 67.156,
+      "index" : 130,
+      "start" : 66.931,
+      "text" : "was"
+    },
+    {
+      "end" : 67.381,
+      "index" : 131,
+      "start" : 67.156,
+      "text" : "the"
+    },
+    {
+      "end" : 68.21893750000001,
+      "index" : 132,
+      "start" : 67.381,
+      "text" : "river"
+    }
+  ]
+}

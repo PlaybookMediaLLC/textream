@@ -131,6 +131,7 @@ class SpeechRecognizer {
     private var suppressConfigChange: Bool = false
     private var requestLock = NSLock()
     private var preemptiveRestartTimer: Timer?
+    private var restartPolicy = RecognitionRestartPolicy()
 
     // Local (custom model) engine state
     private var localEngineInfo: LocalSpeechEngineInfo?
@@ -720,7 +721,13 @@ class SpeechRecognizer {
         if audioLevels.count > 30 {
             audioLevels.removeFirst()
         }
-        voiceActivityDetector.process(level: level, at: ProcessInfo.processInfo.systemUptime)
+        let now = ProcessInfo.processInfo.systemUptime
+        voiceActivityDetector.process(level: level, at: now)
+        // Restart Apple recognition in a pause near its ~1 min limit rather than mid-word.
+        if preemptiveRestartTimer != nil, isListening, !sourceText.isEmpty,
+           restartPolicy.shouldRestart(level: level, at: now) {
+            restartTask()
+        }
     }
 
     private func appendBufferToRequest(_ buffer: AVAudioPCMBuffer) {
@@ -1007,9 +1014,12 @@ class SpeechRecognizer {
 
     // MARK: - Pre-emptive restart timer
 
+    /// Called whenever a recognition task starts. `RecognitionRestartPolicy` restarts in the first
+    /// pause after 45 s (from audio levels); this timer is only the backstop if levels stop.
     private func startPreemptiveTimer() {
         preemptiveRestartTimer?.invalidate()
-        preemptiveRestartTimer = Timer.scheduledTimer(withTimeInterval: 55.0, repeats: true) { [weak self] _ in
+        restartPolicy.sessionStarted(at: ProcessInfo.processInfo.systemUptime)
+        preemptiveRestartTimer = Timer.scheduledTimer(withTimeInterval: 58.0, repeats: true) { [weak self] _ in
             guard let self, self.isListening, !self.sourceText.isEmpty else { return }
             self.restartTask()
         }
