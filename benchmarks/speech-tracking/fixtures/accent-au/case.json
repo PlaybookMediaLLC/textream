@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent",
+  "gating" : true,
+  "hints" : true,
+  "id" : "accent-au",
+  "name" : "Australian English (Karen)",
+  "script" : "general",
+  "voice" : "Karen",
+  "wpm" : 175
+}

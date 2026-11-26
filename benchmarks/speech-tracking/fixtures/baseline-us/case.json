@@ -1,0 +1,10 @@
+{
+  "dimension" : "baseline",
+  "gating" : true,
+  "hints" : true,
+  "id" : "baseline-us",
+  "name" : "clean read, US voice",
+  "script" : "general",
+  "voice" : "Samantha",
+  "wpm" : 175
+}

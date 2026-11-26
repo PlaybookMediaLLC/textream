@@ -1,0 +1,10 @@
+{
+  "dimension" : "pauses",
+  "gating" : true,
+  "hints" : true,
+  "id" : "pauses",
+  "name" : "pauses 5 s, 20 s, 60 s",
+  "script" : "general",
+  "voice" : "Samantha",
+  "wpm" : 175
+}

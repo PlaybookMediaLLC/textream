@@ -1,0 +1,11 @@
+{
+  "dimension" : "technical",
+  "engine" : "apple-on-device",
+  "gating" : true,
+  "hints" : false,
+  "id" : "technical-nohints",
+  "name" : "jargon, no hints",
+  "script" : "technical",
+  "voice" : "Samantha",
+  "wpm" : 175
+}

@@ -1,0 +1,13 @@
+{
+  "dimension" : "noise",
+  "engine" : "apple-on-device",
+  "gating" : false,
+  "hints" : true,
+  "id" : "noise-tv-5",
+  "name" : "competing talker (TV), 5 dB",
+  "noise" : "tv",
+  "script" : "general",
+  "snr" : 5,
+  "voice" : "Samantha",
+  "wpm" : 175
+}
