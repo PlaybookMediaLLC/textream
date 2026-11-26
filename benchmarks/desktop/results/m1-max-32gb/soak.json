@@ -1,15 +1,15 @@
 {
   "host": "m1-max-32gb",
-  "date": "2026-11-26T01:00:40-05:00",
-  "commit": "f9c6c94",
+  "date": "2026-11-26T05:14:14-05:00",
+  "commit": "8cee918",
   "metrics": {
     "soak.local-whisper-tiny-Q8_0.cpuPercent": {
       "unit": "",
       "lowerIsBetter": true,
       "values": [
-        31.45843045594322
+        34.503997329162
       ],
-      "median": 31.45843045594322,
+      "median": 34.503997329162,
       "mad": 0,
       "gate": false
     },
@@ -27,9 +27,9 @@
       "unit": "",
       "lowerIsBetter": true,
       "values": [
-        2.8513197155095753
+        2.532834672712578
       ],
-      "median": 2.8513197155095753,
+      "median": 2.532834672712578,
       "mad": 0,
       "gate": true
     },
@@ -37,9 +37,9 @@
       "unit": "",
       "lowerIsBetter": true,
       "values": [
-        4.810804330876366
+        22.99503271406195
       ],
-      "median": 4.810804330876366,
+      "median": 22.99503271406195,
       "mad": 0,
       "gate": true
     },
@@ -47,9 +47,9 @@
       "unit": "",
       "lowerIsBetter": true,
       "values": [
-        207.79790496826172
+        218.2666778564453
       ],
-      "median": 207.79790496826172,
+      "median": 218.2666778564453,
       "mad": 0,
       "gate": false
     },

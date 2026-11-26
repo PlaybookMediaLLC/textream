@@ -1,47 +1,47 @@
 # idle — idle and open-but-paused cost (PLAN #5)
 
-Host `m1-max-32gb`, commit `f9c6c94`, 2026-11-25T23:33:10-05:00.
+Host `m1-max-32gb`, commit `b60167a`, 2026-11-26T02:33:22-05:00.
 
 | Scenario | CPU % | Wakeups/s | Energy (mW) | Memory (MB) |
 |---|---|---|---|---|
-| A.menubar | 0.00507 | 0.2 | 0.00556 | 63.41 |
-| B.mainWindow | 0.0112 | 0.253 | 0.00731 | 63.72 |
-| C.paused.pinned | 0.856 | 34.40 | 1.15 | 70.74 |
-| C.paused.floating | 0.874 | 31.23 | 0.582 | 70.36 |
-| C.paused.fullscreen | 1.61 | 13.88 | 19.74 | 75.59 |
-| D.servers | 0.00962 | 0.363 | 0.00459 | 61.77 |
-| E.classic | 31.32 | 60.72 | 438 | 69.33 |
-| F.tracking-ui | 18.19 | 66.45 | 178 | 73.84 |
+| A.menubar | 0.0129 | 0.233 | 0.0066 | 60.42 |
+| B.mainWindow | 0.0125 | 0.242 | 0.00682 | 56.81 |
+| C.paused.pinned | 0.924 | 13.94 | 0.384 | 69.24 |
+| C.paused.floating | 0.597 | 11.15 | 0.272 | 68.44 |
+| C.paused.fullscreen | 0.604 | 12.20 | 0.304 | 71.17 |
+| D.servers | 0.0102 | 0.357 | 0.00635 | 60.89 |
+| E.classic | 34.38 | 15.77 | 43.90 | 61.28 |
+| F.tracking-ui | 25.95 | 16.97 | 34.38 | 72.80 |
 
-Each scenario: 60-s settle, then 1 min measured from the app's own task_info samples (every 10 s, so the sampler adds ≈0.1 wakeups/s). Energy is the kernel's per-task estimate (Apple silicon only). PLAN bars: A < 0.1% CPU and < 2 wakeups/s; B < 0.5%, < 5/s; C < 1%, < 20/s; D adds < 1 wakeup/s over A. C has recognition paused, so it measures what the open overlay costs on its own.
+Each scenario: 60-s settle, then 2 min measured from the app's own task_info samples (every 10 s, so the sampler adds ≈0.1 wakeups/s). Energy is the kernel's per-task estimate (Apple silicon only). PLAN bars: A < 0.1% CPU and < 2 wakeups/s; B < 0.5%, < 5/s; C < 1%, < 20/s; D adds < 1 wakeup/s over A. C has recognition paused, so it measures what the open overlay costs on its own.
 
 ## All metrics (median of runs, MAD)
 
 | Metric | Median | MAD | Unit | Runs |
 |---|---|---|---|---|
-| idle.A.menubar.cpuPercent | 0.00507 | 0 | % | 1 |
-| idle.A.menubar.energyMW | 0.00556 | 0 | mW | 1 |
-| idle.A.menubar.wakeupsPerSec | 0.2 | 0 | /s | 1 |
-| idle.B.mainWindow.cpuPercent | 0.0112 | 0 | % | 1 |
-| idle.B.mainWindow.energyMW | 0.00731 | 0 | mW | 1 |
-| idle.B.mainWindow.wakeupsPerSec | 0.253 | 0 | /s | 1 |
-| idle.C.paused.floating.cpuPercent | 0.874 | 0 | % | 1 |
-| idle.C.paused.floating.energyMW | 0.582 | 0 | mW | 1 |
-| idle.C.paused.floating.wakeupsPerSec | 31.23 | 0 | /s | 1 |
-| idle.C.paused.fullscreen.cpuPercent | 1.61 | 0 | % | 1 |
-| idle.C.paused.fullscreen.energyMW | 19.74 | 0 | mW | 1 |
-| idle.C.paused.fullscreen.wakeupsPerSec | 13.88 | 0 | /s | 1 |
-| idle.C.paused.pinned.cpuPercent | 0.856 | 0 | % | 1 |
-| idle.C.paused.pinned.energyMW | 1.15 | 0 | mW | 1 |
-| idle.C.paused.pinned.wakeupsPerSec | 34.40 | 0 | /s | 1 |
-| idle.D.servers.cpuPercent | 0.00962 | 0 | % | 1 |
-| idle.D.servers.energyMW | 0.00459 | 0 | mW | 1 |
-| idle.D.servers.wakeupsPerSec | 0.363 | 0 | /s | 1 |
-| idle.E.classic.cpuPercent | 31.32 | 0 | % | 1 |
-| idle.E.classic.energyMW | 438 | 0 | mW | 1 |
-| idle.E.classic.wakeupsPerSec | 60.72 | 0 | /s | 1 |
-| idle.F.tracking-ui.cpuPercent | 18.19 | 0 | % | 1 |
-| idle.F.tracking-ui.energyMW | 178 | 0 | mW | 1 |
-| idle.F.tracking-ui.wakeupsPerSec | 66.45 | 0 | /s | 1 |
+| idle.A.menubar.cpuPercent | 0.0129 | 0.000164 | % | 3 |
+| idle.A.menubar.energyMW | 0.0066 | 0.000585 | mW | 3 |
+| idle.A.menubar.wakeupsPerSec | 0.233 | 0.00833 | /s | 3 |
+| idle.B.mainWindow.cpuPercent | 0.0125 | 2.76e-05 | % | 3 |
+| idle.B.mainWindow.energyMW | 0.00682 | 3.26e-05 | mW | 3 |
+| idle.B.mainWindow.wakeupsPerSec | 0.242 | 4.37e-07 | /s | 3 |
+| idle.C.paused.floating.cpuPercent | 0.597 | 0.014 | % | 3 |
+| idle.C.paused.floating.energyMW | 0.272 | 0.00115 | mW | 3 |
+| idle.C.paused.floating.wakeupsPerSec | 11.15 | 0.0417 | /s | 3 |
+| idle.C.paused.fullscreen.cpuPercent | 0.604 | 0.0687 | % | 3 |
+| idle.C.paused.fullscreen.energyMW | 0.304 | 0.0121 | mW | 3 |
+| idle.C.paused.fullscreen.wakeupsPerSec | 12.20 | 0.0838 | /s | 3 |
+| idle.C.paused.pinned.cpuPercent | 0.924 | 0.00379 | % | 3 |
+| idle.C.paused.pinned.energyMW | 0.384 | 0.00866 | mW | 3 |
+| idle.C.paused.pinned.wakeupsPerSec | 13.94 | 0.354 | /s | 3 |
+| idle.D.servers.cpuPercent | 0.0102 | 1.15e-05 | % | 3 |
+| idle.D.servers.energyMW | 0.00635 | 0.000353 | mW | 3 |
+| idle.D.servers.wakeupsPerSec | 0.357 | 0.00808 | /s | 3 |
+| idle.E.classic.cpuPercent | 34.38 | 0.22 | % | 3 |
+| idle.E.classic.energyMW | 43.90 | 0.228 | mW | 3 |
+| idle.E.classic.wakeupsPerSec | 15.77 | 0.287 | /s | 3 |
+| idle.F.tracking-ui.cpuPercent | 25.95 | 1.35 | % | 3 |
+| idle.F.tracking-ui.energyMW | 34.38 | 3.09 | mW | 3 |
+| idle.F.tracking-ui.wakeupsPerSec | 16.97 | 0.659 | /s | 3 |
 
 No baseline yet for this host. Commit one with -update-baseline once the numbers look right.

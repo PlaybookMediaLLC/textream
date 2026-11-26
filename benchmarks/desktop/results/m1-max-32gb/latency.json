@@ -1,52 +1,314 @@
 {
   "host": "m1-max-32gb",
-  "date": "2026-11-25T23:50:06-05:00",
-  "commit": "f9c6c94",
+  "date": "2026-11-26T04:27:44-05:00",
+  "commit": "8cee918",
   "metrics": {
+    "latency.apple.accent-gb.asrP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        398.7701488431412,
+        395.11095900000015,
+        397.2245484234227
+      ],
+      "median": 397.2245484234227,
+      "mad": 1.5456004197185393,
+      "gate": false
+    },
+    "latency.apple.accent-gb.e2eP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        407.45767241025277,
+        405.05238556337986,
+        405.7354768571457
+      ],
+      "median": 405.7354768571457,
+      "mad": 0.6830912937658695,
+      "gate": false
+    },
+    "latency.apple.accent-gb.e2eP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        753.5579471304388,
+        748.9132391304381,
+        753.9781981304401
+      ],
+      "median": 753.5579471304388,
+      "mad": 0.42025100000125803,
+      "gate": true
+    },
+    "latency.apple.accent-gb.hopP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.097792,
+        0.113666,
+        0.11025
+      ],
+      "median": 0.11025,
+      "mad": 0.0034160000000000024,
+      "gate": true
+    },
+    "latency.apple.accent-gb.lostPer10Min": {
+      "unit": "events",
+      "lowerIsBetter": true,
+      "values": [
+        0,
+        0,
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.apple.accent-gb.matcherP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.36804200000000004,
+        0.370583,
+        0.375167
+      ],
+      "median": 0.370583,
+      "mad": 0.00254099999999996,
+      "gate": true
+    },
+    "latency.apple.accent-gb.renderP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        14.633999999999999,
+        14.272916,
+        14.541375
+      ],
+      "median": 14.541375,
+      "mad": 0.09262499999999818,
+      "gate": false
+    },
+    "latency.apple.baseline-us.asrP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        357.4705601904711,
+        358.51425066666565,
+        360.96244169564784
+      ],
+      "median": 358.51425066666565,
+      "mad": 1.0436904761945698,
+      "gate": false
+    },
+    "latency.apple.baseline-us.e2eP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        368.98420987414227,
+        370.5890181904721,
+        370.86375892592827
+      ],
+      "median": 370.5890181904721,
+      "mad": 0.2747407354561915,
+      "gate": false
+    },
+    "latency.apple.baseline-us.e2eP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        642.9578322098024,
+        648.2186395555516,
+        643.7455622702704
+      ],
+      "median": 643.7455622702704,
+      "mad": 0.7877300604679931,
+      "gate": true
+    },
+    "latency.apple.baseline-us.hopP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.122958,
+        0.106166,
+        0.112667
+      ],
+      "median": 0.112667,
+      "mad": 0.006501000000000007,
+      "gate": true
+    },
+    "latency.apple.baseline-us.lostPer10Min": {
+      "unit": "events",
+      "lowerIsBetter": true,
+      "values": [
+        0,
+        0,
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.apple.baseline-us.matcherP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.386083,
+        0.380375,
+        0.375083
+      ],
+      "median": 0.380375,
+      "mad": 0.005292000000000019,
+      "gate": true
+    },
+    "latency.apple.baseline-us.renderP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.976875,
+        13.531583,
+        14.2875
+      ],
+      "median": 13.976875,
+      "mad": 0.31062499999999993,
+      "gate": false
+    },
+    "latency.apple.noise-babble-10.asrP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        415.775625000002,
+        417.83289351852204,
+        415.6007500000172
+      ],
+      "median": 415.775625000002,
+      "mad": 0.1748749999848087,
+      "gate": false
+    },
+    "latency.apple.noise-babble-10.e2eP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        428.49261904760994,
+        429.1287384285596,
+        425.72841104761494
+      ],
+      "median": 428.49261904760994,
+      "mad": 0.6361193809496513,
+      "gate": false
+    },
+    "latency.apple.noise-babble-10.e2eP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        836.5960555555532,
+        847.2341399021275,
+        797.6235135555498
+      ],
+      "median": 836.5960555555532,
+      "mad": 10.63808434657426,
+      "gate": true
+    },
+    "latency.apple.noise-babble-10.hopP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.126167,
+        0.11887500000000001,
+        0.098083
+      ],
+      "median": 0.11887500000000001,
+      "mad": 0.007291999999999993,
+      "gate": true
+    },
+    "latency.apple.noise-babble-10.lostPer10Min": {
+      "unit": "events",
+      "lowerIsBetter": true,
+      "values": [
+        0,
+        0,
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.apple.noise-babble-10.matcherP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.358458,
+        0.37041599999999997,
+        0.349084
+      ],
+      "median": 0.358458,
+      "mad": 0.009373999999999993,
+      "gate": true
+    },
+    "latency.apple.noise-babble-10.renderP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        15.586167,
+        14.206584,
+        13.404792
+      ],
+      "median": 14.206584,
+      "mad": 0.801791999999999,
+      "gate": false
+    },
     "latency.local-whisper-tiny-Q8_0.accent-gb.asrP50.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        663.0071145308634
+        648.0075409999984,
+        637.4562542963105,
+        633.3254350180173
       ],
-      "median": 663.0071145308634,
-      "mad": 0,
+      "median": 637.4562542963105,
+      "mad": 4.130819278293188,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.accent-gb.e2eP50.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        680.4384475308644
+        658.9560000000034,
+        648.1867079999972,
+        642.4253930180166
       ],
-      "median": 680.4384475308644,
-      "mad": 0,
+      "median": 648.1867079999972,
+      "mad": 5.761314981980604,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.accent-gb.e2eP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        1426.8023326976618
+        1435.0473872377734,
+        1418.0785952377732,
+        1416.3986669999993
       ],
-      "median": 1426.8023326976618,
-      "mad": 0,
+      "median": 1418.0785952377732,
+      "mad": 1.6799282377739928,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.accent-gb.hopP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        4.505249999999999
+        0.264459,
+        4.190041,
+        1.164334
       ],
-      "median": 4.505249999999999,
-      "mad": 0,
+      "median": 1.164334,
+      "mad": 0.899875,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.accent-gb.lostPer10Min": {
       "unit": "events",
       "lowerIsBetter": true,
       "values": [
+        0,
+        0,
         0
       ],
       "median": 0,
@@ -57,66 +319,80 @@
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        0.46575
+        0.49624999999999997,
+        0.469583,
+        0.380375
       ],
-      "median": 0.46575,
-      "mad": 0,
+      "median": 0.469583,
+      "mad": 0.026666999999999996,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.accent-gb.renderP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        24.253291
+        16.636958,
+        17.297583,
+        15.440375
       ],
-      "median": 24.253291,
-      "mad": 0,
+      "median": 16.636958,
+      "mad": 0.6606249999999996,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.baseline-us.asrP50.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        661.619999999985
+        699.94931250001,
+        698.0837715000092,
+        699.5833306451686
       ],
-      "median": 661.619999999985,
-      "mad": 0,
+      "median": 699.5833306451686,
+      "mad": 0.3659818548413796,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.baseline-us.e2eP50.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        718.0944166666663
+        717.1563752535377,
+        712.5280622702696,
+        715.5919903846168
       ],
-      "median": 718.0944166666663,
-      "mad": 0,
+      "median": 715.5919903846168,
+      "mad": 1.5643848689209108,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.baseline-us.e2eP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        1473.1911101739001
+        1501.610323608695,
+        1498.8035326086901,
+        1465.309972888889
       ],
-      "median": 1473.1911101739001,
-      "mad": 0,
+      "median": 1498.8035326086901,
+      "mad": 2.8067910000047505,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.baseline-us.hopP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        2.4861660000000003
+        3.978416,
+        1.687083,
+        0.8792490000000001
       ],
-      "median": 2.4861660000000003,
-      "mad": 0,
+      "median": 1.687083,
+      "mad": 0.807834,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.baseline-us.lostPer10Min": {
       "unit": "events",
       "lowerIsBetter": true,
       "values": [
+        0,
+        0,
         0
       ],
       "median": 0,
@@ -127,69 +403,83 @@
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        0.49629199999999996
+        0.47575,
+        0.474,
+        0.497583
       ],
-      "median": 0.49629199999999996,
-      "mad": 0,
+      "median": 0.47575,
+      "mad": 0.0017500000000000293,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.baseline-us.renderP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        18.537374999999997
+        19.036458999999997,
+        24.490167,
+        17.963084000000002
       ],
-      "median": 18.537374999999997,
-      "mad": 0,
+      "median": 19.036458999999997,
+      "mad": 1.073374999999995,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.noise-babble-10.asrP50.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        760.7455755813959
+        746.6292415813882,
+        759.0906660000059,
+        759.0232500000127
       ],
-      "median": 760.7455755813959,
-      "mad": 0,
+      "median": 759.0232500000127,
+      "mad": 0.06741599999315895,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.noise-babble-10.e2eP50.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        768.3250335813909
+        752.0110755813931,
+        772.4072916666671,
+        770.5062905217303
       ],
-      "median": 768.3250335813909,
-      "mad": 0,
+      "median": 770.5062905217303,
+      "mad": 1.9010011449367994,
       "gate": false
     },
     "latency.local-whisper-tiny-Q8_0.noise-babble-10.e2eP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        2427.895541
+        2200.916395500002,
+        2479.3119315915674,
+        2432.2087225555506
       ],
-      "median": 2427.895541,
-      "mad": 0,
+      "median": 2432.2087225555506,
+      "mad": 47.10320903601678,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.noise-babble-10.hopP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        3.6731659999999997
+        1.191833,
+        2.671124,
+        0.373083
       ],
-      "median": 3.6731659999999997,
-      "mad": 0,
+      "median": 1.191833,
+      "mad": 0.8187499999999999,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.noise-babble-10.lostPer10Min": {
       "unit": "events",
       "lowerIsBetter": true,
       "values": [
-        6.655929358403076
+        0,
+        0,
+        0
       ],
-      "median": 6.655929358403076,
+      "median": 0,
       "mad": 0,
       "gate": true
     },
@@ -197,20 +487,24 @@
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        0.497458
+        0.43312500000000004,
+        0.45037499999999997,
+        0.343667
       ],
-      "median": 0.497458,
-      "mad": 0,
+      "median": 0.43312500000000004,
+      "mad": 0.017249999999999932,
       "gate": true
     },
     "latency.local-whisper-tiny-Q8_0.noise-babble-10.renderP95.ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        22.790208
+        26.833125,
+        24.463417,
+        23.526083
       ],
-      "median": 22.790208,
-      "mad": 0,
+      "median": 24.463417,
+      "mad": 0.9373339999999999,
       "gate": false
     }
   }

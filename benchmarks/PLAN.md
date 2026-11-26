@@ -82,9 +82,12 @@ start working once the runner exists.
 
 ### First results
 
-Host: M1 Max, 32 GB, external 75 Hz display. These are short verification runs (one
-run per scenario, shortened durations), **not baselines**. Full tables are in
-`desktop/results/m1-max-32gb/`.
+Host: M1 Max, 32 GB, external 75 Hz display. Full tables are in
+`desktop/results/m1-max-32gb/`. The committed baselines in `results/m1-max-32gb/baseline/`
+come from repeated runs: 3–5 per scenario, idle at 2 min, render at 30 s, soak at 30 min.
+They were measured overnight with the fixes below applied. Nightly runs on a dedicated
+bench Mac should replace them with full-length runs (`-update-baseline`). Rows marked
+"fixed" show before → after.
 
 | # | Finding | Number | Bar |
 |---|---|---|---|
@@ -102,7 +105,7 @@ run per scenario, shortened durations), **not baselines**. Full tables are in
 | 3 | First model load after install compiles Metal shaders | **10.2 s** once, then 0.1 s (fresh process), 0.05 s reload → moved to right after download | — |
 | 8 | Launch is dominated by work before `didFinishLaunching` | main window first frame 575 ms (didFinishLaunching at 288 ms; its own steps < 3 ms) | < 400 ms ❌ |
 | 8 | Time to first prompt | not running 454 ms; running 112 ms; first highlight (local whisper-tiny) 1.77 s | < 300 ms ✅ (running) |
-| 6 | 14-min rehearsal soak (whisper-tiny, 8 reads with a jump to the top each time) | memory slope 4.8 MB/h; 194 leaks / 9.6 KB (stable across runs; not yet attributed to app or system code); loop 1: 0 lost-place events / 10 min; loop 8: 11.5, lag p95 1.96 → 3.33 s | < 5 MB/h ✅; last loop tracks like the first ❌ (confirm on the nightly 90-min run) |
+| 6 | Rehearsal soak with whisper-tiny (one script read 18× in 30 min, jumping to the top each time; the committed baseline) | memory **+23 MB/h** after 10 min (peak 218 MB); 194 leaks / 9.6 KB, stable across runs, not yet attributed; loop 1: 0 lost-place events, lag p95 2.0 s → loop 18: 5.75 lost / 10 min, **lag p95 6.1 s**, final error 12 words | < 5 MB/h ❌; last loop tracks like the first ❌ |
 | 1 | Layer B now records per engine | `baseline-us`: Apple on-device lag p95 0.78 s ✅; whisper-tiny 1.64 s ❌ (report-only: only the default engine gates CI, `GATE_ENGINES` overrides) | §8 bar |
 
 Measurement pitfalls found while building this (now handled in the runner):
@@ -140,6 +143,11 @@ Measurement pitfalls found while building this (now handled in the runner):
 - **Likely fix:** render only a window of lines, positioned in a fixed-height container.
   That restructures `SpeechScrollView`/`WordFlowLayout`, so it's left for a deliberate
   change, with `render` and `micro` as the proof.
+
+**Measured and not fixed (needs investigation):** the long-session drift in #6. Over 30
+minutes, memory grows about 23 MB/h and the local engine's lag climbs from 2 s to 6 s
+p95, even though every loop starts a fresh recognizer session. The soak now detects
+this every night, so a fix can be checked against it.
 
 Not changed (product decisions): offering moonshine-streaming-tiny for word tracking
 (it falls behind real time even on an M1 Max), and shipping the `OSSignposter` hooks

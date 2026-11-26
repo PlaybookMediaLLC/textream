@@ -1,276 +1,330 @@
 {
   "host": "m1-max-32gb",
-  "date": "2026-11-25T23:30:10-05:00",
-  "commit": "f9c6c94",
+  "date": "2026-11-26T04:18:33-05:00",
+  "commit": "8cee918",
   "metrics": {
     "broadcast.10k.1clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        8.778375927190666
+        14.44920427444845,
+        15.742395018550617,
+        14.78502202823073
       ],
-      "median": 8.778375927190666,
-      "mad": 0,
+      "median": 14.78502202823073,
+      "mad": 0.33581775378227974,
       "gate": true
     },
     "broadcast.10k.1clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        20.505905151367188
+        21.17919921875,
+        22.975921630859375,
+        23.731231689453125
       ],
-      "median": 20.505905151367188,
-      "mad": 0,
+      "median": 22.975921630859375,
+      "mad": 0.75531005859375,
       "gate": false
     },
     "broadcast.10k.1clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        865.2811616212407
+        5.7649464802771275,
+        5.9948764580340566,
+        5.74744687878173
       ],
-      "median": 865.2811616212407,
-      "mad": 0,
+      "median": 5.7649464802771275,
+      "mad": 0.01749960149539742,
       "gate": false
     },
     "broadcast.10k.20clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        9.531414948990632
+        15.583386848271408,
+        15.010678133392108,
+        15.280823943650493
       ],
-      "median": 9.531414948990632,
-      "mad": 0,
+      "median": 15.280823943650493,
+      "mad": 0.27014581025838424,
       "gate": true
     },
     "broadcast.10k.20clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        22.442102432250977
+        25.41494369506836,
+        24.518966674804688,
+        20.608901977539062
       ],
-      "median": 22.442102432250977,
-      "mad": 0,
+      "median": 24.518966674804688,
+      "mad": 0.8959770202636719,
       "gate": false
     },
     "broadcast.10k.20clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        860.3356141914949
+        5.76071553653198,
+        5.792592818310908,
+        6.529703335521762
       ],
-      "median": 860.3356141914949,
-      "mad": 0,
+      "median": 5.792592818310908,
+      "mad": 0.0318772817789279,
       "gate": false
     },
     "broadcast.10k.5clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        9.29115448567168
+        16.54340895240457,
+        15.806867953651219,
+        14.541679766203885
       ],
-      "median": 9.29115448567168,
-      "mad": 0,
+      "median": 15.806867953651219,
+      "mad": 0.73654099875335,
       "gate": true
     },
     "broadcast.10k.5clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        23.1778621673584
+        24.910926818847656,
+        23.627758026123047,
+        24.03712272644043
       ],
-      "median": 23.1778621673584,
-      "mad": 0,
+      "median": 24.03712272644043,
+      "mad": 0.4093647003173828,
       "gate": false
     },
     "broadcast.10k.5clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        848.6033490810803
+        7.74682096700681,
+        5.897587052548623,
+        5.990416079339104
       ],
-      "median": 848.6033490810803,
-      "mad": 0,
+      "median": 5.990416079339104,
+      "mad": 0.092829026790481,
       "gate": false
     },
     "broadcast.1k.1clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        6.506249126223004
+        15.120401528985052,
+        16.006250683922083,
+        15.05061126968348
       ],
-      "median": 6.506249126223004,
-      "mad": 0,
+      "median": 15.120401528985052,
+      "mad": 0.06979025930157157,
       "gate": true
     },
     "broadcast.1k.1clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        9.029865264892578
+        19.563913345336914,
+        23.783206939697266,
+        19.27781105041504
       ],
-      "median": 9.029865264892578,
-      "mad": 0,
+      "median": 19.563913345336914,
+      "mad": 0.286102294921875,
       "gate": false
     },
     "broadcast.1k.1clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        89.55033974507694
+        3.2294670150813123,
+        1.5319343904901237,
+        1.7217325480479957
       ],
-      "median": 89.55033974507694,
-      "mad": 0,
+      "median": 1.7217325480479957,
+      "mad": 0.189798157557872,
       "gate": false
     },
     "broadcast.1k.20clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        7.985377538398781
+        14.953613486433722,
+        15.980889060517917,
+        16.78948829164432
       ],
-      "median": 7.985377538398781,
-      "mad": 0,
+      "median": 15.980889060517917,
+      "mad": 0.8085992311264043,
       "gate": true
     },
     "broadcast.1k.20clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        9.658098220825195
+        21.759033203125,
+        25.569915771484375,
+        20.44987678527832
       ],
-      "median": 9.658098220825195,
-      "mad": 0,
+      "median": 21.759033203125,
+      "mad": 1.3091564178466797,
       "gate": false
     },
     "broadcast.1k.20clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        90.2973386569357
+        1.4205226175561019,
+        1.4838658058440994,
+        3.2364298731174292
       ],
-      "median": 90.2973386569357,
-      "mad": 0,
+      "median": 1.4838658058440994,
+      "mad": 0.06334318828799756,
       "gate": false
     },
     "broadcast.1k.5clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        6.331749781268801
+        16.116591877426046,
+        15.025191860964668,
+        15.669400521106326
       ],
-      "median": 6.331749781268801,
-      "mad": 0,
+      "median": 15.669400521106326,
+      "mad": 0.4471913563197205,
       "gate": true
     },
     "broadcast.1k.5clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        8.730888366699219
+        22.88532257080078,
+        22.546052932739258,
+        24.420976638793945
       ],
-      "median": 8.730888366699219,
-      "mad": 0,
+      "median": 22.88532257080078,
+      "mad": 0.33926963806152344,
       "gate": false
     },
     "broadcast.1k.5clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        90.16458686573314
+        3.1607539367612048,
+        1.2328324152515315,
+        1.4704404174087589
       ],
-      "median": 90.16458686573314,
-      "mad": 0,
+      "median": 1.4704404174087589,
+      "mad": 0.23760800215722733,
       "gate": false
     },
     "broadcast.50k.1clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        18.529136552664777
+        16.531899640519995,
+        15.651425511538053,
+        15.521819343843632
       ],
-      "median": 18.529136552664777,
-      "mad": 0,
+      "median": 15.651425511538053,
+      "mad": 0.1296061676944209,
       "gate": true
     },
     "broadcast.50k.1clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        96.64201736450195
+        80.55901527404785,
+        78.68790626525879,
+        79.6501636505127
       ],
-      "median": 96.64201736450195,
-      "mad": 0,
+      "median": 79.6501636505127,
+      "mad": 0.9088516235351562,
       "gate": false
     },
     "broadcast.50k.1clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        4197.646564604356
+        27.857559794427477,
+        26.482238358722473,
+        28.232900351549382
       ],
-      "median": 4197.646564604356,
-      "mad": 0,
+      "median": 27.857559794427477,
+      "mad": 0.3753405571219055,
       "gate": false
     },
     "broadcast.50k.20clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        19.83072635905434
+        13.960366047165268,
+        16.31932815990136,
+        15.799953026684799
       ],
-      "median": 19.83072635905434,
-      "mad": 0,
+      "median": 15.799953026684799,
+      "mad": 0.5193751332165615,
       "gate": true
     },
     "broadcast.50k.20clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        104.59518432617188
+        80.902099609375,
+        81.60805702209473,
+        81.64429664611816
       ],
-      "median": 104.59518432617188,
-      "mad": 0,
+      "median": 81.60805702209473,
+      "mad": 0.0362396240234375,
       "gate": false
     },
     "broadcast.50k.20clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        4196.224192836075
+        26.84430754717755,
+        26.43062997946751,
+        28.29057003284963
       ],
-      "median": 4196.224192836075,
-      "mad": 0,
+      "median": 26.84430754717755,
+      "mad": 0.41367756771003883,
       "gate": false
     },
     "broadcast.50k.5clients.cpuPercent": {
       "unit": "%",
       "lowerIsBetter": true,
       "values": [
-        18.55579442849086
+        15.997059478468303,
+        16.179233622929083,
+        15.023398230721014
       ],
-      "median": 18.55579442849086,
-      "mad": 0,
+      "median": 15.997059478468303,
+      "mad": 0.18217414446077917,
       "gate": true
     },
     "broadcast.50k.5clients.delayP95Ms": {
       "unit": "ms",
       "lowerIsBetter": true,
       "values": [
-        98.9840030670166
+        78.2468318939209,
+        80.15012741088867,
+        79.74886894226074
       ],
-      "median": 98.9840030670166,
-      "mad": 0,
+      "median": 79.74886894226074,
+      "mad": 0.4012584686279297,
       "gate": false
     },
     "broadcast.50k.5clients.kbPerSecPerClient": {
       "unit": "KB/s",
       "lowerIsBetter": true,
       "values": [
-        4170.661761940003
+        28.308218877829088,
+        26.703740043010185,
+        26.380019887459422
       ],
-      "median": 4170.661761940003,
-      "mad": 0,
+      "median": 26.703740043010185,
+      "mad": 0.32372015555076317,
       "gate": false
     }
   }
