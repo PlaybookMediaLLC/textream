@@ -1,0 +1,11 @@
+{
+  "dimension" : "speed",
+  "engine" : "apple-on-device",
+  "gating" : true,
+  "hints" : true,
+  "id" : "speed-230",
+  "name" : "230 wpm",
+  "script" : "general",
+  "voice" : "Samantha",
+  "wpm" : 230
+}

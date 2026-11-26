@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent",
+  "gating" : true,
+  "hints" : true,
+  "id" : "accent-in-f",
+  "name" : "Indian English (Tara)",
+  "script" : "general",
+  "voice" : "Tara",
+  "wpm" : 175
+}

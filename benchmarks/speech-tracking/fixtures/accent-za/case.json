@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent",
+  "gating" : true,
+  "hints" : true,
+  "id" : "accent-za",
+  "name" : "South African English (Tessa)",
+  "script" : "general",
+  "voice" : "Tessa",
+  "wpm" : 175
+}

@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent",
+  "gating" : true,
+  "hints" : true,
+  "id" : "accent-in",
+  "name" : "Indian English (Rishi)",
+  "script" : "general",
+  "voice" : "Rishi",
+  "wpm" : 175
+}

@@ -1,0 +1,10 @@
+{
+  "dimension" : "repeated",
+  "gating" : true,
+  "hints" : true,
+  "id" : "repeated-reread",
+  "name" : "re-read 12 words ×2, jump back 30",
+  "script" : "general",
+  "voice" : "Samantha",
+  "wpm" : 175
+}

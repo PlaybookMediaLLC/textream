@@ -86,7 +86,7 @@ final class SpeechFollower {
 
     func resume() {
         guard !source.text.isEmpty else { return }
-        matcher.restartFromCurrentProgress()
+        recognizedCharacterCount = matcher.restartFromCurrentProgress()
         start()
     }
 
@@ -140,7 +140,7 @@ final class SpeechFollower {
         cleanupRecognition()
         generation &+= 1
         let currentGeneration = generation
-        matcher.restartFromCurrentProgress()
+        recognizedCharacterCount = matcher.restartFromCurrentProgress()
         spokenAnchorPrefix = ""
         lastSpokenText = ""
         isStarting = true

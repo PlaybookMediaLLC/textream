@@ -1,0 +1,11 @@
+{
+  "dimension" : "repeated",
+  "engine" : "apple-on-device",
+  "gating" : true,
+  "hints" : true,
+  "id" : "repeated-refrains",
+  "name" : "refrains + restart sentence ×3",
+  "script" : "repeated",
+  "voice" : "Daniel",
+  "wpm" : 175
+}

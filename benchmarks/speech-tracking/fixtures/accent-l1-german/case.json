@@ -1,0 +1,11 @@
+{
+  "dimension" : "accent (non-native proxy)",
+  "engine" : "apple-on-device",
+  "gating" : false,
+  "hints" : true,
+  "id" : "accent-l1-german",
+  "name" : "German voice reading English",
+  "script" : "general",
+  "voice" : "Anna",
+  "wpm" : 175
+}

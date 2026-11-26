@@ -1,0 +1,11 @@
+{
+  "dimension" : "accent (non-native proxy)",
+  "engine" : "apple-on-device",
+  "gating" : false,
+  "hints" : true,
+  "id" : "accent-l1-french",
+  "name" : "French voice reading English",
+  "script" : "general",
+  "voice" : "Thomas",
+  "wpm" : 175
+}

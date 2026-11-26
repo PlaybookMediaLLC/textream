@@ -1,0 +1,10 @@
+{
+  "dimension" : "skips",
+  "gating" : true,
+  "hints" : true,
+  "id" : "skips",
+  "name" : "skip 10, 25, 60 words",
+  "script" : "general",
+  "voice" : "Rishi",
+  "wpm" : 175
+}

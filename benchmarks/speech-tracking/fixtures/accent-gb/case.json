@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent",
+  "gating" : true,
+  "hints" : true,
+  "id" : "accent-gb",
+  "name" : "UK English (Daniel)",
+  "script" : "general",
+  "voice" : "Daniel",
+  "wpm" : 175
+}

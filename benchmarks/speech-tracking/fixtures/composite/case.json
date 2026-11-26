@@ -1,0 +1,12 @@
+{
+  "dimension" : "composite",
+  "gating" : true,
+  "hints" : true,
+  "id" : "composite",
+  "name" : "realistic take, UK voice, babble 15 dB",
+  "noise" : "babble",
+  "script" : "general",
+  "snr" : 15,
+  "voice" : "Daniel",
+  "wpm" : 165
+}

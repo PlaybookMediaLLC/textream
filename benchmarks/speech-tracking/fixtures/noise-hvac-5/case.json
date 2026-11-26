@@ -1,0 +1,13 @@
+{
+  "dimension" : "noise",
+  "engine" : "apple-on-device",
+  "gating" : true,
+  "hints" : true,
+  "id" : "noise-hvac-5",
+  "name" : "HVAC rumble, 5 dB",
+  "noise" : "hvac",
+  "script" : "general",
+  "snr" : 5,
+  "voice" : "Samantha",
+  "wpm" : 175
+}

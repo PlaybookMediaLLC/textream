@@ -1014,7 +1014,7 @@ struct PromptCoreTests {
     }
 
     @Test
-    func matcherNeverMovesBackward() {
+    func matcherIgnoresAStaleShortTranscript() {
         var matcher = PromptMatcher(source: PromptScript("one two three four five six"))
         let forward = matcher.match(transcript: "one two three four")
         let stale = matcher.match(transcript: "one")
