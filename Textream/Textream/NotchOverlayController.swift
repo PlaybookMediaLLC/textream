@@ -127,6 +127,11 @@ class NotchOverlayController: NSObject {
 
         updateKeepAwakeActivity(enabled: settings.keepScreenAwake)
 
+        benchLog("overlay.show", ["mode": settings.overlayMode.rawValue, "words": normalized.count])
+        benchAttachProbe(to: panel, label: "overlay") { [weak speechRecognizer] in
+            speechRecognizer?.recognizedCharCount ?? 0
+        }
+
         // Word tracking & silence-paused need the microphone; classic does not
         if settings.listeningMode != .classic {
             speechRecognizer.start(with: text)

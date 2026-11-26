@@ -1,0 +1,277 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-25T23:30:10-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "broadcast.10k.1clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        8.778375927190666
+      ],
+      "median": 8.778375927190666,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.10k.1clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        20.505905151367188
+      ],
+      "median": 20.505905151367188,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.10k.1clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        865.2811616212407
+      ],
+      "median": 865.2811616212407,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.10k.20clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        9.531414948990632
+      ],
+      "median": 9.531414948990632,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.10k.20clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        22.442102432250977
+      ],
+      "median": 22.442102432250977,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.10k.20clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        860.3356141914949
+      ],
+      "median": 860.3356141914949,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.10k.5clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        9.29115448567168
+      ],
+      "median": 9.29115448567168,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.10k.5clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        23.1778621673584
+      ],
+      "median": 23.1778621673584,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.10k.5clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        848.6033490810803
+      ],
+      "median": 848.6033490810803,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.1k.1clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        6.506249126223004
+      ],
+      "median": 6.506249126223004,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.1k.1clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        9.029865264892578
+      ],
+      "median": 9.029865264892578,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.1k.1clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        89.55033974507694
+      ],
+      "median": 89.55033974507694,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.1k.20clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        7.985377538398781
+      ],
+      "median": 7.985377538398781,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.1k.20clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        9.658098220825195
+      ],
+      "median": 9.658098220825195,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.1k.20clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        90.2973386569357
+      ],
+      "median": 90.2973386569357,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.1k.5clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        6.331749781268801
+      ],
+      "median": 6.331749781268801,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.1k.5clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        8.730888366699219
+      ],
+      "median": 8.730888366699219,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.1k.5clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        90.16458686573314
+      ],
+      "median": 90.16458686573314,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.50k.1clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        18.529136552664777
+      ],
+      "median": 18.529136552664777,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.50k.1clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        96.64201736450195
+      ],
+      "median": 96.64201736450195,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.50k.1clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        4197.646564604356
+      ],
+      "median": 4197.646564604356,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.50k.20clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        19.83072635905434
+      ],
+      "median": 19.83072635905434,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.50k.20clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        104.59518432617188
+      ],
+      "median": 104.59518432617188,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.50k.20clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        4196.224192836075
+      ],
+      "median": 4196.224192836075,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.50k.5clients.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        18.55579442849086
+      ],
+      "median": 18.55579442849086,
+      "mad": 0,
+      "gate": true
+    },
+    "broadcast.50k.5clients.delayP95Ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        98.9840030670166
+      ],
+      "median": 98.9840030670166,
+      "mad": 0,
+      "gate": false
+    },
+    "broadcast.50k.5clients.kbPerSecPerClient": {
+      "unit": "KB/s",
+      "lowerIsBetter": true,
+      "values": [
+        4170.661761940003
+      ],
+      "median": 4170.661761940003,
+      "mad": 0,
+      "gate": false
+    }
+  }
+}

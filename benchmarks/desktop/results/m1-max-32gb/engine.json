@@ -1,0 +1,137 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-26T01:22:08-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "engine.moonshine-streaming-tiny-Q8_0.firstPartialSeconds": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        0.7345511250314303
+      ],
+      "median": 0.7345511250314303,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.moonshine-streaming-tiny-Q8_0.loadSeconds": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        0.0933480000239797
+      ],
+      "median": 0.0933480000239797,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.moonshine-streaming-tiny-Q8_0.partialIntervalP95": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        4.121590166003443
+      ],
+      "median": 4.121590166003443,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.moonshine-streaming-tiny-Q8_0.peakMemoryMB": {
+      "unit": "MB",
+      "lowerIsBetter": true,
+      "values": [
+        509.3135986328125
+      ],
+      "median": 509.3135986328125,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.moonshine-streaming-tiny-Q8_0.reloadSeconds": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        0.03585225000279024
+      ],
+      "median": 0.03585225000279024,
+      "mad": 0,
+      "gate": false
+    },
+    "engine.moonshine-streaming-tiny-Q8_0.streamAudioSecondsIn2Min": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        61.4
+      ],
+      "median": 61.4,
+      "mad": 0,
+      "gate": false
+    },
+    "engine.moonshine-streaming-tiny-Q8_0.streamRtfP95": {
+      "unit": "x",
+      "lowerIsBetter": true,
+      "values": [
+        9.543249999987893
+      ],
+      "median": 9.543249999987893,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.whisper-tiny-Q8_0.decodeAt26sP50": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        0.22024987498298287
+      ],
+      "median": 0.22024987498298287,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.whisper-tiny-Q8_0.firstPartialSeconds": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        1.5037324170116335
+      ],
+      "median": 1.5037324170116335,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.whisper-tiny-Q8_0.loadSeconds": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        0.1153037499752827
+      ],
+      "median": 0.1153037499752827,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.whisper-tiny-Q8_0.partialIntervalP95": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        1.647409167024307
+      ],
+      "median": 1.647409167024307,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.whisper-tiny-Q8_0.peakMemoryMB": {
+      "unit": "MB",
+      "lowerIsBetter": true,
+      "values": [
+        152.9226303100586
+      ],
+      "median": 152.9226303100586,
+      "mad": 0,
+      "gate": true
+    },
+    "engine.whisper-tiny-Q8_0.reloadSeconds": {
+      "unit": "s",
+      "lowerIsBetter": true,
+      "values": [
+        0.03947204101132229
+      ],
+      "median": 0.03947204101132229,
+      "mad": 0,
+      "gate": false
+    }
+  }
+}

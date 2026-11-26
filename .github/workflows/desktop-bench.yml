@@ -1,0 +1,104 @@
+name: Desktop benchmarks
+
+# benchmarks/PLAN.md. PRs get the deterministic micro layer (#4 per-redraw layout cost,
+# #7 broadcast encode), measured on the same runner for the PR and its merge base, so the
+# comparison is relative even on a noisy VM. Timing-sensitive benchmarks run nightly and
+# weekly on a dedicated Mac (self-hosted runner labelled `textream-bench`; it must run in a
+# logged-in GUI session, not as a launch daemon, because the app opens windows).
+
+on:
+  pull_request:
+    paths:
+      - 'Textream/Textream/**'
+      - 'Textream/Shared/**'
+      - 'benchmarks/desktop/**'
+      - '.github/workflows/desktop-bench.yml'
+  schedule:
+    - cron: '0 7 * * *'   # nightly
+    - cron: '0 9 * * 6'   # weekly (Saturday): full engine sweep + thermals
+  workflow_dispatch:
+
+jobs:
+  micro:
+    if: github.event_name == 'pull_request'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Micro benchmarks (PR head)
+        working-directory: benchmarks/desktop
+        run: go run run.go micro -host gha-macos-15 -runs 5
+
+      - name: Micro benchmarks (merge base) and compare
+        run: |
+          base=$(git merge-base HEAD "origin/${{ github.base_ref }}")
+          if ! git cat-file -e "$base:Textream/Textream/Benchmark.swift" 2>/dev/null; then
+            echo "Merge base has no BENCHMARK build yet; PR numbers are report-only."
+            exit 0
+          fi
+          git worktree add ../base "$base"
+          # Measure the base with this PR's runner so both sides use the same harness.
+          rm -rf ../base/benchmarks/desktop && cp -R benchmarks/desktop ../base/benchmarks/desktop
+          rm -rf ../base/benchmarks/desktop/.cache ../base/benchmarks/desktop/results
+          (cd ../base/benchmarks/desktop && go run run.go micro -host gha-macos-15 -runs 5)
+          cd benchmarks/desktop
+          go run run.go compare ../../../base/benchmarks/desktop/results/gha-macos-15/micro.json results/gha-macos-15/micro.json -check | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-micro
+          path: benchmarks/desktop/results/
+
+  nightly:
+    if: github.event_name == 'schedule' && github.event.schedule == '0 7 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, macOS, textream-bench]
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Models
+        working-directory: benchmarks/desktop
+        run: |
+          go run run.go fetch-model whisper-base-gguf Q8_0
+          go run run.go fetch-model moonshine-streaming-tiny Q8_0
+      - name: Nightly suite (#2 #3 #4 #5 #6 #7 #8 against committed baselines)
+        working-directory: benchmarks/desktop
+        run: go run run.go nightly -check -engine local,apple -minutes 90
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-nightly
+          path: benchmarks/desktop/results/
+
+  weekly:
+    if: github.event_name == 'schedule' && github.event.schedule == '0 9 * * 6'
+    runs-on: [self-hosted, macOS, textream-bench]
+    timeout-minutes: 720
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every catalog model, default quant
+        working-directory: benchmarks/desktop
+        run: |
+          for repo in $(python3 -c "import json;print(' '.join(m['repo_id'] for m in json.load(open('../../Textream/Textream/Resources/SpeechModelCatalog.json'))['models']))"); do
+            go run run.go fetch-model "$repo"
+          done
+      - name: Engine sweep + 30-min thermals
+        working-directory: benchmarks/desktop
+        run: go run run.go engine -thermal 30 -runs 3
+      - name: Layer B fixtures with the recommended local model
+        working-directory: benchmarks/desktop
+        run: go run run.go record-local -model whisper-base-Q8_0.gguf
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-weekly
+          path: |
+            benchmarks/desktop/results/
+            benchmarks/speech-tracking/fixtures/

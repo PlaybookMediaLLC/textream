@@ -55,6 +55,9 @@ final class LocalSpeechModelStore {
     var lastError: String?
 
     static var modelsDirectory: URL {
+        #if BENCHMARK
+        if let directory = Bench.modelsDirectory { return URL(fileURLWithPath: directory, isDirectory: true) }
+        #endif
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return base.appendingPathComponent("Textream/Models", isDirectory: true)
     }

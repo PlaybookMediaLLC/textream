@@ -610,3 +610,21 @@ class DirectorServer {
         """
     }
 }
+
+#if BENCHMARK
+extension DirectorServer {
+    /// Cost of one 100 ms broadcast tick's JSON encode (benchmarks/PLAN.md #7).
+    static func benchEncodeCost(words: [String], totalCharCount: Int) -> (ns: UInt64, bytes: Int) {
+        var bytes = 0
+        let ns = Bench.measure(iterations: 20) {
+            let state = DirectorState(
+                words: words, highlightedCharCount: totalCharCount / 2, totalCharCount: totalCharCount,
+                isActive: true, isDone: false, isListening: true, fontColor: "#ffffff", cueColor: "#ffffff",
+                lastSpokenText: "", audioLevels: Array(repeating: 0.5, count: 30)
+            )
+            bytes = (try? JSONEncoder().encode(state))?.count ?? 0
+        }
+        return (ns, bytes)
+    }
+}
+#endif

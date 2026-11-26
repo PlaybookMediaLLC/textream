@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Embedded into the benchmark binary so macOS lets it use SFSpeechRecognizer (record-audio). -->
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>dev.textream.speech-tracking-bench</string>
+<key>NSSpeechRecognitionUsageDescription</key><string>Benchmarks prompter speech tracking on synthetic audio.</string>
+</dict></plist>

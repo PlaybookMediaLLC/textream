@@ -659,3 +659,22 @@ class BrowserServer {
         """
     }
 }
+
+#if BENCHMARK
+extension BrowserServer {
+    /// Cost of one 100 ms broadcast tick's JSON encode (benchmarks/PLAN.md #7).
+    static func benchEncodeCost(words: [String], totalCharCount: Int) -> (ns: UInt64, bytes: Int) {
+        var bytes = 0
+        let ns = Bench.measure(iterations: 20) {
+            let state = BrowserState(
+                words: words, highlightedCharCount: totalCharCount / 2, totalCharCount: totalCharCount,
+                audioLevels: Array(repeating: 0.5, count: 30), isListening: true, isDone: false,
+                fontColor: "#ffffff", cueColor: "#ffffff", hasNextPage: false, isActive: true,
+                highlightWords: true, lastSpokenText: ""
+            )
+            bytes = (try? JSONEncoder().encode(state))?.count ?? 0
+        }
+        return (ns, bytes)
+    }
+}
+#endif

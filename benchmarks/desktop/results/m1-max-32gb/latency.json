@@ -1,0 +1,217 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-25T23:50:06-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "latency.local-whisper-tiny-Q8_0.accent-gb.asrP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        663.0071145308634
+      ],
+      "median": 663.0071145308634,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.accent-gb.e2eP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        680.4384475308644
+      ],
+      "median": 680.4384475308644,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.accent-gb.e2eP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        1426.8023326976618
+      ],
+      "median": 1426.8023326976618,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.accent-gb.hopP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        4.505249999999999
+      ],
+      "median": 4.505249999999999,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.accent-gb.lostPer10Min": {
+      "unit": "events",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.accent-gb.matcherP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.46575
+      ],
+      "median": 0.46575,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.accent-gb.renderP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        24.253291
+      ],
+      "median": 24.253291,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.baseline-us.asrP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        661.619999999985
+      ],
+      "median": 661.619999999985,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.baseline-us.e2eP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        718.0944166666663
+      ],
+      "median": 718.0944166666663,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.baseline-us.e2eP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        1473.1911101739001
+      ],
+      "median": 1473.1911101739001,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.baseline-us.hopP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2.4861660000000003
+      ],
+      "median": 2.4861660000000003,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.baseline-us.lostPer10Min": {
+      "unit": "events",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.baseline-us.matcherP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.49629199999999996
+      ],
+      "median": 0.49629199999999996,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.baseline-us.renderP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        18.537374999999997
+      ],
+      "median": 18.537374999999997,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.noise-babble-10.asrP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        760.7455755813959
+      ],
+      "median": 760.7455755813959,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.noise-babble-10.e2eP50.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        768.3250335813909
+      ],
+      "median": 768.3250335813909,
+      "mad": 0,
+      "gate": false
+    },
+    "latency.local-whisper-tiny-Q8_0.noise-babble-10.e2eP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2427.895541
+      ],
+      "median": 2427.895541,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.noise-babble-10.hopP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        3.6731659999999997
+      ],
+      "median": 3.6731659999999997,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.noise-babble-10.lostPer10Min": {
+      "unit": "events",
+      "lowerIsBetter": true,
+      "values": [
+        6.655929358403076
+      ],
+      "median": 6.655929358403076,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.noise-babble-10.matcherP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.497458
+      ],
+      "median": 0.497458,
+      "mad": 0,
+      "gate": true
+    },
+    "latency.local-whisper-tiny-Q8_0.noise-babble-10.renderP95.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        22.790208
+      ],
+      "median": 22.790208,
+      "mad": 0,
+      "gate": false
+    }
+  }
+}

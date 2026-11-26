@@ -37,6 +37,11 @@
 			path = TextreamiOS;
 			sourceTree = "<group>";
 		};
+		A10000000000000000000020 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		A10000000000000000000004 /* TextreamiOSTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TextreamiOSTests;
@@ -75,6 +80,7 @@
 			children = (
 				446966B62F37E47300AF141F /* Textream */,
 				A10000000000000000000003 /* TextreamiOS */,
+				A10000000000000000000020 /* Shared */,
 				A10000000000000000000004 /* TextreamiOSTests */,
 				446966B52F37E47300AF141F /* Products */,
 			);
@@ -107,6 +113,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				446966B62F37E47300AF141F /* Textream */,
+				A10000000000000000000020 /* Shared */,
 			);
 			name = Textream;
 			packageProductDependencies = (
@@ -130,6 +137,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000003 /* TextreamiOS */,
+				A10000000000000000000020 /* Shared */,
 			);
 			name = TextreamiOS;
 			packageProductDependencies = (

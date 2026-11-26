@@ -1,0 +1,247 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-25T22:45:48-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "browser.encode.10k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        90357
+      ],
+      "median": 90357,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2.637875
+      ],
+      "median": 2.637875,
+      "mad": 0,
+      "gate": true
+    },
+    "browser.encode.1k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        9443
+      ],
+      "median": 9443,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.268625
+      ],
+      "median": 0.268625,
+      "mad": 0,
+      "gate": true
+    },
+    "browser.encode.50k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        450047
+      ],
+      "median": 450047,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.003709
+      ],
+      "median": 13.003709,
+      "mad": 0,
+      "gate": true
+    },
+    "director.encode.10k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        90315
+      ],
+      "median": 90315,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2.674709
+      ],
+      "median": 2.674709,
+      "mad": 0,
+      "gate": true
+    },
+    "director.encode.1k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        9401
+      ],
+      "median": 9401,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.276875
+      ],
+      "median": 0.276875,
+      "mad": 0,
+      "gate": true
+    },
+    "director.encode.50k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        450005
+      ],
+      "median": 450005,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.046792
+      ],
+      "median": 13.046792,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.cold.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        89.411125
+      ],
+      "median": 89.411125,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.cold.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        9.212833
+      ],
+      "median": 9.212833,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.cold.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        440.589833
+      ],
+      "median": 440.589833,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.10k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.441417
+      ],
+      "median": 0.441417,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.10k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2.16725
+      ],
+      "median": 2.16725,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.10k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        3.848167
+      ],
+      "median": 3.848167,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.1k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.044
+      ],
+      "median": 0.044,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.1k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.213083
+      ],
+      "median": 0.213083,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.1k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.375959
+      ],
+      "median": 0.375959,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.50k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2.198334
+      ],
+      "median": 2.198334,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.50k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        10.77875
+      ],
+      "median": 10.77875,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.50k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        19.3535
+      ],
+      "median": 19.3535,
+      "mad": 0,
+      "gate": true
+    }
+  }
+}

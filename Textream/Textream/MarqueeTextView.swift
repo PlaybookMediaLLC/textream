@@ -1033,3 +1033,23 @@ class ScrollWheelNSView: NSView {
         return nil
     }
 }
+
+#if BENCHMARK
+extension WordFlowLayout {
+    /// The work `body` does on every redraw before it lays out the visible
+    /// lines: the layout-cache check, the next-word scan and the RTL check
+    /// (benchmarks/PLAN.md #4).
+    static func benchPerRedrawCost(
+        words: [String], highlightedCharCount: Int, font: NSFont,
+        paragraphBreaks: Set<Int>, containerWidth: CGFloat
+    ) {
+        let layout = WordFlowLayout(
+            words: words, highlightedCharCount: highlightedCharCount, font: font,
+            paragraphBreakBeforeWordIndices: paragraphBreaks, containerWidth: containerWidth
+        )
+        let (items, _, _) = layout.cachedLayout()
+        _ = layout.nextWordIndex(items: items)
+        _ = layout.isRightToLeft(items: items)
+    }
+}
+#endif

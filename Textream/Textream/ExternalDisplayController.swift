@@ -74,6 +74,9 @@ class ExternalDisplayController {
         panel.setFrame(screenFrame, display: true)
         panel.orderFront(nil)
         self.panel = panel
+        benchAttachProbe(to: panel, label: "external") { [weak speechRecognizer] in
+            speechRecognizer?.recognizedCharCount ?? 0
+        }
 
         // Poll for dismiss signal
         Timer.publish(every: 0.1, on: .main, in: .common)

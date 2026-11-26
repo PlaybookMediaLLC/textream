@@ -1,0 +1,247 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-25T23:33:10-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "idle.A.menubar.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        0.005067779614296224
+      ],
+      "median": 0.005067779614296224,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.A.menubar.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        0.0055553796241725704
+      ],
+      "median": 0.0055553796241725704,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.A.menubar.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        0.19998906672167796
+      ],
+      "median": 0.19998906672167796,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.B.mainWindow.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        0.011199559194370998
+      ],
+      "median": 0.011199559194370998,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.B.mainWindow.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        0.0073094192004575405
+      ],
+      "median": 0.0073094192004575405,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.B.mainWindow.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        0.25270713837849645
+      ],
+      "median": 0.25270713837849645,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.C.paused.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        0.8735522395065143
+      ],
+      "median": 0.8735522395065143,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.C.paused.floating.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        0.5824307999560115
+      ],
+      "median": 0.5824307999560115,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.C.paused.floating.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        31.2334754400626
+      ],
+      "median": 31.2334754400626,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.C.paused.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        1.6138234406393714
+      ],
+      "median": 1.6138234406393714,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.C.paused.fullscreen.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        19.741188236625455
+      ],
+      "median": 19.741188236625455,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.C.paused.fullscreen.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        13.8823545687688
+      ],
+      "median": 13.8823545687688,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.C.paused.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        0.8563118075077258
+      ],
+      "median": 0.8563118075077258,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.C.paused.pinned.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        1.1477288055507313
+      ],
+      "median": 1.1477288055507313,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.C.paused.pinned.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        34.399232894202065
+      ],
+      "median": 34.399232894202065,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.D.servers.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        0.009616471757764672
+      ],
+      "median": 0.009616471757764672,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.D.servers.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        0.004591638122628803
+      ],
+      "median": 0.004591638122628803,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.D.servers.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        0.3631488383192605
+      ],
+      "median": 0.3631488383192605,
+      "mad": 0,
+      "gate": true
+    },
+    "idle.E.classic.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        31.318013654904718
+      ],
+      "median": 31.318013654904718,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.E.classic.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        438.46934318950645
+      ],
+      "median": 438.46934318950645,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.E.classic.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        60.72101362716711
+      ],
+      "median": 60.72101362716711,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.F.tracking-ui.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        18.190462091767504
+      ],
+      "median": 18.190462091767504,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.F.tracking-ui.energyMW": {
+      "unit": "mW",
+      "lowerIsBetter": true,
+      "values": [
+        178.3228279819217
+      ],
+      "median": 178.3228279819217,
+      "mad": 0,
+      "gate": false
+    },
+    "idle.F.tracking-ui.wakeupsPerSec": {
+      "unit": "/s",
+      "lowerIsBetter": true,
+      "values": [
+        66.44912866826961
+      ],
+      "median": 66.44912866826961,
+      "mad": 0,
+      "gate": false
+    }
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-25T23:03:28-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "launch.didFinishLaunching.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        476.08304023742676,
+        288.10596466064453,
+        276.9169807434082
+      ],
+      "median": 288.10596466064453,
+      "mad": 11.188983917236328,
+      "gate": false
+    },
+    "launch.mainWindowFirstFrame.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        575.0977993011475,
+        695.4069137573242,
+        359.61103439331055
+      ],
+      "median": 575.0977993011475,
+      "mad": 120.30911445617676,
+      "gate": true
+    },
+    "launch.step.browserServer.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.0171661376953125,
+        0.016927719116210938,
+        0.015974044799804688
+      ],
+      "median": 0.016927719116210938,
+      "mad": 0.0002384185791015625,
+      "gate": false
+    },
+    "launch.step.directorServer.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.056743621826171875,
+        0.04291534423828125,
+        0.04601478576660156
+      ],
+      "median": 0.04601478576660156,
+      "mad": 0.0030994415283203125,
+      "gate": false
+    },
+    "launch.step.services.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        1.4247894287109375,
+        0.8618831634521484,
+        0.8358955383300781
+      ],
+      "median": 0.8618831634521484,
+      "mad": 0.025987625122070312,
+      "gate": false
+    },
+    "launch.step.updateCheck.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2.231121063232422,
+        1.4400482177734375,
+        1.5511512756347656
+      ],
+      "median": 1.5511512756347656,
+      "mad": 0.11110305786132812,
+      "gate": false
+    },
+    "ttfp.firstHighlight.local-whisper-tiny-Q8_0.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        12618.43490600586,
+        1768.3568000793457,
+        1773.205041885376
+      ],
+      "median": 1773.205041885376,
+      "mad": 4.848241806030273,
+      "gate": true
+    },
+    "ttfp.notRunning.overlayFirstFrame.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        511.4889144897461,
+        452.7769088745117,
+        453.55916023254395
+      ],
+      "median": 453.55916023254395,
+      "mad": 0.7822513580322266,
+      "gate": true
+    },
+    "ttfp.running.overlayFirstFrame.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        112.15686798095703,
+        115.52619934082031,
+        111.02795600891113
+      ],
+      "median": 112.15686798095703,
+      "mad": 1.1289119720458984,
+      "gate": true
+    }
+  }
+}

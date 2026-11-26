@@ -1,0 +1,67 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-26T01:00:40-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "soak.local-whisper-tiny-Q8_0.cpuPercent": {
+      "unit": "",
+      "lowerIsBetter": true,
+      "values": [
+        31.45843045594322
+      ],
+      "median": 31.45843045594322,
+      "mad": 0,
+      "gate": false
+    },
+    "soak.local-whisper-tiny-Q8_0.leakedBytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        9648
+      ],
+      "median": 9648,
+      "mad": 0,
+      "gate": true
+    },
+    "soak.local-whisper-tiny-Q8_0.lostPer10Min": {
+      "unit": "",
+      "lowerIsBetter": true,
+      "values": [
+        2.8513197155095753
+      ],
+      "median": 2.8513197155095753,
+      "mad": 0,
+      "gate": true
+    },
+    "soak.local-whisper-tiny-Q8_0.memSlopeMBPerHour": {
+      "unit": "",
+      "lowerIsBetter": true,
+      "values": [
+        4.810804330876366
+      ],
+      "median": 4.810804330876366,
+      "mad": 0,
+      "gate": true
+    },
+    "soak.local-whisper-tiny-Q8_0.peakMemoryMB": {
+      "unit": "",
+      "lowerIsBetter": true,
+      "values": [
+        207.79790496826172
+      ],
+      "median": 207.79790496826172,
+      "mad": 0,
+      "gate": false
+    },
+    "soak.local-whisper-tiny-Q8_0.restartTasks": {
+      "unit": "count",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": false
+    }
+  }
+}

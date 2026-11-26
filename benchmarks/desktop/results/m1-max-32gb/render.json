@@ -1,0 +1,547 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-25T23:21:09-05:00",
+  "commit": "f9c6c94",
+  "metrics": {
+    "render.10k.dyslexia.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        12.000313844417597
+      ],
+      "median": 12.000313844417597,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.dyslexia.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        6.259765469543791
+      ],
+      "median": 6.259765469543791,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.dyslexia.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        26.676333334762603
+      ],
+      "median": 26.676333334762603,
+      "mad": 0,
+      "gate": false
+    },
+    "render.10k.dyslexia.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        7.229081103484909
+      ],
+      "median": 7.229081103484909,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.dyslexia.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.dyslexia.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.338166667381302
+      ],
+      "median": 13.338166667381302,
+      "mad": 0,
+      "gate": false
+    },
+    "render.10k.dyslexia.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        11.01582323427041
+      ],
+      "median": 11.01582323427041,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.dyslexia.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.dyslexia.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.338166667381302
+      ],
+      "median": 13.338166667381302,
+      "mad": 0,
+      "gate": false
+    },
+    "render.10k.sans.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        12.082328195857402
+      ],
+      "median": 12.082328195857402,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.sans.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        4.220640466788203
+      ],
+      "median": 4.220640466788203,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.sans.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        29.31766666006297
+      ],
+      "median": 29.31766666006297,
+      "mad": 0,
+      "gate": false
+    },
+    "render.10k.sans.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        7.238850011855356
+      ],
+      "median": 7.238850011855356,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.sans.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.sans.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.338166667381302
+      ],
+      "median": 13.338166667381302,
+      "mad": 0,
+      "gate": false
+    },
+    "render.10k.sans.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        13.48754454365231
+      ],
+      "median": 13.48754454365231,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.sans.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        4.009806035367774
+      ],
+      "median": 4.009806035367774,
+      "mad": 0,
+      "gate": true
+    },
+    "render.10k.sans.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        28.623374993912876
+      ],
+      "median": 28.623374993912876,
+      "mad": 0,
+      "gate": false
+    },
+    "render.1k.dyslexia.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        9.655914066978106
+      ],
+      "median": 9.655914066978106,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.dyslexia.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        7.8387267526220645
+      ],
+      "median": 7.8387267526220645,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.dyslexia.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        26.676333334762603
+      ],
+      "median": 26.676333334762603,
+      "mad": 0,
+      "gate": false
+    },
+    "render.1k.dyslexia.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        10.293398023575886
+      ],
+      "median": 10.293398023575886,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.dyslexia.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        7.220060289898024
+      ],
+      "median": 7.220060289898024,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.dyslexia.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        29.315166670130566
+      ],
+      "median": 29.315166670130566,
+      "mad": 0,
+      "gate": false
+    },
+    "render.1k.dyslexia.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        11.441333207758941
+      ],
+      "median": 11.441333207758941,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.dyslexia.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.dyslexia.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.338166667381302
+      ],
+      "median": 13.338166667381302,
+      "mad": 0,
+      "gate": false
+    },
+    "render.1k.sans.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        13.43460495696025
+      ],
+      "median": 13.43460495696025,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.sans.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        11.961349202372428
+      ],
+      "median": 11.961349202372428,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.sans.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        33.45791666652076
+      ],
+      "median": 33.45791666652076,
+      "mad": 0,
+      "gate": false
+    },
+    "render.1k.sans.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        12.14315414898508
+      ],
+      "median": 12.14315414898508,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.sans.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        7.845870879791679
+      ],
+      "median": 7.845870879791679,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.sans.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        26.676333334762603
+      ],
+      "median": 26.676333334762603,
+      "mad": 0,
+      "gate": false
+    },
+    "render.1k.sans.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        14.712027931966093
+      ],
+      "median": 14.712027931966093,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.sans.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        9.345082697298551
+      ],
+      "median": 9.345082697298551,
+      "mad": 0,
+      "gate": true
+    },
+    "render.1k.sans.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        34.671666653594
+      ],
+      "median": 34.671666653594,
+      "mad": 0,
+      "gate": false
+    },
+    "render.50k.dyslexia.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        8.073401535921002
+      ],
+      "median": 8.073401535921002,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.dyslexia.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        40.251793606297646
+      ],
+      "median": 40.251793606297646,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.dyslexia.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        704.8095416685101
+      ],
+      "median": 704.8095416685101,
+      "mad": 0,
+      "gate": false
+    },
+    "render.50k.dyslexia.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        6.824287136914702
+      ],
+      "median": 6.824287136914702,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.dyslexia.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        0
+      ],
+      "median": 0,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.dyslexia.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.338166667381302
+      ],
+      "median": 13.338166667381302,
+      "mad": 0,
+      "gate": false
+    },
+    "render.50k.dyslexia.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        11.131601681509444
+      ],
+      "median": 11.131601681509444,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.dyslexia.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        25.842654932165598
+      ],
+      "median": 25.842654932165598,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.dyslexia.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        381.3922916597221
+      ],
+      "median": 381.3922916597221,
+      "mad": 0,
+      "gate": false
+    },
+    "render.50k.sans.floating.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        13.277633814488087
+      ],
+      "median": 13.277633814488087,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.sans.floating.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        44.39038461604174
+      ],
+      "median": 44.39038461604174,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.sans.floating.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        698.1551250210032
+      ],
+      "median": 698.1551250210032,
+      "mad": 0,
+      "gate": false
+    },
+    "render.50k.sans.fullscreen.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        14.891982967571119
+      ],
+      "median": 14.891982967571119,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.sans.fullscreen.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        45.86663910784775
+      ],
+      "median": 45.86663910784775,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.sans.fullscreen.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        705.7883333181962
+      ],
+      "median": 705.7883333181962,
+      "mad": 0,
+      "gate": false
+    },
+    "render.50k.sans.pinned.cpuPercent": {
+      "unit": "%",
+      "lowerIsBetter": true,
+      "values": [
+        13.89483614824918
+      ],
+      "median": 13.89483614824918,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.sans.pinned.hitchMsPerS": {
+      "unit": "ms/s",
+      "lowerIsBetter": true,
+      "values": [
+        32.83880857774784
+      ],
+      "median": 32.83880857774784,
+      "mad": 0,
+      "gate": true
+    },
+    "render.50k.sans.pinned.maxFrameMs": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        502.51429167110473
+      ],
+      "median": 502.51429167110473,
+      "mad": 0,
+      "gate": false
+    }
+  }
+}

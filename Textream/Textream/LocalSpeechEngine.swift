@@ -553,6 +553,7 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
         isNewWindow: Bool
     ) {
         let emittingSessionID = workerGeneration
+        benchLog("asr.partial", ["engine": "local", "len": text.count, "newWindow": isNewWindow])
         bufferLock.lock()
         let state = sessionsByID[emittingSessionID]
         let callback = state?.callbacks.onText
