@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent",
+  "gating" : true,
+  "hints" : true,
+  "id" : "accent-ie",
+  "name" : "Irish English (Moira)",
+  "script" : "general",
+  "voice" : "Moira",
+  "wpm" : 175
+}

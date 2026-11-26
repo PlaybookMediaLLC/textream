@@ -34,8 +34,73 @@ struct AudioCaseInfo: Codable {
     var snr: Double?
     var hints = true
     var gating = true
-    var engine = "apple-on-device"
+    /// nil = exact (from synthesis); "auto-aligned" = human take, timings from the recognizer, review pending.
+    var truthSource: String?
 }
+
+/// A recognizer the app can use. Fixture files are named `<id>.jsonl`.
+///
+/// Apple's server path: macOS 26 only has on-device models for a few English locales (en-US,
+/// en-PH, en-SA, en-ID). For en-GB, en-IN, en-AU, en-IE, en-ZA, en-CA… recognition goes to the
+/// server, so a user who picks their own English variant gets the server path. (With en-US the
+/// server option is moot: macOS stays on-device even when server is allowed; partials matched
+/// on-device 327/327.)
+enum Engine {
+    case appleOnDevice
+    case appleServer(locale: String)
+    case local(name: String, path: String)   // transcribe.cpp model, via the app's LocalSpeechEngine
+
+    var id: String {
+        switch self {
+        case .appleOnDevice: "apple-on-device"
+        case .appleServer(let locale): "apple-server-\(locale)"
+        case .local(let name, _): "local-\(name)"
+        }
+    }
+
+    /// PLAN.md §4.9: the full matrix on the default engine, a fixed core set on the others.
+    var recordsFullMatrix: Bool { if case .appleOnDevice = self { true } else { false } }
+
+    static func parse(_ s: String) -> Engine? {
+        switch s {
+        case "apple-on-device": return .appleOnDevice
+        case _ where s.hasPrefix("apple-server:"): return .appleServer(locale: String(s.dropFirst("apple-server:".count)))
+        default:
+            guard s.hasSuffix(".gguf") else { return nil }
+            let name = URL(fileURLWithPath: s).deletingPathExtension().lastPathComponent
+            return .local(name: name, path: s)
+        }
+    }
+}
+
+/// Engines whose results gate (PLAN.md §8, §10.3). Others are reported only.
+func isGatingEngine(_ id: String) -> Bool {
+    id.hasPrefix("apple-") || ["local-nemotron", "local-canary", "local-qwen3"].contains(id)
+}
+
+/// Recognizer limits verified outside the matcher, reported but not gated (PLAN.md Status). Values are
+/// fixture-id prefixes.
+/// - Canary-180M-flash decodes 10 dB 4-talker babble to empty text in ~50% of windows of any length
+///   (2–15 s) and any run options; Nemotron transcribes the same audio at 3% WER.
+/// - Speechocean762 speaker 0560 (strong Mandarin-L1 accent): Apple 37–52% WER, Nemotron 24–37%; the
+///   same audio through Qwen3-ASR has zero lost-place events, so the gap is the recognizer.
+/// - Apple, LibriSpeech reader 174 in 10 dB babble: Apple's own transcript arrives 6.8 s late (34% WER);
+///   Nemotron passes the same audio.
+/// - Qwen3 on 0560's composite (strong accent + 15 dB babble + skip/re-read/pause): no lost-place
+///   events, lag p95 3.6 s.
+let reportOnlyByEngine: [String: [String]] = [
+    "local-canary": ["noise-babble-10"],
+    "apple-on-device": ["human-l2-0560-", "human-174-babble10"],
+    "local-nemotron": ["human-l2-0560-"],
+    "local-qwen3": ["human-l2-0560-composite"],
+]
+
+/// Engines whose partials are one cumulative transcript per session (WER/lag diagnostics apply).
+func hasCumulativeTranscripts(_ id: String) -> Bool { id.hasPrefix("apple-") || id == "local-nemotron" }
+
+/// Cases recorded on every engine (PLAN.md §4.9).
+let coreCaseIDs: Set<String> = ["baseline-us", "accent-gb", "accent-in", "noise-babble-10", "noise-tv-10", "repeated-reread",
+                                "paraphrase-adlib", "pauses", "skips", "technical-hints", "composite"]
 
 struct AudioCase {
     var info: AudioCaseInfo
@@ -232,70 +297,21 @@ func contextualStrings(script: PromptScript, fromWord word: Int) -> [String] {
     return out
 }
 
-/// Which recognizer record-audio uses: ENGINE=apple-on-device (default), apple-server,
-/// or local:<path to .gguf> (transcribe.cpp, run by ENGINE_TOOL from ../desktop).
-let engineSpec = ProcessInfo.processInfo.environment["ENGINE"] ?? "apple-on-device"
-
-/// Engines whose Layer B results gate CI (GATE_ENGINES=a,b overrides).
-let gatingEngines = Set((ProcessInfo.processInfo.environment["GATE_ENGINES"] ?? "apple-on-device").split(separator: ",").map(String.init))
-
-/// File-name-safe engine id, used as the fixture file name: <case>/<engine id>.jsonl.
-func engineID(_ spec: String) -> String {
-    guard spec.hasPrefix("local:") else { return spec }
-    let file = URL(fileURLWithPath: String(spec.dropFirst(6))).deletingPathExtension().lastPathComponent
-    return "local-" + file.lowercased().map { $0.isLetter || $0.isNumber || $0 == "." ? $0 : "-" }.map(String.init).joined()
-}
-
-func transcribe(_ audio: [Float], script: PromptScript, tl: Timeline, hints: Bool) throws -> [Partial] {
-    if engineSpec.hasPrefix("local:") {
-        return try transcribeLocal(audio, model: String(engineSpec.dropFirst(6)), script: script, hints: hints)
+func transcribe(_ audio: [Float], script: PromptScript, tl: Timeline, hints: Bool, engine: Engine) throws -> [Partial] {
+    switch engine {
+    case .appleOnDevice: try transcribeApple(audio, script: script, tl: tl, hints: hints, onDevice: true)
+    case .appleServer(let locale): try transcribeApple(audio, script: script, tl: tl, hints: hints, onDevice: false, locale: locale)
+    case .local(_, let path): try transcribeLocal(audio, script: script, hints: hints, modelPath: path)
     }
-    return try transcribeApple(audio, script: script, tl: tl, hints: hints, onDevice: engineSpec != "apple-server")
-}
-
-/// Runs the local engine through the ../desktop engine tool (it links transcribe.cpp,
-/// which this harness doesn't, so CI can score fixtures without the native library).
-func transcribeLocal(_ audio: [Float], model: String, script: PromptScript, hints: Bool) throws -> [Partial] {
-    guard let tool = ProcessInfo.processInfo.environment["ENGINE_TOOL"] else {
-        throw NSError(domain: "speech", code: 2, userInfo: [NSLocalizedDescriptionKey: "ENGINE_TOOL not set (go run ../desktop/run.go engine-tool)"])
-    }
-    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("speech-tracking-local-\(getpid())")
-    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: dir) }
-    let wav = dir.appendingPathComponent("audio.wav"), out = dir.appendingPathComponent("partials.jsonl")
-    try writeWav(audio, to: wav)
-    let process = Process()
-    process.executableURL = URL(fileURLWithPath: tool)
-    var arguments = ["transcribe", "--audio", wav.path, "--model", model, "--out", out.path]
-    if hints {   // the app's local initial prompt: distinctive upcoming words
-        var seen = Set<String>()
-        let words = script.words.map(\.text).filter { $0.count >= 6 && seen.insert($0.lowercased()).inserted }.prefix(15)
-        arguments += ["--prompt", words.joined(separator: ", ")]
-    }
-    process.arguments = arguments
-    try process.run()
-    process.waitUntilExit()
-    guard process.terminationStatus == 0 else {
-        throw NSError(domain: "speech", code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: "engine tool failed"])
-    }
-    return try String(contentsOf: out, encoding: .utf8).split(separator: "\n")
-        .map { try JSONDecoder().decode(Partial.self, from: Data($0.utf8)) }
-}
-
-func writeWav(_ samples: [Float], to url: URL) throws {
-    let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
-    let file = try AVAudioFile(forWriting: url, settings: format.settings, commonFormat: .pcmFormatFloat32, interleaved: false)
-    let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count))!
-    buffer.frameLength = AVAudioFrameCount(samples.count)
-    samples.withUnsafeBufferPointer { buffer.floatChannelData![0].update(from: $0.baseAddress!, count: samples.count) }
-    try file.write(from: buffer)
 }
 
 /// Streams `audio` in real time into SFSpeechRecognizer and collects every partial.
-func transcribeApple(_ audio: [Float], script: PromptScript, tl: Timeline, hints: Bool, onDevice: Bool) throws -> [Partial] {
-    guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")),
-          !onDevice || recognizer.supportsOnDeviceRecognition else {
-        throw NSError(domain: "speech", code: 1, userInfo: [NSLocalizedDescriptionKey: "on-device en-US recognition unavailable"])
+func transcribeApple(_ audio: [Float], script: PromptScript, tl: Timeline, hints: Bool, onDevice: Bool,
+                     locale: String = "en-US") throws -> [Partial] {
+    guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: locale)),
+          onDevice ? recognizer.supportsOnDeviceRecognition : !recognizer.supportsOnDeviceRecognition else {
+        throw NSError(domain: "speech", code: 1, userInfo: [NSLocalizedDescriptionKey:
+            "\(locale): \(onDevice ? "no on-device model" : "has an on-device model, so it would not use the server")"])
     }
     let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
     let started = Date()
@@ -336,11 +352,21 @@ func transcribeApple(_ audio: [Float], script: PromptScript, tl: Timeline, hints
     begin()
     let chunk = Int(0.1 * sampleRate)
     var i = 0
-    var sessionStart = 0.0
+    var policy = RecognitionRestartPolicy()   // as SpeechRecognizer / SpeechFollower
+    policy.sessionStarted(at: 0)
     while i < audio.count {
-        if clock() - sessionStart >= 55 || taskEnded {   // app: preemptive restart / restart on end
+        // The apps' audio level (min(rms × 5, 1)) for this 100 ms, as two ~50 ms updates.
+        let audioTime = Double(i) / sampleRate
+        var restartNow = taskEnded
+        for half in 0..<2 {
+            let a = i + half * chunk / 2, b = min(audio.count, a + chunk / 2)
+            guard a < b else { continue }
+            let rms = sqrt(audio[a..<b].reduce(Float(0)) { $0 + $1 * $1 } / Float(b - a))
+            if policy.shouldRestart(level: CGFloat(min(rms * 5, 1)), at: audioTime) { restartNow = true }
+        }
+        if restartNow {
             begin()
-            sessionStart = clock()
+            policy.sessionStarted(at: audioTime)
         }
         let n = min(chunk, audio.count - i)
         let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(n))!
@@ -358,9 +384,77 @@ func transcribeApple(_ audio: [Float], script: PromptScript, tl: Timeline, hints
     return partials
 }
 
+/// Streams `audio` in real time through the app's LocalSpeechEngine (transcribe.cpp), the way
+/// SpeechRecognizer drives it: one session, `isNewWindow` re-anchors the matcher.
+func transcribeLocal(_ audio: [Float], script: PromptScript, hints: Bool, modelPath: String) throws -> [Partial] {
+    let engine = LocalSpeechEngine.shared
+    var info: LocalSpeechEngineInfo?
+    var loadError: Error?
+    engine.loadModel(at: modelPath) { result in
+        switch result {
+        case .success(let loaded): info = loaded
+        case .failure(let error): loadError = error
+        }
+    }
+    while info == nil && loadError == nil { RunLoop.main.run(until: Date().addingTimeInterval(0.05)) }
+    if let loadError { throw loadError }
+    guard let info else { return [] }
+
+    // SpeechRecognizer.localLanguageHint with an en-US preference.
+    let language = info.languages.first { $0.caseInsensitiveCompare("en-US") == .orderedSame }
+        ?? info.languages.first { $0.lowercased().hasPrefix("en") }
+        ?? (info.supportsLanguageDetection ? nil : info.languages.first)
+    // SpeechRecognizer.localInitialPrompt: distinctive upcoming words, not a script echo.
+    var prompt: String?
+    if hints {
+        var seen = Set<String>()
+        var words: [String] = []
+        for raw in script.text.split(separator: " ").prefix(80) {
+            let word = raw.trimmingCharacters(in: .punctuationCharacters)
+            guard word.count >= 6, seen.insert(word.lowercased()).inserted else { continue }
+            words.append(word)
+            if words.count >= 15 { break }
+        }
+        prompt = words.isEmpty ? nil : words.joined(separator: ", ")
+    }
+
+    let started = Date()
+    func clock() -> Double { Date().timeIntervalSince(started) }
+    var session = 0
+    var partials = [Partial(t: 0, session: 0, text: "")]
+    var finished = false
+    let sessionID = engine.start(
+        language: language, initialPrompt: prompt, wordTimestamps: false,
+        retryEmptyWindowsOnRecentAudio: true,   // as SpeechRecognizer
+        onText: { text, _, _, isNewWindow, _ in
+            if isNewWindow {
+                session += 1
+                partials.append(Partial(t: clock(), session: session, text: ""))
+            }
+            partials.append(Partial(t: clock(), session: session, text: text))
+        },
+        onError: { message, _ in
+            FileHandle.standardError.write("local engine error: \(message)\n".data(using: .utf8)!)
+            finished = true
+        },
+        onFinished: { _ in finished = true }
+    )
+    let chunk = Int(0.1 * sampleRate)
+    var i = 0
+    while i < audio.count {
+        let n = min(chunk, audio.count - i)
+        engine.feed(Array(audio[i..<(i + n)]), sessionID: sessionID)
+        i += n
+        RunLoop.main.run(until: started.addingTimeInterval(Double(i) / sampleRate))
+    }
+    engine.stop(sessionID: sessionID)
+    let deadline = Date().addingTimeInterval(15)
+    while !finished && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.05)) }
+    return partials
+}
+
 // MARK: - Commands
 
-/// A case's audio (speech plus noise) and its ground-truth timeline.
 func renderCase(_ c: AudioCase, script: PromptScript, cache: URL) throws -> (audio: [Float], tl: Timeline) {
     var rng = RNG(state: 1)
     let (speech, tl) = try render(perform(script, c.perf, &rng), voice: c.info.voice, wpm: c.info.wpm, cache: cache)
@@ -377,7 +471,7 @@ func ttsCache() throws -> URL {
     return cache
 }
 
-/// Writes <out>/<case>/{audio.wav, truth.json, case.json, script.txt} for app-level runs.
+/// Writes <out>/<case>/{audio.wav, truth.json, case.json, script.txt} for app-level runs (../desktop).
 func renderAudio(root: URL, out: URL, filter: String?) throws {
     let scripts = try loadScripts(root)
     let cache = try ttsCache()
@@ -388,7 +482,7 @@ func renderAudio(root: URL, out: URL, filter: String?) throws {
         if FileManager.default.fileExists(atPath: dir.appendingPathComponent("audio.wav").path) { continue }
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let (audio, tl) = try renderCase(c, script: scripts[c.info.script]!, cache: cache)
-        try writeWav(audio, to: dir.appendingPathComponent("audio.wav"))
+        try writeWAV(audio, to: dir.appendingPathComponent("audio.wav"))
         try encoder.encode(c.info).write(to: dir.appendingPathComponent("case.json"))
         try encoder.encode(tl).write(to: dir.appendingPathComponent("truth.json"))
         try String(contentsOf: root.appendingPathComponent("scripts/\(c.info.script).txt"), encoding: .utf8)
@@ -397,11 +491,12 @@ func renderAudio(root: URL, out: URL, filter: String?) throws {
     }
 }
 
-func recordAudio(root: URL, filter: String?) throws {
+func recordAudio(root: URL, filter: String?, engine: Engine) throws {
     let scripts = try loadScripts(root)
-    let cache = try ttsCache()
+    let cache = FileManager.default.temporaryDirectory.appendingPathComponent("speech-tracking-tts")
+    try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: true)
     let status = SFSpeechRecognizer.authorizationStatus()
-    if engineSpec.hasPrefix("apple"), status != .authorized {
+    if status != .authorized {
         let sema = DispatchSemaphore(value: 0)
         SFSpeechRecognizer.requestAuthorization { _ in sema.signal() }
         sema.wait()
@@ -409,20 +504,75 @@ func recordAudio(root: URL, filter: String?) throws {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
 
-    for c in audioCases() where filter == nil || c.info.id.contains(filter!) || c.info.name.contains(filter!) {
+    // Core set unless CASE names cases explicitly.
+    for c in audioCases() where filter.map({ c.info.id.contains($0) || c.info.name.contains($0) })
+        ?? (engine.recordsFullMatrix || coreCaseIDs.contains(c.info.id)) {
         let script = scripts[c.info.script]!
-        let (audio, tl) = try renderCase(c, script: script, cache: cache)
-        FileHandle.standardError.write("recording \(c.info.id) with \(engineID(engineSpec)) (\(Int(tl.end)) s)…\n".data(using: .utf8)!)
-        let partials = try transcribe(audio, script: script, tl: tl, hints: c.info.hints)
+        var rng = RNG(state: 1)
+        let (speech, tl) = try render(perform(script, c.perf, &rng), voice: c.info.voice, wpm: c.info.wpm, cache: cache)
+        var audio = speech
+        if let kind = c.info.noise, let snr = c.info.snr {
+            audio = mix(speech, try noise(kind, length: speech.count, cache: cache), snr: snr)
+        }
+        FileHandle.standardError.write("recording \(c.info.id) with \(engine.id) (\(Int(tl.end)) s)…\n".data(using: .utf8)!)
+        let partials = try transcribe(audio, script: script, tl: tl, hints: c.info.hints, engine: engine)
 
         let dir = root.appendingPathComponent("fixtures/\(c.info.id)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try encoder.encode(c.info).write(to: dir.appendingPathComponent("case.json"))
-        try encoder.encode(tl).write(to: dir.appendingPathComponent("truth.json"))
+        try encoder.encode(c.info).write(to: dir.appendingPathComponent("case.json"), options: .atomic)
+        try encoder.encode(tl).write(to: dir.appendingPathComponent("truth.json"), options: .atomic)
         let lines = try partials.map { String(data: try JSONEncoder().encode($0), encoding: .utf8)! }
-        try (lines.joined(separator: "\n") + "\n").write(to: dir.appendingPathComponent("\(engineID(engineSpec)).jsonl"),
+        try (lines.joined(separator: "\n") + "\n").write(to: dir.appendingPathComponent("\(engine.id).jsonl"),
                                                          atomically: true, encoding: .utf8)
     }
+}
+
+/// Word error rate of what the recognizer finally wrote vs what the voice actually said.
+/// Each utterance's last partial counts (a new session, or a transcript that starts over:
+/// different first words *and* shorter; revisions keep or grow their length). Separates recognizer quality from matcher quality.
+func recognizerWER(_ partials: [Partial], spoken: [String]) -> Double {
+    var finals: [String] = []
+    var previous: [String] = []
+    var previousSession = -1
+    for p in partials where !p.text.isEmpty {
+        let words = PromptMatcher.canonicalTokens(p.text)
+        if p.session != previousSession || PromptMatcher.startsOver(words, after: previous) {
+            finals += previous
+        }
+        previous = words
+        previousSession = p.session
+    }
+    finals += previous
+    let reference = spoken.flatMap { PromptMatcher.canonicalTokens($0) }
+    guard !reference.isEmpty else { return 0 }
+    var row = Array(0...finals.count)
+    for i in 1...reference.count {
+        var diagonal = row[0]
+        row[0] = i
+        for j in stride(from: 1, through: finals.count, by: 1) {
+            let up = row[j]
+            row[j] = reference[i - 1] == finals[j - 1] ? diagonal : min(diagonal, row[j], row[j - 1]) + 1
+            diagonal = up
+        }
+    }
+    return Double(row[finals.count]) / Double(reference.count)
+}
+
+/// Median seconds from the voice finishing a word until the recognizer's transcript
+/// contains that many words. A diagnostic: high values mean the recognizer (or the
+/// machine it was recorded on) fell behind, not the matcher.
+func recognizerLag(_ partials: [Partial], tl: Timeline) -> Double {
+    var curve: [(t: Double, words: Int)] = []
+    var done = 0, current = 0, session = 0
+    for p in partials {
+        if p.session != session { done += current; current = 0; session = p.session }
+        if !p.text.isEmpty { current = PromptMatcher.canonicalTokens(p.text).count }
+        curve.append((p.t, done + current))
+    }
+    let lags: [Double] = tl.tokens.enumerated().compactMap { i, word in
+        curve.first { $0.words >= i + 1 && $0.t >= word.end - 1 }.map { $0.t - word.end }
+    }
+    return percentile(lags, 0.5) ?? 0
 }
 
 func scoreAudio(root: URL, filter: String?) throws -> String {
@@ -430,32 +580,39 @@ func scoreAudio(root: URL, filter: String?) throws -> String {
     let fixtures = root.appendingPathComponent("fixtures")
     let ids = (try? FileManager.default.contentsOfDirectory(atPath: fixtures.path))?.sorted() ?? []
     var out = tableHeader
-    var failures = 0, gated = 0, total = 0
-    // One fixture file per engine in each case directory; rows grouped by engine.
     var rows: [(engine: String, row: String)] = []
+    var failures = 0, gated = 0, total = 0
     for id in ids where filter == nil || id.contains(filter!) {
         let dir = fixtures.appendingPathComponent(id)
         guard let caseData = try? Data(contentsOf: dir.appendingPathComponent("case.json")) else { continue }
         let info = try JSONDecoder().decode(AudioCaseInfo.self, from: caseData)
         let tl = try JSONDecoder().decode(Timeline.self, from: Data(contentsOf: dir.appendingPathComponent("truth.json")))
-        let engines = try FileManager.default.contentsOfDirectory(atPath: dir.path)
+        let engines = (try FileManager.default.contentsOfDirectory(atPath: dir.path))
             .filter { $0.hasSuffix(".jsonl") }.map { String($0.dropLast(6)) }.sorted()
         for engine in engines {
             let partials = try String(contentsOf: dir.appendingPathComponent("\(engine).jsonl"), encoding: .utf8)
                 .split(separator: "\n").map { try JSONDecoder().decode(Partial.self, from: Data($0.utf8)) }
             let result = score(script: scripts[info.script]!, tl: tl, partials: partials)
-            // Only the shipping default engine gates CI; other engines are report-only
-            // until one is chosen as a default (benchmarks/PLAN.md #1).
-            let gating = info.gating && gatingEngines.contains(engine)
-            let (row, pass) = reportRow(dimension: info.dimension, name: "\(info.name) [\(info.voice)] · `\(engine)`",
-                                        gating: gating, runs: [result])
+            let gating = info.gating && isGatingEngine(engine)
+                && !(reportOnlyByEngine[engine]?.contains { info.id.hasPrefix($0) } ?? false)
+            // WER and recognizer lag assume cumulative transcripts. Rolling-window engines
+            // re-transcribe overlapping audio (and may emit recent-only text), so skip them.
+            var diagnostics = "rolling window: WER n/a"
+            if hasCumulativeTranscripts(engine) {
+                let wer = Int((recognizerWER(partials, spoken: tl.tokens.map(\.text)) * 100).rounded())
+                diagnostics = "WER \(wer)%, ASR lag " + String(format: "%.1f", recognizerLag(partials, tl: tl)) + " s"
+            }
+            let (row, pass) = reportRow(dimension: "\(engine) · \(info.dimension)",
+                                        name: "\(info.name) [\(info.voice), \(diagnostics)]",
+                                        gating: gating, noisy: info.noise != nil || info.id.hasPrefix("human-l2-"),
+                                        runs: [result])
             rows.append((engine, row))
             total += 1
             if gating { gated += 1; if !pass { failures += 1 } }
         }
     }
-    for r in rows.sorted(by: { $0.engine < $1.engine }) { out += r.row }
-    out += "\nLayer B (synthetic voices → real recognizers, real audio, one take per case and engine). Matcher: \(matcherLabel)\n"
+    for (_, row) in rows.sorted(by: { $0.engine < $1.engine }) { out += row }
+    out += "\nLayer B (synthetic voices → real recognizers, real audio, one take per case per engine). Matcher: \(matcherLabel)\n"
     out += "\n\(gated - failures)/\(gated) gating cases pass the launch bar (PLAN.md §8); \(total - gated) report-only.\n"
     return out
 }

@@ -1,0 +1,12 @@
+{
+  "dimension" : "noise",
+  "gating" : true,
+  "hints" : true,
+  "id" : "noise-tv-10",
+  "name" : "competing talker (TV), 10 dB",
+  "noise" : "tv",
+  "script" : "general",
+  "snr" : 10,
+  "voice" : "Samantha",
+  "wpm" : 175
+}

@@ -1,0 +1,1343 @@
+{
+  "end" : 81.8850625,
+  "pauses" : [
+
+  ],
+  "resumes" : [
+
+  ],
+  "tokens" : [
+    {
+      "end" : 1.155,
+      "index" : 0,
+      "start" : 0.8859375,
+      "text" : "a"
+    },
+    {
+      "end" : 1.47,
+      "index" : 1,
+      "start" : 1.155,
+      "text" : "laudable"
+    },
+    {
+      "end" : 2.0100000000000002,
+      "index" : 2,
+      "start" : 1.47,
+      "text" : "regard"
+    },
+    {
+      "end" : 2.13,
+      "index" : 3,
+      "start" : 2.0100000000000002,
+      "text" : "for"
+    },
+    {
+      "end" : 2.2800000000000002,
+      "index" : 4,
+      "start" : 2.13,
+      "text" : "the"
+    },
+    {
+      "end" : 2.58,
+      "index" : 5,
+      "start" : 2.2800000000000002,
+      "text" : "honor"
+    },
+    {
+      "end" : 2.64,
+      "index" : 6,
+      "start" : 2.58,
+      "text" : "of"
+    },
+    {
+      "end" : 2.7600000000000002,
+      "index" : 7,
+      "start" : 2.64,
+      "text" : "the"
+    },
+    {
+      "end" : 3.12,
+      "index" : 8,
+      "start" : 2.7600000000000002,
+      "text" : "first"
+    },
+    {
+      "end" : 3.87,
+      "index" : 9,
+      "start" : 3.12,
+      "text" : "proselyte"
+    },
+    {
+      "end" : 4.23,
+      "index" : 10,
+      "start" : 3.87,
+      "text" : "has"
+    },
+    {
+      "end" : 4.65,
+      "index" : 11,
+      "start" : 4.23,
+      "text" : "countenanced"
+    },
+    {
+      "end" : 5.07,
+      "index" : 12,
+      "start" : 4.65,
+      "text" : "the"
+    },
+    {
+      "end" : 5.64,
+      "index" : 13,
+      "start" : 5.07,
+      "text" : "belief"
+    },
+    {
+      "end" : 6,
+      "index" : 14,
+      "start" : 5.88,
+      "text" : "the"
+    },
+    {
+      "end" : 6.48,
+      "index" : 15,
+      "start" : 6,
+      "text" : "hope"
+    },
+    {
+      "end" : 6.8100000000000005,
+      "index" : 16,
+      "start" : 6.63,
+      "text" : "the"
+    },
+    {
+      "end" : 7.41,
+      "index" : 17,
+      "start" : 6.8100000000000005,
+      "text" : "wish"
+    },
+    {
+      "end" : 7.83,
+      "index" : 18,
+      "start" : 7.62,
+      "text" : "that"
+    },
+    {
+      "end" : 8.34,
+      "index" : 19,
+      "start" : 7.83,
+      "text" : "the"
+    },
+    {
+      "end" : 8.88,
+      "index" : 20,
+      "start" : 8.34,
+      "text" : "ebionites"
+    },
+    {
+      "end" : 9.06,
+      "index" : 21,
+      "start" : 8.88,
+      "text" : "or"
+    },
+    {
+      "end" : 9.24,
+      "index" : 22,
+      "start" : 9.06,
+      "text" : "at"
+    },
+    {
+      "end" : 9.42,
+      "index" : 23,
+      "start" : 9.24,
+      "text" : "least"
+    },
+    {
+      "end" : 9.540000000000001,
+      "index" : 24,
+      "start" : 9.42,
+      "text" : "the"
+    },
+    {
+      "end" : 10.05,
+      "index" : 25,
+      "start" : 9.540000000000001,
+      "text" : "nazarenes"
+    },
+    {
+      "end" : 10.56,
+      "index" : 26,
+      "start" : 10.05,
+      "text" : "were"
+    },
+    {
+      "end" : 11.16,
+      "index" : 27,
+      "start" : 10.56,
+      "text" : "distinguished"
+    },
+    {
+      "end" : 11.46,
+      "index" : 28,
+      "start" : 11.16,
+      "text" : "only"
+    },
+    {
+      "end" : 11.64,
+      "index" : 29,
+      "start" : 11.46,
+      "text" : "by"
+    },
+    {
+      "end" : 11.85,
+      "index" : 30,
+      "start" : 11.64,
+      "text" : "their"
+    },
+    {
+      "end" : 12.33,
+      "index" : 31,
+      "start" : 11.85,
+      "text" : "obstinate"
+    },
+    {
+      "end" : 13.05,
+      "index" : 32,
+      "start" : 12.33,
+      "text" : "perseverance"
+    },
+    {
+      "end" : 13.11,
+      "index" : 33,
+      "start" : 13.05,
+      "text" : "in"
+    },
+    {
+      "end" : 13.200000000000001,
+      "index" : 34,
+      "start" : 13.11,
+      "text" : "the"
+    },
+    {
+      "end" : 13.59,
+      "index" : 35,
+      "start" : 13.200000000000001,
+      "text" : "practice"
+    },
+    {
+      "end" : 13.68,
+      "index" : 36,
+      "start" : 13.59,
+      "text" : "of"
+    },
+    {
+      "end" : 13.77,
+      "index" : 37,
+      "start" : 13.68,
+      "text" : "the"
+    },
+    {
+      "end" : 14.19,
+      "index" : 38,
+      "start" : 13.77,
+      "text" : "mosaic"
+    },
+    {
+      "end" : 14.5163125,
+      "index" : 39,
+      "start" : 14.19,
+      "text" : "rites"
+    },
+    {
+      "end" : 16.145,
+      "index" : 40,
+      "start" : 16.012999999999998,
+      "text" : "their"
+    },
+    {
+      "end" : 16.625,
+      "index" : 41,
+      "start" : 16.145,
+      "text" : "churches"
+    },
+    {
+      "end" : 16.775,
+      "index" : 42,
+      "start" : 16.625,
+      "text" : "have"
+    },
+    {
+      "end" : 17.615,
+      "index" : 43,
+      "start" : 16.775,
+      "text" : "disappeared"
+    },
+    {
+      "end" : 17.945,
+      "index" : 44,
+      "start" : 17.675,
+      "text" : "their"
+    },
+    {
+      "end" : 18.425,
+      "index" : 45,
+      "start" : 17.945,
+      "text" : "books"
+    },
+    {
+      "end" : 18.605,
+      "index" : 46,
+      "start" : 18.425,
+      "text" : "are"
+    },
+    {
+      "end" : 19.384999999999998,
+      "index" : 47,
+      "start" : 18.605,
+      "text" : "obliterated"
+    },
+    {
+      "end" : 19.775,
+      "index" : 48,
+      "start" : 19.535,
+      "text" : "their"
+    },
+    {
+      "end" : 20.314999999999998,
+      "index" : 49,
+      "start" : 19.775,
+      "text" : "obscure"
+    },
+    {
+      "end" : 20.705,
+      "index" : 50,
+      "start" : 20.314999999999998,
+      "text" : "freedom"
+    },
+    {
+      "end" : 20.975,
+      "index" : 51,
+      "start" : 20.705,
+      "text" : "might"
+    },
+    {
+      "end" : 21.335,
+      "index" : 52,
+      "start" : 20.975,
+      "text" : "allow"
+    },
+    {
+      "end" : 21.365000000000002,
+      "index" : 53,
+      "start" : 21.335,
+      "text" : "a"
+    },
+    {
+      "end" : 21.905,
+      "index" : 54,
+      "start" : 21.365000000000002,
+      "text" : "latitude"
+    },
+    {
+      "end" : 22.205,
+      "index" : 55,
+      "start" : 21.905,
+      "text" : "of"
+    },
+    {
+      "end" : 22.505,
+      "index" : 56,
+      "start" : 22.205,
+      "text" : "faith"
+    },
+    {
+      "end" : 23.045,
+      "index" : 57,
+      "start" : 22.805,
+      "text" : "and"
+    },
+    {
+      "end" : 23.165,
+      "index" : 58,
+      "start" : 23.045,
+      "text" : "the"
+    },
+    {
+      "end" : 23.765,
+      "index" : 59,
+      "start" : 23.165,
+      "text" : "softness"
+    },
+    {
+      "end" : 23.855,
+      "index" : 60,
+      "start" : 23.765,
+      "text" : "of"
+    },
+    {
+      "end" : 24.035,
+      "index" : 61,
+      "start" : 23.855,
+      "text" : "their"
+    },
+    {
+      "end" : 24.515,
+      "index" : 62,
+      "start" : 24.035,
+      "text" : "infant"
+    },
+    {
+      "end" : 24.965,
+      "index" : 63,
+      "start" : 24.515,
+      "text" : "creed"
+    },
+    {
+      "end" : 25.115000000000002,
+      "index" : 64,
+      "start" : 24.965,
+      "text" : "would"
+    },
+    {
+      "end" : 25.265,
+      "index" : 65,
+      "start" : 25.115000000000002,
+      "text" : "be"
+    },
+    {
+      "end" : 25.835,
+      "index" : 66,
+      "start" : 25.265,
+      "text" : "variously"
+    },
+    {
+      "end" : 26.494999999999997,
+      "index" : 67,
+      "start" : 25.835,
+      "text" : "moulded"
+    },
+    {
+      "end" : 26.735,
+      "index" : 68,
+      "start" : 26.494999999999997,
+      "text" : "by"
+    },
+    {
+      "end" : 26.855,
+      "index" : 69,
+      "start" : 26.735,
+      "text" : "the"
+    },
+    {
+      "end" : 27.305,
+      "index" : 70,
+      "start" : 26.855,
+      "text" : "zeal"
+    },
+    {
+      "end" : 27.425,
+      "index" : 71,
+      "start" : 27.305,
+      "text" : "or"
+    },
+    {
+      "end" : 27.935000000000002,
+      "index" : 72,
+      "start" : 27.425,
+      "text" : "prudence"
+    },
+    {
+      "end" : 28.175,
+      "index" : 73,
+      "start" : 27.935000000000002,
+      "text" : "of"
+    },
+    {
+      "end" : 28.445,
+      "index" : 74,
+      "start" : 28.175,
+      "text" : "three"
+    },
+    {
+      "end" : 28.775,
+      "index" : 75,
+      "start" : 28.445,
+      "text" : "hundred"
+    },
+    {
+      "end" : 29.162125,
+      "index" : 76,
+      "start" : 28.775,
+      "text" : "years"
+    },
+    {
+      "end" : 30.465,
+      "index" : 77,
+      "start" : 30.147375,
+      "text" : "yet"
+    },
+    {
+      "end" : 30.585,
+      "index" : 78,
+      "start" : 30.465,
+      "text" : "the"
+    },
+    {
+      "end" : 30.945,
+      "index" : 79,
+      "start" : 30.585,
+      "text" : "most"
+    },
+    {
+      "end" : 31.575,
+      "index" : 80,
+      "start" : 30.945,
+      "text" : "charitable"
+    },
+    {
+      "end" : 32.205,
+      "index" : 81,
+      "start" : 31.575,
+      "text" : "criticism"
+    },
+    {
+      "end" : 32.535,
+      "index" : 82,
+      "start" : 32.205,
+      "text" : "must"
+    },
+    {
+      "end" : 33.015,
+      "index" : 83,
+      "start" : 32.535,
+      "text" : "refuse"
+    },
+    {
+      "end" : 33.285,
+      "index" : 84,
+      "start" : 33.015,
+      "text" : "these"
+    },
+    {
+      "end" : 33.945,
+      "index" : 85,
+      "start" : 33.285,
+      "text" : "sectaries"
+    },
+    {
+      "end" : 34.335,
+      "index" : 86,
+      "start" : 33.945,
+      "text" : "any"
+    },
+    {
+      "end" : 34.725,
+      "index" : 87,
+      "start" : 34.335,
+      "text" : "knowledge"
+    },
+    {
+      "end" : 34.845,
+      "index" : 88,
+      "start" : 34.725,
+      "text" : "of"
+    },
+    {
+      "end" : 34.935,
+      "index" : 89,
+      "start" : 34.845,
+      "text" : "the"
+    },
+    {
+      "end" : 35.445,
+      "index" : 90,
+      "start" : 34.935,
+      "text" : "pure"
+    },
+    {
+      "end" : 35.655,
+      "index" : 91,
+      "start" : 35.445,
+      "text" : "and"
+    },
+    {
+      "end" : 36.135,
+      "index" : 92,
+      "start" : 35.655,
+      "text" : "proper"
+    },
+    {
+      "end" : 36.644999999999996,
+      "index" : 93,
+      "start" : 36.135,
+      "text" : "divinity"
+    },
+    {
+      "end" : 36.765,
+      "index" : 94,
+      "start" : 36.644999999999996,
+      "text" : "of"
+    },
+    {
+      "end" : 37.2760625,
+      "index" : 95,
+      "start" : 36.765,
+      "text" : "christ"
+    },
+    {
+      "end" : 38.465,
+      "index" : 96,
+      "start" : 38.3103125,
+      "text" : "his"
+    },
+    {
+      "end" : 39.005,
+      "index" : 97,
+      "start" : 38.465,
+      "text" : "progress"
+    },
+    {
+      "end" : 39.215,
+      "index" : 98,
+      "start" : 39.005,
+      "text" : "from"
+    },
+    {
+      "end" : 39.695,
+      "index" : 99,
+      "start" : 39.215,
+      "text" : "infancy"
+    },
+    {
+      "end" : 39.845,
+      "index" : 100,
+      "start" : 39.695,
+      "text" : "to"
+    },
+    {
+      "end" : 40.205,
+      "index" : 101,
+      "start" : 39.845,
+      "text" : "youth"
+    },
+    {
+      "end" : 40.415,
+      "index" : 102,
+      "start" : 40.205,
+      "text" : "and"
+    },
+    {
+      "end" : 41.075,
+      "index" : 103,
+      "start" : 40.415,
+      "text" : "manhood"
+    },
+    {
+      "end" : 41.375,
+      "index" : 104,
+      "start" : 41.075,
+      "text" : "was"
+    },
+    {
+      "end" : 41.705,
+      "index" : 105,
+      "start" : 41.375,
+      "text" : "marked"
+    },
+    {
+      "end" : 41.915,
+      "index" : 106,
+      "start" : 41.705,
+      "text" : "by"
+    },
+    {
+      "end" : 41.945,
+      "index" : 107,
+      "start" : 41.915,
+      "text" : "a"
+    },
+    {
+      "end" : 42.455,
+      "index" : 108,
+      "start" : 41.945,
+      "text" : "regular"
+    },
+    {
+      "end" : 42.995000000000005,
+      "index" : 109,
+      "start" : 42.455,
+      "text" : "increase"
+    },
+    {
+      "end" : 43.115,
+      "index" : 110,
+      "start" : 42.995000000000005,
+      "text" : "in"
+    },
+    {
+      "end" : 43.595,
+      "index" : 111,
+      "start" : 43.115,
+      "text" : "stature"
+    },
+    {
+      "end" : 43.715,
+      "index" : 112,
+      "start" : 43.595,
+      "text" : "and"
+    },
+    {
+      "end" : 44.255,
+      "index" : 113,
+      "start" : 43.715,
+      "text" : "wisdom"
+    },
+    {
+      "end" : 44.795,
+      "index" : 114,
+      "start" : 44.525,
+      "text" : "and"
+    },
+    {
+      "end" : 45.065,
+      "index" : 115,
+      "start" : 44.795,
+      "text" : "after"
+    },
+    {
+      "end" : 45.125,
+      "index" : 116,
+      "start" : 45.065,
+      "text" : "a"
+    },
+    {
+      "end" : 45.695,
+      "index" : 117,
+      "start" : 45.125,
+      "text" : "painful"
+    },
+    {
+      "end" : 46.115,
+      "index" : 118,
+      "start" : 45.695,
+      "text" : "agony"
+    },
+    {
+      "end" : 46.265,
+      "index" : 119,
+      "start" : 46.115,
+      "text" : "of"
+    },
+    {
+      "end" : 46.595,
+      "index" : 120,
+      "start" : 46.265,
+      "text" : "mind"
+    },
+    {
+      "end" : 46.715,
+      "index" : 121,
+      "start" : 46.595,
+      "text" : "and"
+    },
+    {
+      "end" : 47.165,
+      "index" : 122,
+      "start" : 46.715,
+      "text" : "body"
+    },
+    {
+      "end" : 47.555,
+      "index" : 123,
+      "start" : 47.315,
+      "text" : "he"
+    },
+    {
+      "end" : 48.125,
+      "index" : 124,
+      "start" : 47.555,
+      "text" : "expired"
+    },
+    {
+      "end" : 48.275000000000006,
+      "index" : 125,
+      "start" : 48.125,
+      "text" : "on"
+    },
+    {
+      "end" : 48.365,
+      "index" : 126,
+      "start" : 48.275000000000006,
+      "text" : "the"
+    },
+    {
+      "end" : 48.852875,
+      "index" : 127,
+      "start" : 48.365,
+      "text" : "cross"
+    },
+    {
+      "end" : 50.27,
+      "index" : 128,
+      "start" : 50.1654375,
+      "text" : "he"
+    },
+    {
+      "end" : 50.660000000000004,
+      "index" : 129,
+      "start" : 50.27,
+      "text" : "lived"
+    },
+    {
+      "end" : 50.84,
+      "index" : 130,
+      "start" : 50.660000000000004,
+      "text" : "and"
+    },
+    {
+      "end" : 51.32,
+      "index" : 131,
+      "start" : 50.84,
+      "text" : "died"
+    },
+    {
+      "end" : 51.440000000000005,
+      "index" : 132,
+      "start" : 51.32,
+      "text" : "for"
+    },
+    {
+      "end" : 51.56,
+      "index" : 133,
+      "start" : 51.440000000000005,
+      "text" : "the"
+    },
+    {
+      "end" : 51.95,
+      "index" : 134,
+      "start" : 51.56,
+      "text" : "service"
+    },
+    {
+      "end" : 52.040000000000006,
+      "index" : 135,
+      "start" : 51.95,
+      "text" : "of"
+    },
+    {
+      "end" : 52.910000000000004,
+      "index" : 136,
+      "start" : 52.040000000000006,
+      "text" : "mankind"
+    },
+    {
+      "end" : 53.330000000000005,
+      "index" : 137,
+      "start" : 53.06,
+      "text" : "but"
+    },
+    {
+      "end" : 53.45,
+      "index" : 138,
+      "start" : 53.330000000000005,
+      "text" : "the"
+    },
+    {
+      "end" : 53.75,
+      "index" : 139,
+      "start" : 53.45,
+      "text" : "life"
+    },
+    {
+      "end" : 53.84,
+      "index" : 140,
+      "start" : 53.75,
+      "text" : "and"
+    },
+    {
+      "end" : 54.11,
+      "index" : 141,
+      "start" : 53.84,
+      "text" : "death"
+    },
+    {
+      "end" : 54.17,
+      "index" : 142,
+      "start" : 54.11,
+      "text" : "of"
+    },
+    {
+      "end" : 54.830000000000005,
+      "index" : 143,
+      "start" : 54.17,
+      "text" : "socrates"
+    },
+    {
+      "end" : 55.010000000000005,
+      "index" : 144,
+      "start" : 54.830000000000005,
+      "text" : "had"
+    },
+    {
+      "end" : 55.52,
+      "index" : 145,
+      "start" : 55.010000000000005,
+      "text" : "likewise"
+    },
+    {
+      "end" : 55.67,
+      "index" : 146,
+      "start" : 55.52,
+      "text" : "been"
+    },
+    {
+      "end" : 56.06,
+      "index" : 147,
+      "start" : 55.67,
+      "text" : "devoted"
+    },
+    {
+      "end" : 56.150000000000006,
+      "index" : 148,
+      "start" : 56.06,
+      "text" : "to"
+    },
+    {
+      "end" : 56.24,
+      "index" : 149,
+      "start" : 56.150000000000006,
+      "text" : "the"
+    },
+    {
+      "end" : 56.540000000000006,
+      "index" : 150,
+      "start" : 56.24,
+      "text" : "cause"
+    },
+    {
+      "end" : 56.63,
+      "index" : 151,
+      "start" : 56.540000000000006,
+      "text" : "of"
+    },
+    {
+      "end" : 56.96,
+      "index" : 152,
+      "start" : 56.63,
+      "text" : "religion"
+    },
+    {
+      "end" : 57.11,
+      "index" : 153,
+      "start" : 56.96,
+      "text" : "and"
+    },
+    {
+      "end" : 57.71,
+      "index" : 154,
+      "start" : 57.11,
+      "text" : "justice"
+    },
+    {
+      "end" : 58.34,
+      "index" : 155,
+      "start" : 58.07,
+      "text" : "and"
+    },
+    {
+      "end" : 58.61,
+      "index" : 156,
+      "start" : 58.34,
+      "text" : "although"
+    },
+    {
+      "end" : 58.730000000000004,
+      "index" : 157,
+      "start" : 58.61,
+      "text" : "the"
+    },
+    {
+      "end" : 59.300000000000004,
+      "index" : 158,
+      "start" : 58.730000000000004,
+      "text" : "stoic"
+    },
+    {
+      "end" : 59.480000000000004,
+      "index" : 159,
+      "start" : 59.300000000000004,
+      "text" : "or"
+    },
+    {
+      "end" : 59.6,
+      "index" : 160,
+      "start" : 59.480000000000004,
+      "text" : "the"
+    },
+    {
+      "end" : 60.080000000000005,
+      "index" : 161,
+      "start" : 59.6,
+      "text" : "hero"
+    },
+    {
+      "end" : 60.650000000000006,
+      "index" : 162,
+      "start" : 60.410000000000004,
+      "text" : "may"
+    },
+    {
+      "end" : 60.800000000000004,
+      "index" : 163,
+      "start" : 60.650000000000006,
+      "text" : "disdain"
+    },
+    {
+      "end" : 60.89,
+      "index" : 164,
+      "start" : 60.800000000000004,
+      "text" : "the"
+    },
+    {
+      "end" : 61.25,
+      "index" : 165,
+      "start" : 60.89,
+      "text" : "humble"
+    },
+    {
+      "end" : 61.67,
+      "index" : 166,
+      "start" : 61.25,
+      "text" : "virtues"
+    },
+    {
+      "end" : 61.760000000000005,
+      "index" : 167,
+      "start" : 61.67,
+      "text" : "of"
+    },
+    {
+      "end" : 62.330000000000005,
+      "index" : 168,
+      "start" : 61.760000000000005,
+      "text" : "jesus"
+    },
+    {
+      "end" : 62.81,
+      "index" : 169,
+      "start" : 62.63,
+      "text" : "the"
+    },
+    {
+      "end" : 63.290000000000006,
+      "index" : 170,
+      "start" : 62.81,
+      "text" : "tears"
+    },
+    {
+      "end" : 63.53,
+      "index" : 171,
+      "start" : 63.290000000000006,
+      "text" : "which"
+    },
+    {
+      "end" : 63.650000000000006,
+      "index" : 172,
+      "start" : 63.53,
+      "text" : "he"
+    },
+    {
+      "end" : 64.07000000000001,
+      "index" : 173,
+      "start" : 63.650000000000006,
+      "text" : "shed"
+    },
+    {
+      "end" : 64.31,
+      "index" : 174,
+      "start" : 64.07000000000001,
+      "text" : "over"
+    },
+    {
+      "end" : 64.55,
+      "index" : 175,
+      "start" : 64.31,
+      "text" : "his"
+    },
+    {
+      "end" : 64.88,
+      "index" : 176,
+      "start" : 64.55,
+      "text" : "friend"
+    },
+    {
+      "end" : 65.03,
+      "index" : 177,
+      "start" : 64.88,
+      "text" : "and"
+    },
+    {
+      "end" : 65.66,
+      "index" : 178,
+      "start" : 65.03,
+      "text" : "country"
+    },
+    {
+      "end" : 65.93,
+      "index" : 179,
+      "start" : 65.72,
+      "text" : "may"
+    },
+    {
+      "end" : 66.08,
+      "index" : 180,
+      "start" : 65.93,
+      "text" : "be"
+    },
+    {
+      "end" : 66.41,
+      "index" : 181,
+      "start" : 66.08,
+      "text" : "esteemed"
+    },
+    {
+      "end" : 66.74000000000001,
+      "index" : 182,
+      "start" : 66.41,
+      "text" : "the"
+    },
+    {
+      "end" : 67.295,
+      "index" : 183,
+      "start" : 66.74000000000001,
+      "text" : "purest"
+    },
+    {
+      "end" : 67.85,
+      "index" : 184,
+      "start" : 67.295,
+      "text" : "evidence"
+    },
+    {
+      "end" : 68.18,
+      "index" : 185,
+      "start" : 68,
+      "text" : "of"
+    },
+    {
+      "end" : 68.33,
+      "index" : 186,
+      "start" : 68.18,
+      "text" : "his"
+    },
+    {
+      "end" : 68.97200000000001,
+      "index" : 187,
+      "start" : 68.33,
+      "text" : "humanity"
+    },
+    {
+      "end" : 70.365,
+      "index" : 188,
+      "start" : 70.276875,
+      "text" : "the"
+    },
+    {
+      "end" : 70.695,
+      "index" : 189,
+      "start" : 70.365,
+      "text" : "son"
+    },
+    {
+      "end" : 70.785,
+      "index" : 190,
+      "start" : 70.695,
+      "text" : "of"
+    },
+    {
+      "end" : 70.845,
+      "index" : 191,
+      "start" : 70.785,
+      "text" : "a"
+    },
+    {
+      "end" : 71.41499999999999,
+      "index" : 192,
+      "start" : 70.845,
+      "text" : "virgin"
+    },
+    {
+      "end" : 72.135,
+      "index" : 193,
+      "start" : 71.505,
+      "text" : "generated"
+    },
+    {
+      "end" : 72.255,
+      "index" : 194,
+      "start" : 72.135,
+      "text" : "by"
+    },
+    {
+      "end" : 72.465,
+      "index" : 195,
+      "start" : 72.255,
+      "text" : "the"
+    },
+    {
+      "end" : 72.975,
+      "index" : 196,
+      "start" : 72.465,
+      "text" : "ineffable"
+    },
+    {
+      "end" : 73.545,
+      "index" : 197,
+      "start" : 72.975,
+      "text" : "operation"
+    },
+    {
+      "end" : 73.635,
+      "index" : 198,
+      "start" : 73.545,
+      "text" : "of"
+    },
+    {
+      "end" : 73.695,
+      "index" : 199,
+      "start" : 73.635,
+      "text" : "the"
+    },
+    {
+      "end" : 74.13,
+      "index" : 200,
+      "start" : 73.695,
+      "text" : "holy"
+    },
+    {
+      "end" : 74.565,
+      "index" : 201,
+      "start" : 74.13,
+      "text" : "spirit"
+    },
+    {
+      "end" : 75.015,
+      "index" : 202,
+      "start" : 74.715,
+      "text" : "was"
+    },
+    {
+      "end" : 75.075,
+      "index" : 203,
+      "start" : 75.015,
+      "text" : "a"
+    },
+    {
+      "end" : 75.55499999999999,
+      "index" : 204,
+      "start" : 75.075,
+      "text" : "creature"
+    },
+    {
+      "end" : 75.91499999999999,
+      "index" : 205,
+      "start" : 75.55499999999999,
+      "text" : "without"
+    },
+    {
+      "end" : 76.515,
+      "index" : 206,
+      "start" : 75.91499999999999,
+      "text" : "example"
+    },
+    {
+      "end" : 76.635,
+      "index" : 207,
+      "start" : 76.515,
+      "text" : "or"
+    },
+    {
+      "end" : 77.355,
+      "index" : 208,
+      "start" : 76.635,
+      "text" : "resemblance"
+    },
+    {
+      "end" : 78.195,
+      "index" : 209,
+      "start" : 77.445,
+      "text" : "superior"
+    },
+    {
+      "end" : 78.375,
+      "index" : 210,
+      "start" : 78.195,
+      "text" : "in"
+    },
+    {
+      "end" : 78.765,
+      "index" : 211,
+      "start" : 78.375,
+      "text" : "every"
+    },
+    {
+      "end" : 79.275,
+      "index" : 212,
+      "start" : 78.765,
+      "text" : "attribute"
+    },
+    {
+      "end" : 79.395,
+      "index" : 213,
+      "start" : 79.275,
+      "text" : "of"
+    },
+    {
+      "end" : 79.695,
+      "index" : 214,
+      "start" : 79.395,
+      "text" : "mind"
+    },
+    {
+      "end" : 79.785,
+      "index" : 215,
+      "start" : 79.695,
+      "text" : "and"
+    },
+    {
+      "end" : 80.115,
+      "index" : 216,
+      "start" : 79.785,
+      "text" : "body"
+    },
+    {
+      "end" : 80.235,
+      "index" : 217,
+      "start" : 80.115,
+      "text" : "to"
+    },
+    {
+      "end" : 80.355,
+      "index" : 218,
+      "start" : 80.235,
+      "text" : "the"
+    },
+    {
+      "end" : 80.715,
+      "index" : 219,
+      "start" : 80.355,
+      "text" : "children"
+    },
+    {
+      "end" : 80.835,
+      "index" : 220,
+      "start" : 80.715,
+      "text" : "of"
+    },
+    {
+      "end" : 81.08075,
+      "index" : 221,
+      "start" : 80.835,
+      "text" : "adam"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "dimension" : "human · repeated",
+  "gating" : true,
+  "hints" : true,
+  "id" : "human-84-reread",
+  "name" : "LibriSpeech reader 84 (F), reread",
+  "script" : "human\/librispeech-84",
+  "truthSource" : "auto-aligned",
+  "voice" : "human: LibriSpeech 84",
+  "wpm" : 0
+}

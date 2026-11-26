@@ -27,16 +27,21 @@ struct PromptMatcher {
     private let tokens: [Token]
     private let vocabulary: [String]
     private let vocabularyWeights: [Double]
+    /// `pairs[c]` joins the two script tokens ending at column `c` ("to"+"pick"), so one
+    /// spoken word can match two script words: recognizers merge and split words all
+    /// the time ("topic" / "to pick", "backlog" / "back log").
+    private let pairs: [(text: String, count: Int, first: Character?, weight: Double)]
     /// Tokens read so far; the highlight sits at the start of `tokens[position]`.
     private var position: Int
     /// A far jump target waiting for a second agreeing partial.
     private var pendingJump: Int?
     private var similarityCache: [String: [Double]] = [:]
-    /// Newest spoken words of the previous recognition session. Recognizers restart
-    /// periodically with an empty transcript; prepending these keeps alignment
-    /// context across the restart instead of re-acquiring from nothing.
+    /// Newest spoken words from before the current transcript began. Recognizers restart
+    /// sessions, and on-device recognition also drops its transcript mid-session after a
+    /// pause; prepending these keeps alignment context instead of re-acquiring from nothing.
     private var carriedTail: [String] = []
     private var lastTail: [String] = []
+    private var lastHeard: [String] = []
 
     private struct Token { let vocabularyID: Int; let word: Int }
     /// `gain` sums the matches past the current position: the evidence that the reader
@@ -50,7 +55,7 @@ struct PromptMatcher {
     private static let recentLength = 6
     private static let nearWindow = 25          // tokens ahead treated as "keep reading"
     private static let backwardSlack = 3        // ignore tiny backward corrections (jitter)
-    private static let farScore = 3.0
+    private static let farScore = 2.5
     private static let farMatches = 3
     private static let farUniqueness = 1.0 // score margin over any other location
     private static let nearUniqueness = 0.5
@@ -76,6 +81,13 @@ struct PromptMatcher {
         self.tokens = tokens
         self.vocabulary = vocabulary
         vocabularyWeights = vocabulary.map(Self.weight)
+        let weights = vocabularyWeights
+        pairs = tokens.indices.map { index in
+            guard index > 0 else { return ("", 0, nil, 0) }
+            let text = vocabulary[tokens[index - 1].vocabularyID] + vocabulary[tokens[index].vocabularyID]
+            return (text, text.count, text.first,
+                    weights[tokens[index - 1].vocabularyID] + weights[tokens[index].vocabularyID])
+        }
 
         let start = SpeechTextAlignment.advancePastAnnotations(
             in: source.text,
@@ -99,6 +111,7 @@ struct PromptMatcher {
         if let pending = pendingJump { commit(pending) }
         matchStartOffset = recognizedCharacterCount
         carriedTail = lastTail
+        lastHeard = []
         return recognizedCharacterCount
     }
 
@@ -116,6 +129,7 @@ struct PromptMatcher {
         pendingJump = nil
         carriedTail = []
         lastTail = []
+        lastHeard = []
         return target
     }
 
@@ -123,6 +137,12 @@ struct PromptMatcher {
     mutating func match(transcript: String) -> Int {
         let heard = Self.canonicalTokens(transcript)
         guard !heard.isEmpty else { return recognizedCharacterCount }
+        // A partial that starts over is a new utterance: carry the words heard just
+        // before it, not the context from when the session began.
+        if Self.startsOver(heard, after: lastHeard) {
+            carriedTail = lastTail
+        }
+        lastHeard = heard
         let spoken = Array((carriedTail + heard).suffix(Self.tailLength))
         lastTail = spoken
         guard !tokens.isEmpty,
@@ -146,7 +166,7 @@ struct PromptMatcher {
             let evidence = distance > 0 ? best.gain : best.score
             guard evidence >= Self.farScore, best.matches >= Self.farMatches,
                   best.score - best.runnerUp >= Self.farUniqueness,
-                  recentSpeechAgrees(with: best.position, spoken: spoken) else {
+                  recentSpeechAgrees(with: best.position, heard: heard) else {
                 pendingJump = nil
                 return recognizedCharacterCount
             }
@@ -162,10 +182,12 @@ struct PromptMatcher {
     }
 
     /// A long tail can stitch together words from several similar sentences (a re-read
-    /// in a script with refrains). Before jumping far, the newest few words alone must
-    /// point at the same place, and nowhere else.
-    private mutating func recentSpeechAgrees(with target: Int, spoken: [String]) -> Bool {
-        guard let recent = bestCandidate(for: Array(spoken.suffix(Self.recentLength))) else { return false }
+    /// in a script with refrains), and carried context is old by definition. Before
+    /// jumping far, the newest words of the current transcript alone must point at the
+    /// same place, and nowhere else.
+    private mutating func recentSpeechAgrees(with target: Int, heard: [String]) -> Bool {
+        guard heard.count >= Self.farMatches,
+              let recent = bestCandidate(for: Array(heard.suffix(Self.recentLength))) else { return false }
         return abs(recent.position - target) <= 2 && recent.score - recent.runnerUp >= Self.farUniqueness
     }
 
@@ -179,9 +201,13 @@ struct PromptMatcher {
         var previousScores = [Double](repeating: 0, count: n + 1)
         var previousMatches = [Int](repeating: 0, count: n + 1)
         var previousGains = previousScores
+        // Bits for the path's last 3 script steps, 1 = matched (newest in bit 0). Skipping
+        // script words clears it; an extra spoken word leaves it unchanged.
+        var previousRuns = previousMatches
         var scores = previousScores
         var matches = previousMatches
         var gains = previousScores
+        var runs = previousMatches
         var best: Candidate?
         var bestAdjusted = -Double.infinity
         var ends: [(position: Int, score: Double)] = []
@@ -191,9 +217,13 @@ struct PromptMatcher {
 
         for row in 1...tail.count {
             let similarity = rows[row - 1]
+            let word = tail[row - 1]
+            let wordCount = word.count
+            let wordFirst = word.first
             scores[0] = 0
             matches[0] = 0
             gains[0] = 0
+            runs[0] = 0
             for column in 1...n {
                 let s = similarity[tokens[column - 1].vocabularyID]
                 let isAhead = column > position
@@ -202,28 +232,53 @@ struct PromptMatcher {
                 var score = 0.0
                 var matched = 0
                 var gain = 0.0
+                var run = 0
                 if diagonal > score {
                     score = diagonal
                     matched = previousMatches[column - 1] + (s > 0 ? 1 : 0)
                     gain = previousGains[column - 1] + (isAhead && s > 0 ? s : 0)
+                    run = ((previousRuns[column - 1] << 1) | (s > 0 ? 1 : 0)) & 0b111
+                }
+                // One spoken word for two script words ("topic" for "to pick").
+                var merged = 0.0
+                if column >= 2, wordCount >= 4 {
+                    let pair = pairs[column - 1]
+                    if pair.first == wordFirst, abs(pair.count - wordCount) <= max(1, pair.count / 4) {
+                        merged = Self.similarity(word, pair.text) * pair.weight
+                    }
+                }
+                let viaMerge = merged > 0 ? previousScores[column - 2] + merged : -Double.infinity
+                if viaMerge > score {
+                    score = viaMerge
+                    matched = previousMatches[column - 2] + 2
+                    gain = previousGains[column - 2] + (isAhead ? merged : 0)
+                    run = ((previousRuns[column - 2] << 2) | 0b11) & 0b111
                 }
                 let skipSpoken = previousScores[column] - Self.spokenGapPenalty
                 if skipSpoken > score {
                     score = skipSpoken
                     matched = previousMatches[column]
                     gain = previousGains[column]
+                    run = previousRuns[column]
                 }
                 let skipScript = scores[column - 1] - Self.scriptGapPenalty
                 if skipScript > score {
                     score = skipScript
                     matched = matches[column - 1]
                     gain = gains[column - 1]
+                    run = 0
                 }
                 scores[column] = score
                 matches[column] = matched
                 gains[column] = gain
+                runs[column] = run
 
-                if row >= firstEndRow, s > 0, score == diagonal {
+                // A function word only says where the reader is when it continues real
+                // matches: 2 of the last 3 script steps. Otherwise an ad-lib's stray "the"
+                // could pull the highlight ahead ("…surprised [how quickly] the").
+                let endWeight = vocabularyWeights[tokens[column - 1].vocabularyID]
+                if row >= firstEndRow, (s > 0 && score == diagonal) || score == viaMerge,
+                   endWeight >= 1 || run.nonzeroBitCount >= 2 || column - 1 == position {
                     ends.append((column, score))
                     let adjusted = score - Self.locationPenalty(forStep: column - position)
                     if adjusted > bestAdjusted {
@@ -235,6 +290,7 @@ struct PromptMatcher {
             swap(&scores, &previousScores)
             swap(&matches, &previousMatches)
             swap(&gains, &previousGains)
+            swap(&runs, &previousRuns)
         }
         if let position = best?.position {
             best?.runnerUp = ends.lazy.filter { abs($0.position - position) > 8 }.map(\.score).max() ?? 0
@@ -271,6 +327,16 @@ struct PromptMatcher {
 
     /// One more word (even "the") is enough to move one or two tokens; longer
     /// steps need proportionally more new, in-order matches.
+    /// Whether a recognizer's new transcript starts over instead of revising the last one.
+    /// Revisions keep (or grow) their length; a new utterance is shorter and starts
+    /// differently, or collapses to under half the length even when its first word happens
+    /// to match ("he had never been…" (61 words) → "he").
+    static func startsOver(_ new: [String], after old: [String]) -> Bool {
+        guard !new.isEmpty, new.count < old.count else { return false }
+        let k = min(3, new.count)
+        return new.count * 2 < old.count || new.prefix(k) != old.prefix(k)
+    }
+
     private static func requiredGain(forStep step: Int) -> Double {
         step <= 2 ? 0.35 : 0.8 + 0.06 * Double(step)
     }
@@ -322,11 +388,43 @@ struct PromptMatcher {
         var result: [String] = []
         for raw in splitPromptTextIntoWords(text.lowercased().replacingOccurrences(of: "’", with: "'")) {
             for piece in expandContraction(raw) {
-                let cleaned = piece.filter { $0.isLetter || $0.isNumber }
-                if !cleaned.isEmpty { result.append(cleaned) }
+                for part in piece.split(separator: "-") {   // "forty-two" → "forty two"
+                    let cleaned = part.filter { $0.isLetter || $0.isNumber }
+                    guard !cleaned.isEmpty else { continue }
+                    for token in expandScale(cleaned) { result += spelledNumber(token) ?? [token] }
+                }
             }
         }
         return result
+    }
+
+    private static let ones = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+                               "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
+                               "nineteen"]
+    private static let tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+    /// "50" → ["fifty"], "42000" → ["forty", "two", "thousand"]: recognizers write numbers as
+    /// digits or words unpredictably, so both sides meet as words. Integers below a million.
+    private static func spelledNumber(_ token: String) -> [String]? {
+        guard token.allSatisfy(\.isNumber), token.count <= 6, let n = Int(token) else { return nil }
+        func words(_ n: Int) -> [String] {
+            switch n {
+            case ..<20: return [ones[n]]
+            case ..<100: return [tens[n / 10]] + (n % 10 > 0 ? [ones[n % 10]] : [])
+            case ..<1000: return [ones[n / 100], "hundred"] + (n % 100 > 0 ? words(n % 100) : [])
+            default: return words(n / 1000) + ["thousand"] + (n % 1000 > 0 ? words(n % 1000) : [])
+            }
+        }
+        return words(n)
+    }
+
+    private static let scales = ["k": "thousand", "m": "million", "bn": "billion", "b": "billion"]
+
+    /// "45m" (from "$4.5M") → ["45", "million"], matching how recognizers write it out.
+    private static func expandScale(_ token: String) -> [String] {
+        guard let digitsEnd = token.firstIndex(where: { !$0.isNumber }), digitsEnd != token.startIndex,
+              let scale = scales[String(token[digitsEnd...])] else { return [token] }
+        return [String(token[..<digitsEnd]), scale]
     }
 
     private static func expandContraction(_ word: String) -> [String] {

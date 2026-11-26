@@ -1,0 +1,10 @@
+{
+  "dimension" : "paraphrase",
+  "gating" : true,
+  "hints" : true,
+  "id" : "paraphrase-adlib",
+  "name" : "ad-lib 15 and 40 words",
+  "script" : "general",
+  "voice" : "Samantha",
+  "wpm" : 175
+}

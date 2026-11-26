@@ -1,0 +1,16 @@
+# jargon, no hints: reader's script
+
+- Read at about 175 words per minute, in a quiet room, mono, as close to 16 kHz WAV as your recorder allows.
+- Follow the **[bracketed directions]** exactly; they are what this case measures.
+
+---
+
+In this demo we will deploy a small service to Kubernetes using Terraform and a managed PostgreSQL database. First, open your terminal and run kubectl get pods to confirm the cluster is healthy. The ingress is handled by NGINX, and metrics flow into Prometheus with dashboards in Grafana. 
+
+Our API speaks JSON over HTTPS, and internal calls use gRPC. Authentication is handled with OAuth and short lived JWT tokens. Configuration lives in YAML files that are checked into Git, and every pull request runs through our CI pipeline before it reaches production. 
+
+The cache layer uses Redis with a five minute TTL. When the cache misses, the service runs a SQL query against PostgreSQL and writes the result back. Last quarter this setup handled forty two thousand requests per second with a p99 latency under eighty milliseconds. 
+
+We recently upgraded from version 2.3 to version 3.1 of the SDK. The migration took two sprints and saved roughly $4.5M in annual infrastructure cost. If you want to try it yourself, the repository link and the Helm chart are in the description. 
+
+

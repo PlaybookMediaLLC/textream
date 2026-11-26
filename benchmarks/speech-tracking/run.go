@@ -2,9 +2,9 @@
 // pre-rewrite matcher from git, for comparison), runs it, and writes results/.
 //
 //	go run run.go [-seeds 30] [-legacy f9c6c94] [-check]   # Layer A + replay Layer B fixtures
-//	go run run.go -record                                  # Layer B: re-record fixtures (real time, ~50 min, macOS only)
-//	ENGINE=local:<model.gguf> ENGINE_TOOL=<path> go run run.go -record   # Layer B with a local model
-//	go run run.go -build <path>                            # just build the harness (render-audio, score-app)
+//	go run run.go -build <path>                            # just build the harness (render-audio, score-app) for ../desktop
+//	go run run.go -record apple-on-device                  # Layer B: (re-)record fixtures in real time (~75 min, macOS)
+//	go run run.go -record /path/to/nemotron.gguf           #   …core cases with a local transcribe.cpp model (the app's LocalSpeechEngine)
 //
 // -check exits non-zero if any gating case fails, for use as a CI regression gate.
 // CASE=<text> limits the run to cases whose name (or fixture id) contains <text>.
@@ -25,20 +25,15 @@ func main() {
 	seeds := flag.Int("seeds", 30, "Layer A seeds per case")
 	legacyRef := flag.String("legacy", "f9c6c94", "git ref holding the pre-rewrite matcher")
 	check := flag.Bool("check", false, "exit 1 if any gating case fails")
-	record := flag.Bool("record", false, "re-record Layer B fixtures (ENGINE=apple-on-device|apple-server|local:<model.gguf>; local needs ENGINE_TOOL)")
-	buildOnly := flag.String("build", "", "only build the harness binary to this path (used by ../desktop/run.go)")
+	buildOnly := flag.String("build", "", "only build the harness binary and copy it to this path (used by ../desktop/run.go)")
+	record := flag.String("record", "", "re-record Layer B fixtures with this engine: apple-on-device or a .gguf model path")
 	flag.Parse()
 
 	here, err := os.Getwd()
 	must(err)
-	if _, err := os.Stat(filepath.Join(here, "Sources", "main.swift")); err != nil {
+	if _, err := os.Stat(filepath.Join(here, "Sources", "bench", "main.swift")); err != nil {
 		fail("run from benchmarks/speech-tracking")
 	}
-	shared := filepath.Join(here, "..", "..", "Textream", "Shared")
-	work, err := os.MkdirTemp("", "speech-tracking-bench")
-	must(err)
-	defer os.RemoveAll(work)
-
 	// The legacy matcher and its alignment helpers, renamed so they compile beside the current ones.
 	var legacy []byte
 	for _, file := range []string{"Speech/PromptMatcher.swift", "Speech/SpeechTextAlignment.swift"} {
@@ -49,29 +44,28 @@ func main() {
 	for _, name := range []string{"PromptMatcher", "SpeechTextAlignment"} {
 		legacy = bytes.ReplaceAll(legacy, []byte(name), []byte("Legacy"+name))
 	}
-	legacyPath := filepath.Join(work, "Legacy.swift")
-	must(os.WriteFile(legacyPath, legacy, 0o644))
+	generated := filepath.Join(here, "Sources", "bench", "Generated") // gitignored
+	must(os.MkdirAll(generated, 0o755))
+	must(os.WriteFile(filepath.Join(generated, "Legacy.swift"), legacy, 0o644))
 
-	bin := filepath.Join(work, "bench")
-	sources, err := filepath.Glob(filepath.Join(here, "Sources", "*.swift"))
-	must(err)
-	build := exec.Command("swiftc", append([]string{"-O", "-o", bin,
-		"-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker", "__info_plist", "-Xlinker", filepath.Join(here, "Info.plist"),
-		filepath.Join(shared, "PromptTextProcessor.swift"),
-		filepath.Join(shared, "SpeechTextAlignment.swift"),
-		filepath.Join(shared, "PromptMatcher.swift"),
-		legacyPath}, sources...)...)
-	build.Env = append(os.Environ(), "TMPDIR="+work) // swiftc needs a writable cache dir
-	build.Stderr = os.Stderr
+	// SwiftPM package: the shipping matcher and LocalSpeechEngine are symlinked into Sources/bench.
+	build := exec.Command("swift", "build", "-c", "release", "--package-path", here)
+	build.Stdout, build.Stderr = os.Stderr, os.Stderr
 	must(build.Run())
-
+	bin := filepath.Join(here, ".build", "release", "bench")
 	if *buildOnly != "" {
-		must(copyFile(bin, *buildOnly))
+		must(os.MkdirAll(filepath.Dir(*buildOnly), 0o755))
+		must(exec.Command("cp", bin, *buildOnly).Run())
+		// The binary loads CTranscribe.framework from next to itself (@loader_path).
+		framework := filepath.Join(filepath.Dir(bin), "CTranscribe.framework")
+		dest := filepath.Join(filepath.Dir(*buildOnly), "CTranscribe.framework")
+		must(os.RemoveAll(dest))
+		must(exec.Command("cp", "-R", framework, dest).Run())
 		return
 	}
 
-	if *record {
-		cmd := exec.Command(bin, "record-audio", here)
+	if *record != "" {
+		cmd := exec.Command(bin, "record-audio", here, *record)
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 		must(cmd.Run())
 	}
@@ -99,14 +93,6 @@ func main() {
 	if *check && failed {
 		fail("gating cases failed; see results/current.md and results/audio-current.md")
 	}
-}
-
-func copyFile(from, to string) error {
-	data, err := os.ReadFile(from)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(to, data, 0o755)
 }
 
 func must(err error) {

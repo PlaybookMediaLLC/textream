@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent (non-native proxy)",
+  "gating" : false,
+  "hints" : true,
+  "id" : "accent-l1-spanish",
+  "name" : "Spanish voice reading English",
+  "script" : "general",
+  "voice" : "Mónica",
+  "wpm" : 175
+}

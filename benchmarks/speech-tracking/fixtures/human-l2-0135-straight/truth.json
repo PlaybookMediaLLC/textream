@@ -1,0 +1,869 @@
+{
+  "end" : 74.944,
+  "pauses" : [
+
+  ],
+  "resumes" : [
+
+  ],
+  "tokens" : [
+    {
+      "end" : 1.35,
+      "index" : 0,
+      "start" : 1.05,
+      "text" : "this"
+    },
+    {
+      "end" : 1.74,
+      "index" : 1,
+      "start" : 1.35,
+      "text" : "month"
+    },
+    {
+      "end" : 2.07,
+      "index" : 2,
+      "start" : 1.8,
+      "text" : "is"
+    },
+    {
+      "end" : 2.46,
+      "index" : 3,
+      "start" : 2.07,
+      "text" : "over"
+    },
+    {
+      "end" : 2.7,
+      "index" : 4,
+      "start" : 2.46,
+      "text" : "for"
+    },
+    {
+      "end" : 2.87475,
+      "index" : 5,
+      "start" : 2.7,
+      "text" : "me"
+    },
+    {
+      "end" : 4.773,
+      "index" : 6,
+      "start" : 4.173,
+      "text" : "war"
+    },
+    {
+      "end" : 5.313000000000001,
+      "index" : 7,
+      "start" : 4.833,
+      "text" : "after"
+    },
+    {
+      "end" : 5.583,
+      "index" : 8,
+      "start" : 5.313000000000001,
+      "text" : "all"
+    },
+    {
+      "end" : 6.003,
+      "index" : 9,
+      "start" : 5.793,
+      "text" : "is"
+    },
+    {
+      "end" : 6.393000000000001,
+      "index" : 10,
+      "start" : 6.003,
+      "text" : "far"
+    },
+    {
+      "end" : 6.813000000000001,
+      "index" : 11,
+      "start" : 6.393000000000001,
+      "text" : "from"
+    },
+    {
+      "end" : 7.173,
+      "index" : 12,
+      "start" : 6.813000000000001,
+      "text" : "an"
+    },
+    {
+      "end" : 7.593,
+      "index" : 13,
+      "start" : 7.173,
+      "text" : "exact"
+    },
+    {
+      "end" : 8.362562500000001,
+      "index" : 14,
+      "start" : 7.593,
+      "text" : "science"
+    },
+    {
+      "end" : 9.972999999999999,
+      "index" : 15,
+      "start" : 9.6838125,
+      "text" : "these"
+    },
+    {
+      "end" : 10.603,
+      "index" : 16,
+      "start" : 9.972999999999999,
+      "text" : "matches"
+    },
+    {
+      "end" : 10.693,
+      "index" : 17,
+      "start" : 10.603,
+      "text" : "are"
+    },
+    {
+      "end" : 11.053,
+      "index" : 18,
+      "start" : 10.693,
+      "text" : "going"
+    },
+    {
+      "end" : 11.203,
+      "index" : 19,
+      "start" : 11.053,
+      "text" : "to"
+    },
+    {
+      "end" : 11.323,
+      "index" : 20,
+      "start" : 11.203,
+      "text" : "be"
+    },
+    {
+      "end" : 11.8586875,
+      "index" : 21,
+      "start" : 11.323,
+      "text" : "great"
+    },
+    {
+      "end" : 13.332999999999998,
+      "index" : 22,
+      "start" : 13.242999999999999,
+      "text" : "i"
+    },
+    {
+      "end" : 13.783,
+      "index" : 23,
+      "start" : 13.332999999999998,
+      "text" : "work"
+    },
+    {
+      "end" : 13.992999999999999,
+      "index" : 24,
+      "start" : 13.783,
+      "text" : "for"
+    },
+    {
+      "end" : 14.503,
+      "index" : 25,
+      "start" : 13.992999999999999,
+      "text" : "living"
+    },
+    {
+      "end" : 14.802999999999999,
+      "index" : 26,
+      "start" : 14.503,
+      "text" : "and"
+    },
+    {
+      "end" : 15.073,
+      "index" : 27,
+      "start" : 14.802999999999999,
+      "text" : "have"
+    },
+    {
+      "end" : 15.343,
+      "index" : 28,
+      "start" : 15.073,
+      "text" : "to"
+    },
+    {
+      "end" : 15.732999999999999,
+      "index" : 29,
+      "start" : 15.343,
+      "text" : "get"
+    },
+    {
+      "end" : 16.003,
+      "index" : 30,
+      "start" : 15.732999999999999,
+      "text" : "up"
+    },
+    {
+      "end" : 16.368875,
+      "index" : 31,
+      "start" : 16.003,
+      "text" : "early"
+    },
+    {
+      "end" : 18.055,
+      "index" : 32,
+      "start" : 17.845,
+      "text" : "he"
+    },
+    {
+      "end" : 18.265,
+      "index" : 33,
+      "start" : 18.055,
+      "text" : "is"
+    },
+    {
+      "end" : 18.355,
+      "index" : 34,
+      "start" : 18.265,
+      "text" : "a"
+    },
+    {
+      "end" : 18.685,
+      "index" : 35,
+      "start" : 18.355,
+      "text" : "big"
+    },
+    {
+      "end" : 19.0625625,
+      "index" : 36,
+      "start" : 18.685,
+      "text" : "boy"
+    },
+    {
+      "end" : 20.575,
+      "index" : 37,
+      "start" : 20.515,
+      "text" : "i"
+    },
+    {
+      "end" : 20.994999999999997,
+      "index" : 38,
+      "start" : 20.575,
+      "text" : "never"
+    },
+    {
+      "end" : 21.445,
+      "index" : 39,
+      "start" : 20.994999999999997,
+      "text" : "wanted"
+    },
+    {
+      "end" : 21.625,
+      "index" : 40,
+      "start" : 21.445,
+      "text" : "to"
+    },
+    {
+      "end" : 21.775,
+      "index" : 41,
+      "start" : 21.625,
+      "text" : "be"
+    },
+    {
+      "end" : 22.305,
+      "index" : 42,
+      "start" : 21.775,
+      "text" : "cool"
+    },
+    {
+      "end" : 24.105,
+      "index" : 43,
+      "start" : 23.625,
+      "text" : "really"
+    },
+    {
+      "end" : 24.525000000000002,
+      "index" : 44,
+      "start" : 24.105,
+      "text" : "washing"
+    },
+    {
+      "end" : 24.645000000000003,
+      "index" : 45,
+      "start" : 24.525000000000002,
+      "text" : "i"
+    },
+    {
+      "end" : 24.915000000000003,
+      "index" : 46,
+      "start" : 24.645000000000003,
+      "text" : "could"
+    },
+    {
+      "end" : 25.245,
+      "index" : 47,
+      "start" : 24.915000000000003,
+      "text" : "watch"
+    },
+    {
+      "end" : 25.335,
+      "index" : 48,
+      "start" : 25.245,
+      "text" : "a"
+    },
+    {
+      "end" : 25.849500000000003,
+      "index" : 49,
+      "start" : 25.335,
+      "text" : "break"
+    },
+    {
+      "end" : 27.515,
+      "index" : 50,
+      "start" : 27.41,
+      "text" : "its"
+    },
+    {
+      "end" : 27.845,
+      "index" : 51,
+      "start" : 27.515,
+      "text" : "too"
+    },
+    {
+      "end" : 28.115,
+      "index" : 52,
+      "start" : 27.845,
+      "text" : "many"
+    },
+    {
+      "end" : 28.715,
+      "index" : 53,
+      "start" : 28.115,
+      "text" : "fish"
+    },
+    {
+      "end" : 28.924999999999997,
+      "index" : 54,
+      "start" : 28.715,
+      "text" : "in"
+    },
+    {
+      "end" : 29.015,
+      "index" : 55,
+      "start" : 28.924999999999997,
+      "text" : "the"
+    },
+    {
+      "end" : 29.585,
+      "index" : 56,
+      "start" : 29.015,
+      "text" : "sea"
+    },
+    {
+      "end" : 30.064999999999998,
+      "index" : 57,
+      "start" : 29.855,
+      "text" : "to"
+    },
+    {
+      "end" : 30.185,
+      "index" : 58,
+      "start" : 30.064999999999998,
+      "text" : "be"
+    },
+    {
+      "end" : 30.9365625,
+      "index" : 59,
+      "start" : 30.185,
+      "text" : "jealous"
+    },
+    {
+      "end" : 32.486000000000004,
+      "index" : 60,
+      "start" : 32.3554375,
+      "text" : "the"
+    },
+    {
+      "end" : 32.786,
+      "index" : 61,
+      "start" : 32.486000000000004,
+      "text" : "good"
+    },
+    {
+      "end" : 33.206,
+      "index" : 62,
+      "start" : 32.786,
+      "text" : "thing"
+    },
+    {
+      "end" : 33.476,
+      "index" : 63,
+      "start" : 33.266000000000005,
+      "text" : "is"
+    },
+    {
+      "end" : 33.836,
+      "index" : 64,
+      "start" : 33.476,
+      "text" : "that"
+    },
+    {
+      "end" : 34.016000000000005,
+      "index" : 65,
+      "start" : 33.836,
+      "text" : "we"
+    },
+    {
+      "end" : 34.226,
+      "index" : 66,
+      "start" : 34.016000000000005,
+      "text" : "can"
+    },
+    {
+      "end" : 34.556000000000004,
+      "index" : 67,
+      "start" : 34.226,
+      "text" : "see"
+    },
+    {
+      "end" : 34.736000000000004,
+      "index" : 68,
+      "start" : 34.556000000000004,
+      "text" : "the"
+    },
+    {
+      "end" : 35.1018125,
+      "index" : 69,
+      "start" : 34.736000000000004,
+      "text" : "game"
+    },
+    {
+      "end" : 36.824999999999996,
+      "index" : 70,
+      "start" : 36.644999999999996,
+      "text" : "at"
+    },
+    {
+      "end" : 36.975,
+      "index" : 71,
+      "start" : 36.824999999999996,
+      "text" : "the"
+    },
+    {
+      "end" : 37.425,
+      "index" : 72,
+      "start" : 36.975,
+      "text" : "top"
+    },
+    {
+      "end" : 37.515,
+      "index" : 73,
+      "start" : 37.425,
+      "text" : "of"
+    },
+    {
+      "end" : 37.665,
+      "index" : 74,
+      "start" : 37.515,
+      "text" : "the"
+    },
+    {
+      "end" : 38.3743125,
+      "index" : 75,
+      "start" : 37.665,
+      "text" : "charts"
+    },
+    {
+      "end" : 39.818,
+      "index" : 76,
+      "start" : 39.533,
+      "text" : "no"
+    },
+    {
+      "end" : 40.103,
+      "index" : 77,
+      "start" : 39.818,
+      "text" : "one"
+    },
+    {
+      "end" : 40.403,
+      "index" : 78,
+      "start" : 40.103,
+      "text" : "wants"
+    },
+    {
+      "end" : 40.583,
+      "index" : 79,
+      "start" : 40.403,
+      "text" : "to"
+    },
+    {
+      "end" : 41.003,
+      "index" : 80,
+      "start" : 40.583,
+      "text" : "talk"
+    },
+    {
+      "end" : 41.183,
+      "index" : 81,
+      "start" : 41.003,
+      "text" : "to"
+    },
+    {
+      "end" : 41.333,
+      "index" : 82,
+      "start" : 41.183,
+      "text" : "me"
+    },
+    {
+      "end" : 42.0086875,
+      "index" : 83,
+      "start" : 41.333,
+      "text" : "tonight"
+    },
+    {
+      "end" : 43.723,
+      "index" : 84,
+      "start" : 43.242999999999995,
+      "text" : "ready"
+    },
+    {
+      "end" : 43.992999999999995,
+      "index" : 85,
+      "start" : 43.723,
+      "text" : "to"
+    },
+    {
+      "end" : 44.143,
+      "index" : 86,
+      "start" : 43.992999999999995,
+      "text" : "be"
+    },
+    {
+      "end" : 44.308,
+      "index" : 87,
+      "start" : 44.143,
+      "text" : "at"
+    },
+    {
+      "end" : 44.473,
+      "index" : 88,
+      "start" : 44.308,
+      "text" : "the"
+    },
+    {
+      "end" : 45.013,
+      "index" : 89,
+      "start" : 44.473,
+      "text" : "lake"
+    },
+    {
+      "end" : 46.716,
+      "index" : 90,
+      "start" : 46.2795,
+      "text" : "always"
+    },
+    {
+      "end" : 47.076,
+      "index" : 91,
+      "start" : 46.716,
+      "text" : "waiting"
+    },
+    {
+      "end" : 47.286,
+      "index" : 92,
+      "start" : 47.076,
+      "text" : "for"
+    },
+    {
+      "end" : 47.406,
+      "index" : 93,
+      "start" : 47.286,
+      "text" : "the"
+    },
+    {
+      "end" : 47.856,
+      "index" : 94,
+      "start" : 47.406,
+      "text" : "next"
+    },
+    {
+      "end" : 48.2225625,
+      "index" : 95,
+      "start" : 47.856,
+      "text" : "season"
+    },
+    {
+      "end" : 49.796,
+      "index" : 96,
+      "start" : 49.6785,
+      "text" : "the"
+    },
+    {
+      "end" : 50.065999999999995,
+      "index" : 97,
+      "start" : 49.796,
+      "text" : "old"
+    },
+    {
+      "end" : 50.366,
+      "index" : 98,
+      "start" : 50.065999999999995,
+      "text" : "man"
+    },
+    {
+      "end" : 50.666,
+      "index" : 99,
+      "start" : 50.366,
+      "text" : "will"
+    },
+    {
+      "end" : 50.995999999999995,
+      "index" : 100,
+      "start" : 50.666,
+      "text" : "not"
+    },
+    {
+      "end" : 51.385999999999996,
+      "index" : 101,
+      "start" : 50.995999999999995,
+      "text" : "allow"
+    },
+    {
+      "end" : 51.846999999999994,
+      "index" : 102,
+      "start" : 51.385999999999996,
+      "text" : "this"
+    },
+    {
+      "end" : 53.635999999999996,
+      "index" : 103,
+      "start" : 53.156625,
+      "text" : "bucket"
+    },
+    {
+      "end" : 54.251,
+      "index" : 104,
+      "start" : 53.635999999999996,
+      "text" : "wanted"
+    },
+    {
+      "end" : 54.866,
+      "index" : 105,
+      "start" : 54.251,
+      "text" : "nervously"
+    },
+    {
+      "end" : 55.046,
+      "index" : 106,
+      "start" : 54.866,
+      "text" : "in"
+    },
+    {
+      "end" : 55.135999999999996,
+      "index" : 107,
+      "start" : 55.046,
+      "text" : "the"
+    },
+    {
+      "end" : 55.757124999999995,
+      "index" : 108,
+      "start" : 55.135999999999996,
+      "text" : "wings"
+    },
+    {
+      "end" : 57.265,
+      "index" : 109,
+      "start" : 57.144999999999996,
+      "text" : "the"
+    },
+    {
+      "end" : 57.685,
+      "index" : 110,
+      "start" : 57.265,
+      "text" : "night"
+    },
+    {
+      "end" : 57.985,
+      "index" : 111,
+      "start" : 57.685,
+      "text" : "is"
+    },
+    {
+      "end" : 58.555,
+      "index" : 112,
+      "start" : 57.985,
+      "text" : "cool"
+    },
+    {
+      "end" : 58.885,
+      "index" : 113,
+      "start" : 58.615,
+      "text" : "and"
+    },
+    {
+      "end" : 59.394999999999996,
+      "index" : 114,
+      "start" : 59.004999999999995,
+      "text" : "road"
+    },
+    {
+      "end" : 59.605,
+      "index" : 115,
+      "start" : 59.394999999999996,
+      "text" : "is"
+    },
+    {
+      "end" : 60.11,
+      "index" : 116,
+      "start" : 59.605,
+      "text" : "long"
+    },
+    {
+      "end" : 61.695,
+      "index" : 117,
+      "start" : 61.545,
+      "text" : "i"
+    },
+    {
+      "end" : 61.995,
+      "index" : 118,
+      "start" : 61.695,
+      "text" : "put"
+    },
+    {
+      "end" : 62.265,
+      "index" : 119,
+      "start" : 61.995,
+      "text" : "my"
+    },
+    {
+      "end" : 62.865,
+      "index" : 120,
+      "start" : 62.265,
+      "text" : "elbows"
+    },
+    {
+      "end" : 63.045,
+      "index" : 121,
+      "start" : 62.865,
+      "text" : "on"
+    },
+    {
+      "end" : 63.165,
+      "index" : 122,
+      "start" : 63.045,
+      "text" : "the"
+    },
+    {
+      "end" : 63.645,
+      "index" : 123,
+      "start" : 63.165,
+      "text" : "table"
+    },
+    {
+      "end" : 65.541,
+      "index" : 124,
+      "start" : 64.851,
+      "text" : "why"
+    },
+    {
+      "end" : 66.14099999999999,
+      "index" : 125,
+      "start" : 65.631,
+      "text" : "yes"
+    },
+    {
+      "end" : 66.44099999999999,
+      "index" : 126,
+      "start" : 66.14099999999999,
+      "text" : "to"
+    },
+    {
+      "end" : 66.591,
+      "index" : 127,
+      "start" : 66.44099999999999,
+      "text" : "be"
+    },
+    {
+      "end" : 67.05725,
+      "index" : 128,
+      "start" : 66.591,
+      "text" : "sure"
+    },
+    {
+      "end" : 68.894,
+      "index" : 129,
+      "start" : 68.50918750000001,
+      "text" : "better"
+    },
+    {
+      "end" : 69.134,
+      "index" : 130,
+      "start" : 68.894,
+      "text" : "to"
+    },
+    {
+      "end" : 69.254,
+      "index" : 131,
+      "start" : 69.134,
+      "text" : "be"
+    },
+    {
+      "end" : 69.73400000000001,
+      "index" : 132,
+      "start" : 69.254,
+      "text" : "vague"
+    },
+    {
+      "end" : 70.289,
+      "index" : 133,
+      "start" : 69.85400000000001,
+      "text" : "he"
+    },
+    {
+      "end" : 70.62475,
+      "index" : 134,
+      "start" : 70.289,
+      "text" : "thought"
+    },
+    {
+      "end" : 72.024,
+      "index" : 135,
+      "start" : 71.74075,
+      "text" : "it"
+    },
+    {
+      "end" : 72.339,
+      "index" : 135,
+      "start" : 72.024,
+      "text" : "is"
+    },
+    {
+      "end" : 72.65400000000001,
+      "index" : 136,
+      "start" : 72.339,
+      "text" : "only"
+    },
+    {
+      "end" : 72.924,
+      "index" : 137,
+      "start" : 72.65400000000001,
+      "text" : "for"
+    },
+    {
+      "end" : 73.254,
+      "index" : 138,
+      "start" : 72.924,
+      "text" : "her"
+    },
+    {
+      "end" : 73.70400000000001,
+      "index" : 139,
+      "start" : 73.254,
+      "text" : "that"
+    },
+    {
+      "end" : 73.854,
+      "index" : 140,
+      "start" : 73.70400000000001,
+      "text" : "i"
+    },
+    {
+      "end" : 74.3966875,
+      "index" : 141,
+      "start" : 73.854,
+      "text" : "asked"
+    }
+  ]
+}

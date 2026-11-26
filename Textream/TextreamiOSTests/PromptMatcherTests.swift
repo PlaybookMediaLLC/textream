@@ -73,12 +73,43 @@ struct PromptMatcherTests {
     }
 
     @Test
+    func scaledNumbersMatchSpokenForm() {
+        #expect(PromptMatcher.canonicalTokens("saved $4.5M and 30k")
+            == ["saved", "forty", "five", "million", "and", "thirty", "thousand"])
+        #expect(PromptMatcher.canonicalTokens("4.5 million") == ["forty", "five", "million"])
+        #expect(PromptMatcher.canonicalTokens("p99 v2") == ["p99", "v2"])
+    }
+
+    @Test
+    func digitsAndNumberWordsMatch() {
+        #expect(PromptMatcher.canonicalTokens("only 50 and 42,000") == PromptMatcher.canonicalTokens("only fifty and forty-two thousand"))
+        #expect(PromptMatcher.canonicalTokens("1,007") == ["one", "thousand", "seven"])
+        var matcher = PromptMatcher(source: PromptScript("Only fifty and Cosette eight years of age."))
+        #expect(speak("only 50 and cosette 8 years of age", into: &matcher) == matcher.source.characterCount)
+    }
+
+    @Test
     func recognizerRestartKeepsContext() {
         var matcher = PromptMatcher(source: script)
         speak("welcome back to the channel today we are going", into: &matcher)
         matcher.restartFromCurrentProgress()
         // A fresh session's first words are ambiguous alone ("to"); the carried tail anchors them.
         #expect(speak("to talk about how small teams", into: &matcher) >= offset(after: "small teams"))
+    }
+
+    @Test
+    func transcriptResetMidSessionDoesNotJumpBackToOldContext() {
+        // On-device recognition can drop its transcript after a pause without a new
+        // session. Old carried context must not drag the highlight back.
+        var matcher = PromptMatcher(source: script)
+        let opening = "welcome back to the channel today we are going to talk about how small teams"
+        speak(opening, into: &matcher)
+        matcher.restartFromCurrentProgress()
+        let second = "ship great products most teams do not fail because they lack talent they fail because"
+        let reached = speak(second, into: &matcher)
+        #expect(reached >= offset(after: "They fail because"))
+        let afterReset = speak("they try to do", into: &matcher)   // fresh transcript, same session
+        #expect(afterReset >= reached)
     }
 
     @Test

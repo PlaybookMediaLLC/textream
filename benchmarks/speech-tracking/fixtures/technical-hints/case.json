@@ -1,0 +1,10 @@
+{
+  "dimension" : "technical",
+  "gating" : true,
+  "hints" : true,
+  "id" : "technical-hints",
+  "name" : "jargon, app's contextual hints on",
+  "script" : "technical",
+  "voice" : "Samantha",
+  "wpm" : 175
+}

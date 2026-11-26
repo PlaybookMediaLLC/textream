@@ -1,0 +1,13 @@
+{
+  "dimension" : "human · composite",
+  "gating" : true,
+  "hints" : true,
+  "id" : "human-174-composite",
+  "name" : "LibriSpeech reader 174 (M), composite",
+  "noise" : "babble",
+  "script" : "human\/librispeech-174",
+  "snr" : 15,
+  "truthSource" : "auto-aligned",
+  "voice" : "human: LibriSpeech 174",
+  "wpm" : 0
+}

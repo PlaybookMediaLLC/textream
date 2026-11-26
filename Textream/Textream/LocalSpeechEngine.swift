@@ -81,17 +81,34 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
     private var workerGeneration = 0
     private var language: String?
     private var initialPrompt: String?
+    private var retryEmptyWindows = false
     private var requestWordTimestamps = false
     private var windowAudio: [Float] = []
     private var lastWindowTranscript = ""
     private var samplesSinceRun = 0
+    /// Seconds the last live rolling-window inference took; sets the run cadence.
+    private var lastRunSeconds = 0.5
     private var windowNeedsFinalRetry = false
     private var windowNeedsReanchor = false
     private var windowHasAudioOverlap = false
 
-    private static let runIntervalSamples = 16_000 * 3 / 2
+    /// Rolling-window cadence: every 1.5 s (as before) for slow models, down to every
+    /// 0.75 s for models that infer in under 0.25 s (Canary: 0.05–0.35 s), keeping the
+    /// engine idle at least two thirds of the time. Halves word-tracking lag on fast models.
+    private var runIntervalSamples: Int {
+        Int(min(1.5, max(0.75, 3 * lastRunSeconds)) * 16_000)
+    }
     private static let windowLimitSamples = 16_000 * 26
     private static let windowOverlapSamples = 16_000
+    /// Silence prepended to every rolling-window run. A rolled window starts mid-speech
+    /// (the 1 s overlap cuts into a word), and some batch models (Canary) then return
+    /// nothing at all until the window happens to decode, freezing the highlight for up
+    /// to ~13 s after each rollover (benchmarks/speech-tracking, local-canary fixtures).
+    /// A short lead-in restores a clean onset. Transcript timestamps include it.
+    private static let windowLeadInSamples = 16_000 * 3 / 10
+    private static let windowLeadInMs: Int64 = 300
+    /// Audio re-run when a live window decodes to nothing (see `retryEmptyWindows`).
+    private static let emptyRetrySamples = 16_000 * 4
 
     private init() {}
 
@@ -184,6 +201,7 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
         language: String?,
         initialPrompt: String?,
         wordTimestamps: Bool,
+        retryEmptyWindowsOnRecentAudio: Bool = false,
         onText: @escaping (
             _ text: String,
             _ stablePrefix: String,
@@ -234,6 +252,7 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
             windowNeedsReanchor = false
             self.language = language
             self.initialPrompt = initialPrompt
+            self.retryEmptyWindows = retryEmptyWindowsOnRecentAudio
             // An explicit timestamp kind above the model's limit fails the run.
             requestWordTimestamps = wordTimestamps && info.supportsWordTimestamps
             windowHasAudioOverlap = false
@@ -408,7 +427,7 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
             return
         }
 
-        guard samplesSinceRun >= Self.runIntervalSamples, windowAudio.count >= 8_000 else { return }
+        guard samplesSinceRun >= runIntervalSamples, windowAudio.count >= 8_000 else { return }
         samplesSinceRun = 0
         // Retry a failed live inference on the normal cadence, but remember it
         // for Stop so the final audio is never silently treated as processed.
@@ -432,7 +451,20 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
         }
 
         do {
-            let transcript = try session.run(windowAudio, options: options)
+            let leadIn = [Float](repeating: 0, count: Self.windowLeadInSamples)
+            let started = Date()
+            var transcript = try session.run(leadIn + windowAudio, options: options)
+            if !final { lastRunSeconds = Date().timeIntervalSince(started) }
+            // Some batch models (Canary) decode a noisy or mid-speech window to nothing at
+            // all, sometimes for 10+ s. Word tracking (opt-in) would rather have the last
+            // few seconds than silence; that text isn't a window continuation, so it is
+            // emitted as fully tentative. Dictation keeps the original behaviour.
+            var recentOnly = false
+            if !final, retryEmptyWindows, windowAudio.count > Self.emptyRetrySamples,
+               transcript.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                transcript = try session.run(leadIn + windowAudio.suffix(Self.emptyRetrySamples), options: options)
+                recentOnly = true
+            }
             let text = transcript.text
             if text != lastWindowTranscript || final {
                 let isNewWindow = windowNeedsReanchor
@@ -440,8 +472,8 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
                 lastWindowTranscript = text
                 emit(
                     text,
-                    stablePrefix: stablePrefix(in: transcript, final: final),
-                    windowOverlapPrefix: windowHasAudioOverlap
+                    stablePrefix: recentOnly ? "" : stablePrefix(in: transcript, final: final),
+                    windowOverlapPrefix: windowHasAudioOverlap && !recentOnly
                         ? leadingOverlapPrefix(in: transcript)
                         : nil,
                     isNewWindow: isNewWindow
@@ -459,7 +491,7 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
     private func stablePrefix(in transcript: Transcript, final: Bool) -> String {
         if final { return transcript.text }
 
-        let audioEndMs = Int64(windowAudio.count) * 1_000 / 16_000
+        let audioEndMs = Int64(windowAudio.count) * 1_000 / 16_000 + Self.windowLeadInMs
         let stableCutoffMs = audioEndMs - 1_500
         guard stableCutoffMs > 0 else { return "" }
 
@@ -493,7 +525,7 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
         }
         guard !transcript.words.isEmpty else { return "" }
         let overlapWords = transcript.words
-            .filter { $0.t1Ms > 0 && $0.t1Ms <= 1_000 }
+            .filter { $0.t1Ms > 0 && $0.t1Ms <= 1_000 + Self.windowLeadInMs }
             .map(\.text)
         guard !overlapWords.isEmpty else { return "" }
 

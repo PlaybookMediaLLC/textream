@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent (non-native proxy)",
+  "gating" : false,
+  "hints" : true,
+  "id" : "accent-l1-german",
+  "name" : "German voice reading English",
+  "script" : "general",
+  "voice" : "Anna",
+  "wpm" : 175
+}

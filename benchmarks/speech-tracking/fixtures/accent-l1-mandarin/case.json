@@ -1,0 +1,10 @@
+{
+  "dimension" : "accent (non-native proxy)",
+  "gating" : false,
+  "hints" : true,
+  "id" : "accent-l1-mandarin",
+  "name" : "Mandarin voice reading English",
+  "script" : "general",
+  "voice" : "Tingting",
+  "wpm" : 175
+}

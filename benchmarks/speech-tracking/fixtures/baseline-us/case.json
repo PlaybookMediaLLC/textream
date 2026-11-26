@@ -1,6 +1,5 @@
 {
   "dimension" : "baseline",
-  "engine" : "apple-on-device",
   "gating" : true,
   "hints" : true,
   "id" : "baseline-us",

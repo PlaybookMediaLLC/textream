@@ -1,0 +1,12 @@
+{
+  "dimension" : "noise",
+  "gating" : false,
+  "hints" : true,
+  "id" : "noise-babble-5",
+  "name" : "4-talker babble, 5 dB",
+  "noise" : "babble",
+  "script" : "general",
+  "snr" : 5,
+  "voice" : "Samantha",
+  "wpm" : 175
+}

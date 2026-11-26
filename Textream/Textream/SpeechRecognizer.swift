@@ -131,6 +131,7 @@ class SpeechRecognizer {
     private var suppressConfigChange: Bool = false
     private var requestLock = NSLock()
     private var preemptiveRestartTimer: Timer?
+    private var restartPolicy = RecognitionRestartPolicy()
 
     // Local (custom model) engine state
     private var localEngineInfo: LocalSpeechEngineInfo?
@@ -671,7 +672,6 @@ class SpeechRecognizer {
                         }
 
                         self.recognizedCharCount = self.matcher.restartFromCurrentProgress()
-                        benchNewSession("taskError")
 
                         // Distinguish timeout errors (expected every ~60s) from real errors.
                         // SFSpeechRecognizer timeout is error code 1110 in kAFAssistantErrorDomain,
@@ -752,7 +752,13 @@ class SpeechRecognizer {
         if audioLevels.count > 30 {
             audioLevels.removeFirst()
         }
-        voiceActivityDetector.process(level: level, at: ProcessInfo.processInfo.systemUptime)
+        let now = ProcessInfo.processInfo.systemUptime
+        voiceActivityDetector.process(level: level, at: now)
+        // Restart Apple recognition in a pause near its ~1 min limit rather than mid-word.
+        if preemptiveRestartTimer != nil, isListening, !sourceText.isEmpty,
+           restartPolicy.shouldRestart(level: level, at: now) {
+            restartTask()
+        }
     }
 
     private func appendBufferToRequest(_ buffer: AVAudioPCMBuffer) {
@@ -783,6 +789,7 @@ class SpeechRecognizer {
             language: language,
             initialPrompt: prompt,
             wordTimestamps: false,
+            retryEmptyWindowsOnRecentAudio: true,
             onText: { [weak self] text, _, _, isNewWindow, engineSessionID in
                 guard let self,
                       self.shouldListen,
@@ -793,7 +800,6 @@ class SpeechRecognizer {
                     // Rolling window rolled over: re-anchor matching at the current
                     // progress so old transcripts can't be re-matched.
                     self.recognizedCharCount = self.matcher.restartFromCurrentProgress()
-                    benchNewSession("localWindow")
                 }
                 self.retryCount = 0
                 self.lastSpokenText = text
@@ -931,7 +937,6 @@ class SpeechRecognizer {
         let currentRecognitionGeneration = recognitionGeneration
         // Update match offset before restarting
         recognizedCharCount = matcher.restartFromCurrentProgress()
-        benchNewSession("restartTask")
         // New task = fresh transcript. lastSpokenText must be cleared too:
         // a jump taken before the first new result would otherwise anchor on
         // the old task's transcript and trim away everything the new task
@@ -1014,7 +1019,6 @@ class SpeechRecognizer {
                     }
 
                     self.recognizedCharCount = self.matcher.restartFromCurrentProgress()
-                    benchNewSession("taskError")
 
                     let nsError = error as NSError
                     let isTimeout = nsError.code == 1110 || nsError.code == 216
@@ -1042,9 +1046,12 @@ class SpeechRecognizer {
 
     // MARK: - Pre-emptive restart timer
 
+    /// Called whenever a recognition task starts. `RecognitionRestartPolicy` restarts in the first
+    /// pause after 45 s (from audio levels); this timer is only the backstop if levels stop.
     private func startPreemptiveTimer() {
         preemptiveRestartTimer?.invalidate()
-        preemptiveRestartTimer = Timer.scheduledTimer(withTimeInterval: 55.0, repeats: true) { [weak self] _ in
+        restartPolicy.sessionStarted(at: ProcessInfo.processInfo.systemUptime)
+        preemptiveRestartTimer = Timer.scheduledTimer(withTimeInterval: 58.0, repeats: true) { [weak self] _ in
             guard let self, self.isListening, !self.sourceText.isEmpty else { return }
             self.restartTask()
         }

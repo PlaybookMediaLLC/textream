@@ -172,7 +172,10 @@ struct ASRModel {
     var jargonMiss = 0.0       // chance a jargon word is transcribed with its common mis-hearing
     var latency = 0.35         // seconds from word start until it shows up in a partial
     var session = 55.0         // SFSpeech preemptive restart period (SpeechFollower)
-    var restartGap = 0.6       // audio lost while a new task spins up
+    var restartGap = 0.6       // audio lost while a new task spins up (a pause, under RecognitionRestartPolicy)
+    var quietRestart = true    // RecognitionRestartPolicy: restart in the first ≥0.2 s gap after 45 s (else at `session`)
+    var utteranceReset = 0.0   // chance the transcript starts over (same session) at a speech gap,
+                               // as Apple's on-device recognizer does (seen in Layer B fixtures)
 }
 
 let jargon: [String: [String]] = [
@@ -252,21 +255,40 @@ func run(script: PromptScript, perf: Performance, asr: ASRModel, wpm: Double, se
     var rng = RNG(state: seed)
     let tl = timeline(perform(script, perf, &rng), wpm: wpm, &rng)
     let heard = recognize(tl, asr, &rng)
-    return score(script: script, tl: tl, partials: simulatedPartials(heard, until: tl.end + 3, asr: asr))
+    return score(script: script, tl: tl, partials: simulatedPartials(heard, until: tl.end + 3, asr: asr, rng: &rng))
 }
 
 /// What a streaming recognizer would report every tick: cumulative transcript of the
 /// current session, with the word being spoken shown as a growing prefix.
-func simulatedPartials(_ heard: [Timed], until end: Double, asr: ASRModel) -> [Partial] {
+func simulatedPartials(_ heard: [Timed], until end: Double, asr: ASRModel, rng: inout RNG) -> [Partial] {
+    var resets: [Double] = []
+    for (a, b) in zip(heard, heard.dropFirst()) where b.start - a.end >= 0.25 && rng.chance(asr.utteranceReset) {
+        resets.append(b.start)
+    }
+    // Recognition task starts, mirroring the apps' RecognitionRestartPolicy (45 s / quiet / 57 s).
+    var starts = [0.0]
+    let policy = RecognitionRestartPolicy()
+    while starts.last! + (asr.quietRestart ? policy.deadline : asr.session) < end {
+        let s = starts.last!
+        var next = s + (asr.quietRestart ? policy.deadline : asr.session)
+        if asr.quietRestart {
+            for (a, b) in zip(heard, heard.dropFirst()) where b.start > s + policy.earliest {
+                let quietAt = max(a.end + 0.2, s + policy.earliest)
+                if quietAt <= b.start, quietAt < next { next = quietAt; break }
+            }
+        }
+        starts.append(next)
+    }
     var out: [Partial] = []
     var t = 0.0
     var session = 0
     while t <= end {
-        let s = Int(t / asr.session)
+        let s = (starts.lastIndex { $0 <= t } ?? 0)
         if s != session { session = s; out.append(Partial(t: t, session: s, text: "")) }
-        let sessionStart = Double(s) * asr.session + (s > 0 ? asr.restartGap : 0)
+        let sessionStart = starts[s] + (s > 0 ? asr.restartGap : 0)
+        let utteranceStart = max(sessionStart, resets.last { $0 + asr.latency <= t } ?? 0)
         var parts: [String] = []
-        for h in heard where h.start >= sessionStart && h.start + asr.latency <= t {
+        for h in heard where h.start >= utteranceStart && h.start + asr.latency <= t {
             if h.end + asr.latency <= t {
                 parts.append(h.text)
             } else {
@@ -281,9 +303,8 @@ func simulatedPartials(_ heard: [Timed], until end: Double, asr: ASRModel) -> [P
 }
 
 /// Replays partials through the matcher (as the app does: restart on each new session)
-/// and scores the highlight against the ground-truth timeline. With `track` (the
-/// highlight positions an app run actually showed, as (seconds, char offset) steps)
-/// the matcher is skipped and that track is scored instead.
+/// and scores the highlight against the ground-truth timeline. With `track`, scores that
+/// highlight instead (what a BENCHMARK app build actually showed; see AppLog.swift).
 func score(script: PromptScript, tl: Timeline, partials: [Partial], track: [(t: Double, chars: Int)]? = nil) -> CaseResult {
     let upperBounds = script.words.map(\.characterRange.upperBound)
     func wordsRead(_ offset: Int) -> Int { upperBounds.prefix { $0 <= offset }.count }
@@ -358,7 +379,9 @@ func score(script: PromptScript, tl: Timeline, partials: [Partial], track: [(t: 
     for p in tl.pauses where p.end - p.start >= 1 {
         let a = times.firstIndex { $0 >= p.start + 1.0 } ?? 0
         let b = times.lastIndex { $0 <= p.end } ?? a
-        r.silenceDrift += max(0, pred[b] - pred[a])
+        // Drift = moving past where the reader stopped. Catching up to the last words
+        // spoken before the pause (late transcripts) is correct, not drift.
+        r.silenceDrift += max(0, pred[b] - max(pred[a], truth[b]))
     }
     return r
 }
@@ -370,8 +393,11 @@ struct Case { var dimension: String; var name: String; var script: String; var p
 
 func cases() -> [Case] {
     var c: [Case] = []
-    let clean = ASRModel(substitution: 0.03, deletion: 0.01, insertion: 0.01)   // typical quiet-room on-device ASR
+    let clean = ASRModel(substitution: 0.03, deletion: 0.01, insertion: 0.01, utteranceReset: 0.15)   // typical quiet-room on-device ASR
     c.append(Case(dimension: "baseline", name: "clean read, 150 wpm", script: "general", asr: clean))
+    var resetting = clean; resetting.utteranceReset = 0.6
+    c.append(Case(dimension: "baseline", name: "recognizer drops transcript at most gaps", script: "general",
+                  perf: Performance(skipBefore: [150: 25], backAfter: [220: 15], adlibAfter: [90: 15], filler: 0.05), asr: resetting))
 
     // 1. Repeated sentences
     c.append(Case(dimension: "repeated", name: "refrains in script", script: "repeated", asr: clean))
@@ -458,8 +484,11 @@ let tableHeader = """
 
 """
 
-/// One report row from all runs of a case, judged against the simplified PLAN.md §8 launch bar.
-func reportRow(dimension: String, name: String, gating: Bool, runs: [CaseResult]) -> (row: String, pass: Bool) {
+/// One report row from all runs of a case, judged against the PLAN.md §8 launch bar. Noisy and
+/// non-native-accent cases are bounded by lost-place and recovery like the rest, but §8 sets the tight
+/// lag limit for clean native reading only: in 10 dB babble, or when the recognizer mishears accented
+/// words, it trails itself, so their lag ceiling is 3 s instead of 1.5 s.
+func reportRow(dimension: String, name: String, gating: Bool, noisy: Bool = false, runs: [CaseResult]) -> (row: String, pass: Bool) {
     var agg = CaseResult()
     for r in runs {
         agg.seconds += r.seconds; agg.lostEvents += r.lostEvents; agg.lostSeconds += r.lostSeconds
@@ -474,7 +503,7 @@ func reportRow(dimension: String, name: String, gating: Bool, runs: [CaseResult]
     let finalErr = Double(agg.finalError) / Double(runs.count)
     let lagP95 = percentile(agg.lags, 0.95)
     let recoveryP95 = percentile(recovered, 0.95)
-    let pass = per10 <= 0.5 && never == 0 && agg.silenceDrift == 0 && aheadPct < 1 && (lagP95 ?? 99) <= 1.5
+    let pass = per10 <= 0.5 && never == 0 && agg.silenceDrift == 0 && aheadPct < 1 && (lagP95 ?? 99) <= (noisy ? 3.0 : 1.5)
         && finalErr <= 3 && (recoveryP95 ?? 0) <= 4
     let row = "| \(dimension) | \(name) | \(fmt(per10, 2)) | \(fmt(lostPct)) | \(fmt(percentile(recovered, 0.5)))/\(fmt(recoveryP95)) "
         + "| \(agg.recoveries.isEmpty ? "–" : "\(never)/\(agg.recoveries.count)") | \(fmt(aheadPct)) | \(agg.silenceDrift) "
@@ -488,6 +517,11 @@ func loadScripts(_ root: URL) throws -> [String: PromptScript] {
         let text = try String(contentsOf: root.appendingPathComponent("scripts/\(name).txt"), encoding: .utf8)
         scripts[name] = PromptScript(text)
     }
+    // Human-reader scripts (Corpus.swift), keyed "human/<name>".
+    let human = root.appendingPathComponent("scripts/human")
+    for file in (try? FileManager.default.contentsOfDirectory(atPath: human.path)) ?? [] where file.hasSuffix(".txt") {
+        scripts["human/" + String(file.dropLast(4))] = PromptScript(try String(contentsOf: human.appendingPathComponent(file), encoding: .utf8))
+    }
     return scripts
 }
 
@@ -496,15 +530,33 @@ let only = ProcessInfo.processInfo.environment["CASE"]
 let matcherLabel = useLegacy ? "legacy (git f9c6c94)" : "current"
 
 switch args.count > 1 ? args[1] : "" {
-case "record-audio":   // Layer B: synthesize real audio, run Apple's recognizer, save fixtures
-    try recordAudio(root: URL(fileURLWithPath: args[2]), filter: only)
-case "score-audio":    // Layer B: replay saved recognizer fixtures through the matcher
-    print(try scoreAudio(root: URL(fileURLWithPath: args[2]), filter: only))
+case "record-audio":   // Layer B: synthesize real audio, run a real recognizer, save fixtures
+    guard args.count > 3, let engine = Engine.parse(args[3]) else {
+        fatalError("usage: bench record-audio <root> apple-on-device|<model.gguf>")
+    }
+    try recordAudio(root: URL(fileURLWithPath: args[2]), filter: only, engine: engine)
+case "reader-scripts":  // stage-direction scripts for human readers (PLAN.md §5)
+    try writeReaderScripts(root: URL(fileURLWithPath: args[2]))
+case "ingest-audio":    // a person's take → fixture with auto-aligned truth
+    guard args.count > 5 else { fatalError("usage: bench ingest-audio <root> <case> <reader> <wav>") }
+    try ingestAudio(root: URL(fileURLWithPath: args[2]), caseID: args[3], reader: args[4], wav: URL(fileURLWithPath: args[5]))
+case "offline-words":   // debug: offline recognizer word timings for a WAV
+    _ = try offlineWordTimings(URL(fileURLWithPath: args[2]))
+case "human-corpus":    // real LibriSpeech readers → fixtures (Corpus.swift)
+    guard args.count > 4, let engine = Engine.parse(args[4]) else {
+        fatalError("usage: bench human-corpus <root> <LibriSpeech/dev-clean> apple-on-device|apple-server:<locale>|<model.gguf>")
+    }
+    try recordHumanCorpus(root: URL(fileURLWithPath: args[2]), librispeech: URL(fileURLWithPath: args[3]), engine: engine, filter: only)
+case "export-audio":    // the synthetic voice's clean take for a case (validates ingest)
+    guard args.count > 4 else { fatalError("usage: bench export-audio <root> <case> <wav>") }
+    try exportAudio(root: URL(fileURLWithPath: args[2]), caseID: args[3], out: URL(fileURLWithPath: args[4]))
 case "render-audio":   // case audio + ground truth for app-level benchmarks (../desktop)
     try renderAudio(root: URL(fileURLWithPath: args[2]), out: URL(fileURLWithPath: args[3]), filter: only)
 case "score-app":      // score a BENCHMARK app run's event log against a rendered case
     print(try scoreApp(root: URL(fileURLWithPath: args[2]), caseDir: URL(fileURLWithPath: args[3]),
                        log: URL(fileURLWithPath: args[4]), loops: args.count > 5 ? Int(args[5]) ?? 1 : 1))
+case "score-audio":    // Layer B: replay saved recognizer fixtures through the matcher
+    print(try scoreAudio(root: URL(fileURLWithPath: args[2]), filter: only))
 default:               // Layer A: simulated speakers and ASR
     let root = URL(fileURLWithPath: args.count > 1 ? args[1] : ".")
     let seeds = args.count > 2 ? Int(args[2]) ?? 10 : 10
@@ -515,7 +567,8 @@ default:               // Layer A: simulated speakers and ASR
         let runs = (0..<seeds).map { seed in
             run(script: scripts[cs.script]!, perf: cs.perf, asr: cs.asr, wpm: cs.wpm, seed: UInt64(seed) &* 7919 &+ 17)
         }
-        let (row, pass) = reportRow(dimension: cs.dimension, name: cs.name, gating: cs.gating, runs: runs)
+        let (row, pass) = reportRow(dimension: cs.dimension, name: cs.name, gating: cs.gating,
+                                    noisy: cs.dimension.hasPrefix("noise"), runs: runs)
         out += row
         total += 1
         if cs.gating { gated += 1; if !pass { failures += 1 } }

@@ -1,14 +1,16 @@
 name: Speech tracking benchmark
 
 # Regression gate for the prompter's speech follower (benchmarks/speech-tracking/PLAN.md).
-# Replays simulated sessions (Layer A) and recorded real-recognizer sessions (Layer B
-# fixtures) through the shipping matcher; fails if any gating case misses the launch bar.
+# Replays simulated sessions (Layer A) and recorded real-recognizer sessions (Layer B fixtures:
+# Apple on-device, Nemotron, Canary) through the shipping matcher; fails if any gating case misses
+# the launch bar. Builds the SwiftPM benchmark (fetches the vendored TranscribeCpp xcframework).
 
 on:
   pull_request:
     paths:
       - 'Textream/Shared/**'
       - 'Textream/Textream/SpeechRecognizer.swift'
+      - 'Textream/Textream/LocalSpeechEngine.swift'
       - 'Textream/TextreamiOS/Speech/**'
       - 'benchmarks/speech-tracking/**'
       - '.github/workflows/speech-tracking.yml'
@@ -16,6 +18,7 @@ on:
     branches: [master]
     paths:
       - 'Textream/Shared/**'
+      - 'Textream/Textream/LocalSpeechEngine.swift'
       - 'benchmarks/speech-tracking/**'
 
 jobs:

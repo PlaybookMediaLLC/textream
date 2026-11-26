@@ -1,0 +1,10 @@
+{
+  "dimension" : "paraphrase",
+  "gating" : true,
+  "hints" : true,
+  "id" : "paraphrase-light",
+  "name" : "contractions, synonyms, fillers",
+  "script" : "general",
+  "voice" : "Karen",
+  "wpm" : 175
+}

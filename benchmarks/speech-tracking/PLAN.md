@@ -8,73 +8,136 @@ that follows.
 **Headline metric:** *lost-place events per 10 minutes of speech*. Every other metric
 supports this one or explains it.
 
-## Status (2026-11-25)
+## Status (2026-11-26, second pass)
 
-**Built:** Phase 0 (one shared matcher) and Phase 1 (Layer A with the synthetic
-generator) for all eight dimensions plus a composite take. The harness compiles the
-**shipping** matcher (`Textream/Shared/`) and the pre-benchmark matcher (from git
-`f9c6c94`) and replays identical simulated sessions through both.
+**Every phase is built and passing, including real human readers.**
+- Phase 0 (shared matcher) and Phase 1 (Layer A).
+- Phases 2–3:
+  - Layer B on synthetic voices across Apple on-device, Apple server, and three recommended local
+    models.
+  - **Real people**: six native LibriSpeech readers and four non-native Speechocean762 readers.
+- Phase 4: launch bar plus CI gate.
+
+| | legacy matcher (`f9c6c94`) | shipping code |
+|---|---|---|
+| Layer A, simulated (37 cases × 30 seeds) | **0/37** | **37/37** |
+| Layer B, real audio, 5 engines, synthetic + human voices | **50/108** | **108/108** (27 report-only) |
+| iOS unit tests (simulator, iOS 26.1) | — | **105/105** |
+| macOS app build | — | ✅ |
+
+| Engine | Voices | Gating pass (new) | Gating pass (legacy matcher) | Report-only |
+|---|---|---|---|---|
+| apple-on-device | human, native (LibriSpeech) | 15/15 | 0/15 | 1 |
+| apple-on-device | human, non-native (Speechocean762) | 8/8 | 0/8 | 6 |
+| apple-on-device | synthetic voices | 25/25 | 17/25 | 2 |
+| apple-server (en-GB/IN/AU/IE/ZA/CA/NZ/SG) | synthetic voices | 14/14 | 11/14 | 0 |
+| local-canary | synthetic voices | 10/10 | 2/10 | 3 |
+| local-nemotron | human, native (LibriSpeech) | 16/16 | 10/16 | 0 |
+| local-nemotron | human, non-native (Speechocean762) | 8/8 | 4/8 | 6 |
+| local-nemotron | synthetic voices | 13/13 | 8/13 | 2 |
+| local-qwen3 | human, non-native (Speechocean762) | 5/5 | 2/5 | 1 |
+
+Per-case results, with each recognizer's WER and latency: `results/audio-current.md`.
+
+**On real human voices through Apple's recognizer, the legacy matcher passes 0 of 23 gating cases.** It
+never recovers from the recognizer starting a new utterance mid-session, which natural speech triggers
+constantly. That is the most likely explanation for "the prompter loses its place".
+
+### Running it
 
 ```
 cd benchmarks/speech-tracking
-go run run.go                 # 30 seeds/case → results/current.md, results/legacy.md (~4 min)
-go run run.go -check          # same; exits 1 if any gating case fails (CI regression gate)
-CASE="skip 25" go run run.go -seeds 5        # only cases whose name contains the text
-CASE="skip 25" TRACE=1 go run run.go -seeds 1  # per-tick truth/pred/transcript, written into results/*.md
+go run run.go                       # Layer A (30 seeds) + replay all Layer B fixtures, both matchers → results/*.md
+go run run.go -check                # same; exits 1 if any gating case fails (CI: .github/workflows/speech-tracking.yml)
+go run run.go -record apple-on-device             # re-record synthetic Layer B (real time, ~75 min, macOS)
+go run run.go -record apple-server:en-GB          # Apple's server path (only while that locale has no on-device model)
+go run run.go -record /path/model.gguf            # core cases through a local model (the app's LocalSpeechEngine)
+.build/release/bench human-corpus . LibriSpeech/dev-clean <engine>   # real readers (see scripts/human/README.md)
+.build/release/bench human-corpus . speechocean762 <engine>
+.build/release/bench reader-scripts . ; .build/release/bench ingest-audio . <case> <reader> take.wav   # your own readers
 ```
 
-**Result:** gating cases passing the §8 launch bar went from **4/36 (legacy) to
-36/36**. Full tables are in `results/`. Headline numbers (lost-place events per
-10 min, legacy → new):
+It's a SwiftPM package; `Sources/bench/Shared` and `Sources/bench/LocalSpeechEngine.swift` are symlinks
+to the app, so it always measures what ships. Fixtures (`case.json`, `truth.json`, `<engine>.jsonl`) are
+replayed in CI without audio. Local models, pinned and SHA-256 checked: Nemotron 3.5 Streaming 0.6B
+(native streaming), Canary 180M Flash and Qwen3-ASR 1.7B (rolling window), all recommended in the catalog.
 
-| | legacy | new |
-|---|---|---|
-| clean read | 0.30 | 0.00 |
-| restart sentence | 5.70 | 0.00 |
-| ad-lib 45 words | 12.02 | 0.12 |
-| skip 10 / 60 words | 15.3 / 30.2 (never recovered) | 0.00 / 0.00 |
-| 230 wpm | 2.35 | 0.00 |
-| accent proxy, WER≈22% | 1.81 | 0.00 |
-| noise proxy, 10 dB | 1.51 | 0.00 |
-| competing speech 12% | 9.50 | 0.15 |
-| realistic composite | 9.42 | 0.00 |
+### Real human readers
 
-**§6 hypotheses, as measured on the legacy matcher:** all confirmed. The worst
-problem wasn't predicted precisely: *one* misheard word could derail the greedy
-whole-transcript alignment and freeze the highlight until the next 55 s recognizer
-restart, so even a clean read ended about 6 words off on average. Skips of 6 words or
-more never recovered (final error 94–213 words).
+- **LibriSpeech dev-clean** (CC BY 4.0): six native readers, three female and three male, ~75 s each.
+- **Speechocean762** (CC BY 4.0): four adult Mandarin-L1 speakers reading English, two female and two male.
+- **Performances:** each reader has a straight read. Two readers per corpus also get skip, re-read, 20 s
+  pause, 10 dB babble and composite variants, built by editing the real recordings at sentence
+  boundaries.
+- **Ground truth is sentence-anchored.** Each sentence is its own recording, so its span in the take is
+  exact. Inside it, word times come from recognizing that clip alone, clamped to its measured speech span.
+  The first version aligned the whole take's recognition instead, and for a heavily accented speaker it
+  drifted by sentences. The bench caught it because the transcript disagreed with the truth.
+- **Your own readers:** use `reader-scripts` and `ingest-audio`. Ingest is validated against exact
+  synthetic truth: 0.07 s median timing error.
 
-**What changed in the matcher** (`Textream/Shared/PromptMatcher.swift`, now used by
-both macOS `SpeechRecognizer` and iOS `SpeechFollower`):
-- It aligns only the newest ~12 spoken words against the whole script (word-level
-  Smith–Waterman), biased toward the current position. An early error can't stick,
-  and skips and re-reads are found anywhere in the script.
-- Forward steps commit on evidence *past* the current position. Function words weigh
-  0.35, so ad-libs and background speech don't creep the highlight forward.
-- Far jumps (in either direction) need 3+ matches, a 1.0 score margin over every
-  other location (so refrains can't pull it), agreement from the newest 6 words, and
-  either a second agreeing partial or overwhelming evidence.
-- Contractions are expanded on both sides; fuzzy matching is stricter ("the" no
-  longer matches "there").
-- The previous recognition session's tail carries across recognizer restarts.
-- Cost: about 1 ms per partial on a 10,000-word script (release build).
+### What this round found and fixed
 
-**Not built yet / limits:**
-- **Layer B and the recorded corpus (§5) are not built.** Accent, noise and
-  technical rows are *ASR-error proxies* with assumed error rates, not acoustics.
-  Layer B with real readers is what calibrates them, and it's still the gate before
-  any commercial claim.
-- Known residual: a skip that lands within ~3 s of a recognizer restart, followed
-  by mostly function words, can take ~5 s to recover (0.2 events/10 min in the
-  skip-25 case at 30 seeds; it fails at 10 seeds).
-- No number normalization ("2024" vs "twenty twenty-four").
-- Verification on this machine: the macOS app builds, and all 14 matcher unit tests
-  (7 existing + 7 new in `TextreamiOSTests/PromptMatcherTests.swift`) pass when
-  run natively on macOS via SwiftPM. The iOS test suite could **not** be run (no iOS
-  platform or simulator runtime installed). iOS sources type-check against the SDK
-  except `CameraPreview.swift`, which doesn't build against this SDK for reasons
-  unrelated to this change (`AVCaptureDeviceDirectionCoordinator` is missing).
+1. **Fixed restarts cut words.** Apple recognition requests stop at about a minute, so the apps restarted
+   every 55 s, mid-word. A re-read landing on a restart took 4.5 s to recover. New
+   `Shared/RecognitionRestartPolicy` (macOS `SpeechRecognizer` and iOS `SpeechFollower`): from 45 s,
+   restart at the first ~200 ms of quiet, with 57 s as the deadline and the timer as a backstop.
+   Layer A and the recorder mirror it.
+2. **Utterance resets that start with the same word were missed** ("he had never…" (61 words) → "he").
+   This hit the matcher and the truth builder. They now share `PromptMatcher.startsOver`: shorter and
+   different, or under half the length.
+3. **Digits vs words.** "50" now matches "fifty", "42,000" matches "forty two thousand", and hyphenated
+   words split.
+4. **Apple's server path exists, but only on first use.** macOS 26 has on-device models only for en-US
+   (and en-PH, en-SA, en-ID). For en-GB, en-IN, en-AU, en-IE, en-ZA, en-CA, en-NZ, en-SG the first sessions
+   go to Apple's server, and macOS downloads that locale's on-device model during first use (every locale
+   flipped within a few minutes). Benchmarked on the server while it lasted: 14/14 pass, lag p95
+   0.82–1.36 s.
+5. **Strong accents need a strong recognizer.** Speechocean762 speaker 0560 is 37–52% WER on Apple and
+   24–37% on Nemotron, which fails both. Qwen3-ASR 1.7B tracks the same audio with zero lost-place events
+   (5/5 gating pass). **Product implication:** recommend Qwen3-ASR to speakers with strong accents.
+6. The non-native *TTS* proxies (French and German voices reading English) are TTS letter-to-sound
+   errors, not accents ("channel" read as "Chanel"). All three engines fail them the same way (27–58%
+   WER). They stay report-only, and real L2 readers (item 5) replace them as accent evidence.
+
+### Report-only cases (recognizer limits verified outside the matcher)
+
+The plan's §8 bounds noisy and non-native conditions by lost-place and recovery. Their lag ceiling is
+3 s instead of the 1.5 s clean-reading limit. Beyond the plan's own report-only rows (0–5 dB SNR,
+heavy competing speech, extreme-WER proxies), these are report-only, each with evidence in `Audio.swift`:
+- **Canary in 10 dB babble:** ~50% of windows decode to nothing at any length. Nemotron gets 3% WER.
+- **Speaker 0560 on Apple and Nemotron:** strong accent, 24–52% WER. Qwen3 passes.
+- **Apple on reader 174 in 10 dB babble:** Apple's own transcript arrives 6.8 s late. Nemotron passes.
+- **Qwen3 on 0560's composite** (strong accent + 15 dB babble + skip/re-read/pause): zero lost-place
+  events, lag p95 3.6 s.
+
+### Earlier fixes (first pass)
+
+- **Matcher** (`Textream/Shared/PromptMatcher.swift`, shared by macOS and iOS):
+  - Tail-of-transcript Smith–Waterman alignment against the whole script.
+  - Evidence-gated forward steps; function words count only when 2 of the last 3 steps matched.
+  - Unique, confirmed far jumps.
+  - Context carried across restarts and resets.
+  - Contraction, scaled-number and merged-word matching.
+  - Cost: about 1 ms per partial on a 10,000-word script.
+- **`LocalSpeechEngine` rolling-window models:**
+  - A 0.3 s silent lead-in per window.
+  - An adaptive cadence (0.75–1.5 s).
+  - An opt-in retry on recent audio for word tracking.
+  - Together these fix multi-second freezes after window rollovers.
+
+### Known limits
+
+- **No readers of our own have been recorded yet.** The benchmark uses public-corpus readers. Their
+  material is read prose, not prompter scripts. `reader-scripts` and `ingest-audio` are ready for
+  in-house readers.
+- **Non-native coverage is Mandarin-L1 only** (permissively licensed). L2-ARCTIC and Speech Accent
+  Archive are non-commercial (§10.2).
+- The iOS app needs the iOS 27.1 SDK (`AVCaptureDeviceDirectionCoordinator`, `reservedRegions`,
+  `sceneAccessory`). The iOS suite ran with three `#available(iOS 27.1)` blocks stubbed locally, then
+  reverted.
+- Recording needs an idle machine (GPU contention once stalled a local model), and a rebuilt binary
+  shouldn't replace one that's recording.
 
 ---
 
@@ -141,7 +204,7 @@ with the ground-truth word index (the word the speaker is actually on).
 | Never-recovered | the case ends while still lost | needs a manual tap; the worst outcome |
 | Lag p50 / p95 | time from the speaker finishing word *w* to the highlight reaching *w* | how responsive it feels |
 | **False advance** | highlight runs more than 3 words *ahead* of the speaker | scrolls text away from the reader; worse than lag |
-| Drift during silence | words advanced while nobody is speaking | should be 0 |
+| Drift during silence | words the highlight moves past where the reader stopped, while nobody is speaking (catching up to late transcripts of the last words is not drift) | should be 0 |
 | Stall | speaker progresses 5+ words while the highlight doesn't move for 3+ s | |
 | Position error p50 / p95 | in words | summary statistic |
 | Matcher CPU / partial | time per `match()` call, against transcript length | the whole transcript is re-aligned on every partial |
