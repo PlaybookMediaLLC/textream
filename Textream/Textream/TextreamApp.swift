@@ -36,8 +36,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if BENCHMARK
+        Bench.didFinishLaunchingBegan()
+        #endif
         NSApp.servicesProvider = TextreamService.shared
         NSUpdateDynamicServices()
+        benchLog("launch.step", ["name": "services"])
 
         // Route native transcribe.cpp diagnostics to the system log. ggml emits
         // verbose per-kernel detail at info level; keep only warnings/errors.
@@ -61,12 +65,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // updated exclusively through the App Store.
         UpdateChecker.shared.checkForUpdates(silent: true)
         #endif
+        benchLog("launch.step", ["name": "updateCheck"])
 
         // Start browser server if enabled
         TextreamService.shared.updateBrowserServer()
+        benchLog("launch.step", ["name": "browserServer"])
 
         // Start director server if enabled
         TextreamService.shared.updateDirectorServer()
+        benchLog("launch.step", ["name": "directorServer"])
 
         // Set window delegate to intercept close, disable tabs and fullscreen
         DispatchQueue.main.async {
@@ -77,7 +84,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 window.collectionBehavior.insert(.fullScreenNone)
             }
             self.removeUnwantedMenus()
+            benchAttachProbe(to: NSApp.windows.first { !($0 is NSPanel) && $0.isVisible }, label: "main") { 0 }
         }
+        #if BENCHMARK
+        Bench.didFinishLaunchingEnded()
+        #endif
     }
 
     private func removeUnwantedMenus() {

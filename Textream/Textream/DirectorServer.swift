@@ -10,8 +10,9 @@ import Network
 
 // MARK: - Director State (App → Web)
 
+/// Broadcast every 100 ms. The director page already has the script (it sent it), so
+/// the words are not repeated here: at 50k words they made each tick a 450 KB encode.
 struct DirectorState: Codable {
-    let words: [String]
     let highlightedCharCount: Int
     let totalCharCount: Int
     let isActive: Bool
@@ -266,7 +267,6 @@ class DirectorServer {
         let isDone = totalCharCount > 0 && effective >= totalCharCount
 
         let state = DirectorState(
-            words: words,
             highlightedCharCount: effective,
             totalCharCount: totalCharCount,
             isActive: true,
@@ -282,7 +282,7 @@ class DirectorServer {
 
     private func broadcastInactive() {
         let state = DirectorState(
-            words: [], highlightedCharCount: 0, totalCharCount: 0,
+            highlightedCharCount: 0, totalCharCount: 0,
             isActive: false, isDone: false, isListening: false,
             fontColor: "#ffffff", cueColor: "#ffffff", lastSpokenText: "",
             audioLevels: []
@@ -610,3 +610,21 @@ class DirectorServer {
         """
     }
 }
+
+#if BENCHMARK
+extension DirectorServer {
+    /// Cost of one 100 ms broadcast tick's JSON encode (benchmarks/PLAN.md #7).
+    static func benchEncodeCost(words: [String], totalCharCount: Int) -> (ns: UInt64, bytes: Int) {
+        var bytes = 0
+        let ns = Bench.measure(iterations: 20) {
+            let state = DirectorState(
+                highlightedCharCount: totalCharCount / 2, totalCharCount: totalCharCount,
+                isActive: true, isDone: false, isListening: true, fontColor: "#ffffff", cueColor: "#ffffff",
+                lastSpokenText: "", audioLevels: Array(repeating: 0.5, count: 30)
+            )
+            bytes = (try? JSONEncoder().encode(state))?.count ?? 0
+        }
+        return (ns, bytes)
+    }
+}
+#endif

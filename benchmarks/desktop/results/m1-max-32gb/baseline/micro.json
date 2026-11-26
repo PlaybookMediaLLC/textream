@@ -1,0 +1,343 @@
+{
+  "host": "m1-max-32gb",
+  "date": "2026-11-26T06:00:52-05:00",
+  "commit": "0ce0187",
+  "metrics": {
+    "browser.encode.10k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        344,
+        344,
+        344,
+        344,
+        344
+      ],
+      "median": 344,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.012708,
+        0.012542,
+        0.0125,
+        0.012417,
+        0.012584
+      ],
+      "median": 0.012542,
+      "mad": 0.00004200000000000037,
+      "gate": true
+    },
+    "browser.encode.1k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        342,
+        342,
+        342,
+        342,
+        342
+      ],
+      "median": 342,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.012709,
+        0.012542,
+        0.012458,
+        0.012541,
+        0.012583
+      ],
+      "median": 0.012542,
+      "mad": 0.000041000000000001105,
+      "gate": true
+    },
+    "browser.encode.50k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        346,
+        346,
+        346,
+        346,
+        346
+      ],
+      "median": 346,
+      "mad": 0,
+      "gate": false
+    },
+    "browser.encode.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.012833,
+        0.012625,
+        0.0125,
+        0.012583,
+        0.012583
+      ],
+      "median": 0.012583,
+      "mad": 0.00004200000000000037,
+      "gate": true
+    },
+    "director.encode.10k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        302,
+        302,
+        302,
+        302,
+        302
+      ],
+      "median": 302,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.01225,
+        0.012334,
+        0.012042,
+        0.011917,
+        0.012042
+      ],
+      "median": 0.012042,
+      "mad": 0.0001250000000000001,
+      "gate": true
+    },
+    "director.encode.1k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        300,
+        300,
+        300,
+        300,
+        300
+      ],
+      "median": 300,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.012458,
+        0.012333,
+        0.012042,
+        0.012083,
+        0.012208
+      ],
+      "median": 0.012208,
+      "mad": 0.0001250000000000001,
+      "gate": true
+    },
+    "director.encode.50k.bytes": {
+      "unit": "bytes",
+      "lowerIsBetter": true,
+      "values": [
+        304,
+        304,
+        304,
+        304,
+        304
+      ],
+      "median": 304,
+      "mad": 0,
+      "gate": false
+    },
+    "director.encode.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.012334,
+        0.012334,
+        0.012125,
+        0.012166,
+        0.01225
+      ],
+      "median": 0.01225,
+      "mad": 0.000083999999999999,
+      "gate": true
+    },
+    "layout.cold.10k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        13.139875,
+        13.271583,
+        13.258875,
+        13.199333,
+        13.294
+      ],
+      "median": 13.258875,
+      "mad": 0.03512500000000074,
+      "gate": true
+    },
+    "layout.cold.1k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        2.878083,
+        2.942334,
+        2.834791,
+        2.827083,
+        2.749666
+      ],
+      "median": 2.834791,
+      "mad": 0.04329200000000011,
+      "gate": true
+    },
+    "layout.cold.50k.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        59.902667,
+        59.784209,
+        59.812375,
+        59.466208,
+        59.93225
+      ],
+      "median": 59.812375,
+      "mad": 0.09029199999999804,
+      "gate": true
+    },
+    "layout.redraw.10k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.009666,
+        0.009833,
+        0.00975,
+        0.009875,
+        0.009708
+      ],
+      "median": 0.00975,
+      "mad": 0.00008299999999999974,
+      "gate": true
+    },
+    "layout.redraw.10k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.00975,
+        0.009709,
+        0.009792,
+        0.009916,
+        0.009833
+      ],
+      "median": 0.009792,
+      "mad": 0.00004200000000000037,
+      "gate": true
+    },
+    "layout.redraw.10k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.00975,
+        0.009875,
+        0.009833,
+        0.009833,
+        0.009834
+      ],
+      "median": 0.009833,
+      "mad": 0.000001000000000001,
+      "gate": true
+    },
+    "layout.redraw.1k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.001417,
+        0.001375,
+        0.001417,
+        0.001417,
+        0.001375
+      ],
+      "median": 0.001417,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.1k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.001375,
+        0.001375,
+        0.001375,
+        0.001416,
+        0.001375
+      ],
+      "median": 0.001375,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.1k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.001375,
+        0.001416,
+        0.001416,
+        0.001416,
+        0.001375
+      ],
+      "median": 0.001416,
+      "mad": 0,
+      "gate": true
+    },
+    "layout.redraw.50k@10%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.049958,
+        0.047708,
+        0.04725,
+        0.046708,
+        0.047583
+      ],
+      "median": 0.047583,
+      "mad": 0.00033299999999999996,
+      "gate": true
+    },
+    "layout.redraw.50k@50%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.050458,
+        0.045875,
+        0.047041,
+        0.046375,
+        0.04725
+      ],
+      "median": 0.047041,
+      "mad": 0.0006659999999999999,
+      "gate": true
+    },
+    "layout.redraw.50k@90%.ms": {
+      "unit": "ms",
+      "lowerIsBetter": true,
+      "values": [
+        0.048417,
+        0.045792,
+        0.047,
+        0.046292,
+        0.047333
+      ],
+      "median": 0.047,
+      "mad": 0.0007080000000000003,
+      "gate": true
+    }
+  }
+}

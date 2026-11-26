@@ -202,11 +202,33 @@ class SpeechRecognizer {
         shouldListen = true
         isListening = false
         isStarting = true
+        #if BENCHMARK
+        if Bench.stopListeningAfterShow {
+            // Overlay open with recognition paused: nothing listening, no mic.
+            isStarting = false
+            benchLog("read.paused")
+            return
+        }
+        if Bench.autoplayWPM > 0 {
+            isStarting = false
+            isListening = true
+            Bench.startAutoplay(self, collapsedText: collapsed)
+            return
+        }
+        #endif
         requestMicrophoneAccessAndBegin(for: sessionGeneration)
     }
 
     private func requestMicrophoneAccessAndBegin(for generation: Int) {
         guard shouldListen, sessionGeneration == generation else { return }
+
+        #if BENCHMARK
+        // File-fed audio never opens the microphone.
+        if BenchAudioSource.shared != nil {
+            beginAfterMicrophoneAccess(for: generation)
+            return
+        }
+        #endif
 
         // Check microphone permission first
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
@@ -544,7 +566,11 @@ class SpeechRecognizer {
             recognitionRequest = nil
         }
 
+        #if BENCHMARK
+        let inputNode: AVAudioNode = BenchAudioSource.shared?.attach(to: audioEngine) ?? audioEngine.inputNode
+        #else
         let inputNode = audioEngine.inputNode
+        #endif
         let hardwareFormat = inputNode.outputFormat(forBus: 0)
 
         // Guard against invalid format during device transitions (e.g. mic switch)
@@ -623,6 +649,7 @@ class SpeechRecognizer {
                 guard let self else { return }
                 if let result {
                     let spoken = result.bestTranscription.formattedString
+                    benchLog("asr.partial", ["engine": "apple", "len": spoken.count])
                     DispatchQueue.main.async {
                         // Ignore stale results from a previous session
                         guard self.sessionGeneration == currentGeneration,
@@ -680,6 +707,10 @@ class SpeechRecognizer {
                 cleanupRecognition()
                 return
             }
+            #if BENCHMARK
+            BenchAudioSource.shared?.play()
+            #endif
+            benchNewSession("begin")
             error = nil
             isStarting = false
             isListening = true
@@ -967,6 +998,7 @@ class SpeechRecognizer {
             guard let self else { return }
             if let result {
                 let spoken = result.bestTranscription.formattedString
+                benchLog("asr.partial", ["engine": "apple", "len": spoken.count])
                 DispatchQueue.main.async {
                     guard self.sessionGeneration == currentGeneration,
                           self.recognitionGeneration == currentRecognitionGeneration else { return }
@@ -1036,6 +1068,15 @@ class SpeechRecognizer {
         // Results computed before a jump can be delivered just after it —
         // don't match pre-jump speech against the text at the new offset.
         guard Date().timeIntervalSince(lastJumpAt) > 0.3 else { return }
+        #if BENCHMARK
+        let benchStart = Bench.monoNanos()
+        defer {
+            Bench.log("match", [
+                "chars": recognizedCharCount, "ns": Bench.monoNanos() - benchStart,
+                "session": Bench.session, "text": fullSpoken,
+            ])
+        }
+        #endif
 
         // Ignore transcript from before the most recent jump. Trim by the
         // common prefix that survived the recognizer's revisions, but never

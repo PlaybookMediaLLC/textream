@@ -455,6 +455,42 @@ func transcribeLocal(_ audio: [Float], script: PromptScript, hints: Bool, modelP
 
 // MARK: - Commands
 
+func renderCase(_ c: AudioCase, script: PromptScript, cache: URL) throws -> (audio: [Float], tl: Timeline) {
+    var rng = RNG(state: 1)
+    let (speech, tl) = try render(perform(script, c.perf, &rng), voice: c.info.voice, wpm: c.info.wpm, cache: cache)
+    var audio = speech
+    if let kind = c.info.noise, let snr = c.info.snr {
+        audio = mix(speech, try noise(kind, length: speech.count, cache: cache), snr: snr)
+    }
+    return (audio, tl)
+}
+
+func ttsCache() throws -> URL {
+    let cache = FileManager.default.temporaryDirectory.appendingPathComponent("speech-tracking-tts")
+    try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: true)
+    return cache
+}
+
+/// Writes <out>/<case>/{audio.wav, truth.json, case.json, script.txt} for app-level runs (../desktop).
+func renderAudio(root: URL, out: URL, filter: String?) throws {
+    let scripts = try loadScripts(root)
+    let cache = try ttsCache()
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    for c in audioCases() where filter == nil || c.info.id.contains(filter!) {
+        let dir = out.appendingPathComponent(c.info.id)
+        if FileManager.default.fileExists(atPath: dir.appendingPathComponent("audio.wav").path) { continue }
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let (audio, tl) = try renderCase(c, script: scripts[c.info.script]!, cache: cache)
+        try writeWAV(audio, to: dir.appendingPathComponent("audio.wav"))
+        try encoder.encode(c.info).write(to: dir.appendingPathComponent("case.json"))
+        try encoder.encode(tl).write(to: dir.appendingPathComponent("truth.json"))
+        try String(contentsOf: root.appendingPathComponent("scripts/\(c.info.script).txt"), encoding: .utf8)
+            .write(to: dir.appendingPathComponent("script.txt"), atomically: true, encoding: .utf8)
+        FileHandle.standardError.write("rendered \(c.info.id) (\(Int(tl.end)) s)\n".data(using: .utf8)!)
+    }
+}
+
 func recordAudio(root: URL, filter: String?, engine: Engine) throws {
     let scripts = try loadScripts(root)
     let cache = FileManager.default.temporaryDirectory.appendingPathComponent("speech-tracking-tts")

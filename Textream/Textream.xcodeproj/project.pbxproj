@@ -18,12 +18,28 @@
 			remoteGlobalIDString = A1000000000000000000000B;
 			remoteInfo = TextreamiOS;
 		};
+		B3000000000000000000000F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 446966AC2F37E47300AF141F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 446966B32F37E47300AF141F;
+			remoteInfo = Textream;
+		};
+		B30000000000000000000010 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 446966AC2F37E47300AF141F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 446966B32F37E47300AF141F;
+			remoteInfo = Textream;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		446966B42F37E47300AF141F /* Textream.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Textream.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000001 /* TextreamiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TextreamiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000002 /* TextreamiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TextreamiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B30000000000000000000001 /* TextreamTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TextreamTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B30000000000000000000002 /* TextreamUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TextreamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -45,6 +61,16 @@
 		A10000000000000000000004 /* TextreamiOSTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TextreamiOSTests;
+			sourceTree = "<group>";
+		};
+		B30000000000000000000003 /* TextreamTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TextreamTests;
+			sourceTree = "<group>";
+		};
+		B30000000000000000000004 /* TextreamUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TextreamUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -72,6 +98,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B30000000000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B30000000000000000000009 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -82,6 +122,8 @@
 				A10000000000000000000003 /* TextreamiOS */,
 				A10000000000000000000020 /* Shared */,
 				A10000000000000000000004 /* TextreamiOSTests */,
+				B30000000000000000000003 /* TextreamTests */,
+				B30000000000000000000004 /* TextreamUITests */,
 				446966B52F37E47300AF141F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -92,6 +134,8 @@
 				446966B42F37E47300AF141F /* Textream.app */,
 				A10000000000000000000001 /* TextreamiOS.app */,
 				A10000000000000000000002 /* TextreamiOSTests.xctest */,
+				B30000000000000000000001 /* TextreamTests.xctest */,
+				B30000000000000000000002 /* TextreamUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -169,6 +213,52 @@
 			productReference = A10000000000000000000002 /* TextreamiOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		B3000000000000000000000B /* TextreamTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B3000000000000000000000D /* Build configuration list for PBXNativeTarget "TextreamTests" */;
+			buildPhases = (
+				B30000000000000000000005 /* Sources */,
+				B30000000000000000000006 /* Frameworks */,
+				B30000000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B30000000000000000000011 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B30000000000000000000003 /* TextreamTests */,
+			);
+			name = TextreamTests;
+			packageProductDependencies = (
+			);
+			productName = TextreamTests;
+			productReference = B30000000000000000000001 /* TextreamTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B3000000000000000000000C /* TextreamUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B3000000000000000000000E /* Build configuration list for PBXNativeTarget "TextreamUITests" */;
+			buildPhases = (
+				B30000000000000000000008 /* Sources */,
+				B30000000000000000000009 /* Frameworks */,
+				B3000000000000000000000A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B30000000000000000000012 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B30000000000000000000004 /* TextreamUITests */,
+			);
+			name = TextreamUITests;
+			packageProductDependencies = (
+			);
+			productName = TextreamUITests;
+			productReference = B30000000000000000000002 /* TextreamUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -188,6 +278,14 @@
 					A1000000000000000000000C = {
 						CreatedOnToolsVersion = 26.5;
 						TestTargetID = A1000000000000000000000B;
+					};
+					B3000000000000000000000B = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 446966B32F37E47300AF141F;
+					};
+					B3000000000000000000000C = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 446966B32F37E47300AF141F;
 					};
 				};
 			};
@@ -211,6 +309,8 @@
 				446966B32F37E47300AF141F /* Textream */,
 				A1000000000000000000000B /* TextreamiOS */,
 				A1000000000000000000000C /* TextreamiOSTests */,
+				B3000000000000000000000B /* TextreamTests */,
+				B3000000000000000000000C /* TextreamUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -231,6 +331,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A1000000000000000000000A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B30000000000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B3000000000000000000000A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -261,6 +375,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B30000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B30000000000000000000008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -268,6 +396,16 @@
 			isa = PBXTargetDependency;
 			target = A1000000000000000000000B /* TextreamiOS */;
 			targetProxy = A10000000000000000000015 /* PBXContainerItemProxy */;
+		};
+		B30000000000000000000011 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 446966B32F37E47300AF141F /* Textream */;
+			targetProxy = B3000000000000000000000F /* PBXContainerItemProxy */;
+		};
+		B30000000000000000000012 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 446966B32F37E47300AF141F /* Textream */;
+			targetProxy = B30000000000000000000010 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -780,6 +918,123 @@
 			};
 			name = AppStore;
 		};
+		B30000000000000000000013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RJA7656U34;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Textream.app/Contents/MacOS/Textream";
+			};
+			name = Debug;
+		};
+		B30000000000000000000014 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RJA7656U34;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Textream.app/Contents/MacOS/Textream";
+			};
+			name = Release;
+		};
+		B30000000000000000000015 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RJA7656U34;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Textream.app/Contents/MacOS/Textream";
+			};
+			name = AppStore;
+		};
+		B30000000000000000000016 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RJA7656U34;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Textream;
+			};
+			name = Debug;
+		};
+		B30000000000000000000017 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RJA7656U34;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Textream;
+			};
+			name = Release;
+		};
+		B30000000000000000000018 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RJA7656U34;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Textream;
+			};
+			name = AppStore;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -819,6 +1074,26 @@
 				A10000000000000000000012 /* Debug */,
 				A10000000000000000000013 /* Release */,
 				A10000000000000000000014 /* AppStore */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B3000000000000000000000D /* Build configuration list for PBXNativeTarget "TextreamTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B30000000000000000000013 /* Debug */,
+				B30000000000000000000014 /* Release */,
+				B30000000000000000000015 /* AppStore */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B3000000000000000000000E /* Build configuration list for PBXNativeTarget "TextreamUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B30000000000000000000016 /* Debug */,
+				B30000000000000000000017 /* Release */,
+				B30000000000000000000018 /* AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

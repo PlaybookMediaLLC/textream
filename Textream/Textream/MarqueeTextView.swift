@@ -127,6 +127,7 @@ struct WordItem: Identifiable {
     let word: String
     let charOffset: Int // char offset of this word in the full text (counting spaces)
     let isAnnotation: Bool // true for [bracket] words and emoji-only words
+    let letterCount: Int // letters and digits, at least 1: the word is read once this many are lit
 }
 
 // MARK: - Preference key to report word Y positions
@@ -655,18 +656,22 @@ struct WordFlowLayout: View {
         return (items, lines, paragraphPrefixCounts)
     }
 
-    // Find the index of the next word to read (first non-fully-lit, non-annotation word)
-    private func nextWordIndex(items: [WordItem]) -> Int {
-        for item in items {
-            if item.isAnnotation { continue }
-            let charsIntoWord = highlightedCharCount - item.charOffset
-            let litCount = max(0, min(item.word.count, charsIntoWord))
-            let letterCount = max(1, item.word.filter { $0.isLetter || $0.isNumber }.count)
-            if litCount < letterCount {
-                return item.id
+    // Find the index of the next word to read (first non-fully-lit, non-annotation word).
+    // A word is unread while highlightedCharCount < charOffset + letterCount, and that
+    // bound strictly increases word to word, so binary search finds the first one: this
+    // runs on every redraw, and a linear scan cost 19 ms near the end of a 50k-word script.
+    func nextWordIndex(items: [WordItem]) -> Int {
+        var low = 0, high = items.count
+        while low < high {
+            let mid = (low + high) / 2
+            if highlightedCharCount < items[mid].charOffset + items[mid].letterCount {
+                high = mid
+            } else {
+                low = mid + 1
             }
         }
-        return -1
+        while low < items.count, items[low].isAnnotation { low += 1 }
+        return low < items.count ? items[low].id : -1
     }
 
     private func isRightToLeft(items: [WordItem]) -> Bool {
@@ -792,7 +797,7 @@ struct WordFlowLayout: View {
         let wordLen = item.word.count
         let charsIntoWord = highlightedCharCount - item.charOffset
         let litCount = max(0, min(wordLen, charsIntoWord))
-        let letterCount = max(1, item.word.filter { $0.isLetter || $0.isNumber }.count)
+        let letterCount = item.letterCount
         let isFullyLit = litCount >= letterCount
         let isCurrentWord = isNextWord || (charsIntoWord >= 0 && !isFullyLit)
 
@@ -868,13 +873,14 @@ struct WordFlowLayout: View {
             }
     }
 
-    private func buildItems() -> [WordItem] {
+    func buildItems() -> [WordItem] {
         var items: [WordItem] = []
         var offset = 0
         let annotationFlags = SpeechTextAlignment.annotationFlags(for: words)
         for (i, word) in words.enumerated() {
             let isAnnotation = annotationFlags[i] || Self.isAnnotationWord(word)
-            items.append(WordItem(id: i, word: word, charOffset: offset, isAnnotation: isAnnotation))
+            let letters = max(1, word.filter { $0.isLetter || $0.isNumber }.count)
+            items.append(WordItem(id: i, word: word, charOffset: offset, isAnnotation: isAnnotation, letterCount: letters))
             offset += word.count + 1 // +1 for space
         }
         return items
@@ -893,6 +899,10 @@ struct WordFlowLayout: View {
         var lines: [[WordItem]] = [[]]
         var currentLineWidth: CGFloat = 0
         let spaceWidth = (" " as NSString).size(withAttributes: [.font: font]).width
+        // Scripts repeat words constantly; text measurement is the expensive part of
+        // laying out a long script (≈480 ms for 50k words), so measure each distinct
+        // word once per layout pass (benchmarks/PLAN.md #4).
+        var widths: [String: CGFloat] = [:]
 
         for item in items {
             if paragraphBreakBeforeWordIndices.contains(item.id),
@@ -900,7 +910,13 @@ struct WordFlowLayout: View {
                 lines.append([])
                 currentLineWidth = 0
             }
-            let wordWidth = (item.word as NSString).size(withAttributes: [.font: font]).width + spaceWidth
+            let wordWidth: CGFloat
+            if let cached = widths[item.word] {
+                wordWidth = cached
+            } else {
+                wordWidth = (item.word as NSString).size(withAttributes: [.font: font]).width + spaceWidth
+                widths[item.word] = wordWidth
+            }
             if currentLineWidth + wordWidth > containerWidth && !lines[lines.count - 1].isEmpty {
                 lines.append([])
                 currentLineWidth = 0
@@ -1033,3 +1049,23 @@ class ScrollWheelNSView: NSView {
         return nil
     }
 }
+
+#if BENCHMARK
+extension WordFlowLayout {
+    /// The work `body` does on every redraw before it lays out the visible
+    /// lines: the layout-cache check, the next-word scan and the RTL check
+    /// (benchmarks/PLAN.md #4).
+    static func benchPerRedrawCost(
+        words: [String], highlightedCharCount: Int, font: NSFont,
+        paragraphBreaks: Set<Int>, containerWidth: CGFloat
+    ) {
+        let layout = WordFlowLayout(
+            words: words, highlightedCharCount: highlightedCharCount, font: font,
+            paragraphBreakBeforeWordIndices: paragraphBreaks, containerWidth: containerWidth
+        )
+        let (items, _, _) = layout.cachedLayout()
+        _ = layout.nextWordIndex(items: items)
+        _ = layout.isRightToLeft(items: items)
+    }
+}
+#endif

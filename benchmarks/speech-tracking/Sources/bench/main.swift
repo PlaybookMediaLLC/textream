@@ -303,8 +303,9 @@ func simulatedPartials(_ heard: [Timed], until end: Double, asr: ASRModel, rng: 
 }
 
 /// Replays partials through the matcher (as the app does: restart on each new session)
-/// and scores the highlight against the ground-truth timeline.
-func score(script: PromptScript, tl: Timeline, partials: [Partial]) -> CaseResult {
+/// and scores the highlight against the ground-truth timeline. With `track`, scores that
+/// highlight instead (what a BENCHMARK app build actually showed; see AppLog.swift).
+func score(script: PromptScript, tl: Timeline, partials: [Partial], track: [(t: Double, chars: Int)]? = nil) -> CaseResult {
     let upperBounds = script.words.map(\.characterRange.upperBound)
     func wordsRead(_ offset: Int) -> Int { upperBounds.prefix { $0 <= offset }.count }
 
@@ -315,6 +316,7 @@ func score(script: PromptScript, tl: Timeline, partials: [Partial]) -> CaseResul
     var truthNow = 0, nextTruthToken = 0, nextPartial = 0
     var lastText = ""
     let scripted = tl.tokens.filter { $0.index != nil }
+    var nextStep = 0, shownChars = 0
 
     while t <= tl.end + 3 {
         while nextPartial < partials.count && partials[nextPartial].t <= t {
@@ -327,7 +329,10 @@ func score(script: PromptScript, tl: Timeline, partials: [Partial]) -> CaseResul
         while nextTruthToken < scripted.count && scripted[nextTruthToken].end <= t {
             truthNow = scripted[nextTruthToken].index! + 1; nextTruthToken += 1
         }
-        times.append(t); pred.append(wordsRead(matcher.recognizedCharacterCount)); truth.append(truthNow)
+        if let track {
+            while nextStep < track.count && track[nextStep].t <= t { shownChars = track[nextStep].chars; nextStep += 1 }
+        }
+        times.append(t); pred.append(wordsRead(track == nil ? matcher.recognizedCharacterCount : shownChars)); truth.append(truthNow)
         if trace {
             print(String(format: "%6.2f", t), "truth", truthNow, "pred", pred.last!, "start", wordsRead(matcher.matchStartOffset), "|",
                   lastText.split(separator: " ").suffix(TRACE_N).joined(separator: " "))
@@ -545,6 +550,11 @@ case "human-corpus":    // real LibriSpeech readers → fixtures (Corpus.swift)
 case "export-audio":    // the synthetic voice's clean take for a case (validates ingest)
     guard args.count > 4 else { fatalError("usage: bench export-audio <root> <case> <wav>") }
     try exportAudio(root: URL(fileURLWithPath: args[2]), caseID: args[3], out: URL(fileURLWithPath: args[4]))
+case "render-audio":   // case audio + ground truth for app-level benchmarks (../desktop)
+    try renderAudio(root: URL(fileURLWithPath: args[2]), out: URL(fileURLWithPath: args[3]), filter: only)
+case "score-app":      // score a BENCHMARK app run's event log against a rendered case
+    print(try scoreApp(root: URL(fileURLWithPath: args[2]), caseDir: URL(fileURLWithPath: args[3]),
+                       log: URL(fileURLWithPath: args[4]), loops: args.count > 5 ? Int(args[5]) ?? 1 : 1))
 case "score-audio":    // Layer B: replay saved recognizer fixtures through the matcher
     print(try scoreAudio(root: URL(fileURLWithPath: args[2]), filter: only))
 default:               // Layer A: simulated speakers and ASR

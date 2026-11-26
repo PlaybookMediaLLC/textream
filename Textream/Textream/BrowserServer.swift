@@ -10,8 +10,12 @@ import Network
 
 // MARK: - Browser State
 
+/// Broadcast every 100 ms. `words` is only sent to connections that don't have the
+/// current script yet (new connections, or after the script changes); the page keeps
+/// the last words it received. Re-sending them every tick cost a full-script encode and
+/// 4 MB/s per client on a 50k-word script.
 struct BrowserState: Codable {
-    let words: [String]
+    var words: [String]?
     let highlightedCharCount: Int
     let totalCharCount: Int
     let audioLevels: [Double]
@@ -31,6 +35,10 @@ class BrowserServer {
     private var httpListener: NWListener?
     private var wsListener: NWListener?
     private var wsConnections: [NWConnection] = []
+    /// Connections that haven't received the current script's words yet.
+    private var needsWords: Set<ObjectIdentifier> = []
+    /// Last words-free payload sent, so unchanged ticks are skipped.
+    private var lastBroadcast: Data?
     private var broadcastTimer: Timer?
 
     // Content state
@@ -77,6 +85,7 @@ class BrowserServer {
         self.hasNextPage = hasNextPage
         self.timerWordProgress = 0
         self.contentActive = true
+        resendWordsToAll()
         startBroadcasting()
     }
 
@@ -85,6 +94,12 @@ class BrowserServer {
         self.totalCharCount = totalCharCount
         self.hasNextPage = hasNextPage
         self.timerWordProgress = 0
+        resendWordsToAll()
+    }
+
+    private func resendWordsToAll() {
+        needsWords = Set(wsConnections.map(ObjectIdentifier.init))
+        lastBroadcast = nil
     }
 
     func hideContent() {
@@ -155,12 +170,14 @@ class BrowserServer {
     private func handleWSConnection(_ conn: NWConnection) {
         conn.start(queue: .main)
         wsConnections.append(conn)
+        needsWords.insert(ObjectIdentifier(conn))
         receiveWSMessage(conn)
 
         conn.stateUpdateHandler = { [weak self] state in
             switch state {
             case .failed, .cancelled:
                 self?.wsConnections.removeAll { $0 === conn }
+                self?.needsWords.remove(ObjectIdentifier(conn))
             default: break
             }
         }
@@ -213,7 +230,7 @@ class BrowserServer {
         let highlightWords = mode == .wordTracking
 
         let state = BrowserState(
-            words: words,
+            words: nil,
             highlightedCharCount: effective,
             totalCharCount: totalCharCount,
             audioLevels: (speechRecognizer?.audioLevels ?? []).map { Double($0) },
@@ -231,7 +248,7 @@ class BrowserServer {
 
     private func broadcastInactive() {
         let state = BrowserState(
-            words: [], highlightedCharCount: 0, totalCharCount: 0,
+            words: nil, highlightedCharCount: 0, totalCharCount: 0,
             audioLevels: [], isListening: false, isDone: false,
             fontColor: "#ffffff", cueColor: "#ffffff", hasNextPage: false, isActive: false,
             highlightWords: true, lastSpokenText: ""
@@ -243,7 +260,22 @@ class BrowserServer {
         guard !wsConnections.isEmpty, let data = try? JSONEncoder().encode(state) else { return }
         let meta = NWProtocolWebSocket.Metadata(opcode: .text)
         let ctx = NWConnection.ContentContext(identifier: "ws", metadata: [meta])
-        for conn in wsConnections {
+
+        // Connections without the current script get it once, with this tick's state.
+        let fresh = wsConnections.filter { needsWords.contains(ObjectIdentifier($0)) }
+        if !fresh.isEmpty, state.isActive {
+            var full = state
+            full.words = words
+            if let fullData = try? JSONEncoder().encode(full) {
+                for conn in fresh { conn.send(content: fullData, contentContext: ctx, completion: .idempotent) }
+                needsWords.subtract(fresh.map(ObjectIdentifier.init))
+            }
+        }
+
+        // Everyone else: only when something changed.
+        guard data != lastBroadcast else { return }
+        lastBroadcast = data
+        for conn in wsConnections where !fresh.contains(where: { $0 === conn }) || !state.isActive {
             conn.send(content: data, contentContext: ctx, completion: .idempotent)
         }
     }
@@ -434,7 +466,7 @@ class BrowserServer {
         <script>
         const WSP=\(wsPort),host=location.hostname;
         const MIRROR_KEY='textream.remote.mirror';
-        let ws,rt,prevWordKey='',scrollTgt=null,mirrored=false;
+        let ws,rt,prevWordKey='',curWords=[],scrollTgt=null,mirrored=false;
 
         /* ---- helpers ---- */
 
@@ -523,7 +555,7 @@ class BrowserServer {
           wEl.style.display='none';mEl.style.display='flex';dEl.style.display='none';
 
           const c=document.getElementById('text-container'),
-                words=s.words||[],
+                words=(s.words?(curWords=s.words):curWords),
                 fc=s.fontColor||'#ffffff',
                 cc=s.cueColor||fc,
                 rgb=parseColor(fc),
@@ -659,3 +691,23 @@ class BrowserServer {
         """
     }
 }
+
+#if BENCHMARK
+extension BrowserServer {
+    /// Cost of one 100 ms broadcast tick's JSON encode (benchmarks/PLAN.md #7). The words
+    /// only go to a connection once, so a tick encodes the state without them.
+    static func benchEncodeCost(words: [String], totalCharCount: Int) -> (ns: UInt64, bytes: Int) {
+        var bytes = 0
+        let ns = Bench.measure(iterations: 20) {
+            let state = BrowserState(
+                words: nil, highlightedCharCount: totalCharCount / 2, totalCharCount: totalCharCount,
+                audioLevels: Array(repeating: 0.5, count: 30), isListening: true, isDone: false,
+                fontColor: "#ffffff", cueColor: "#ffffff", hasNextPage: false, isActive: true,
+                highlightWords: true, lastSpokenText: ""
+            )
+            bytes = (try? JSONEncoder().encode(state))?.count ?? 0
+        }
+        return (ns, bytes)
+    }
+}
+#endif

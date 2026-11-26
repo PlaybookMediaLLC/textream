@@ -135,8 +135,9 @@
 | local-qwen3 · human · repeated | Speechocean762 speaker 0560 (Mandarin L1, M, age 23), reread [human: Speechocean762 l2-0560, rolling window: WER n/a] | 0.00 | 0.0 | 0.1/0.1 | 0/2 | 1.4 | 0 | 1.02/2.11 | 0.0 | ❌ |
 | local-qwen3 · human · skips | Speechocean762 speaker 0560 (Mandarin L1, M, age 23), skip [human: Speechocean762 l2-0560, rolling window: WER n/a] | 17.33 | 76.2 | –/– | 2/2 | 0.0 | 0 | 0.49/1.27 | 66.0 | ❌ |
 | local-qwen3 · human · baseline | Speechocean762 speaker 0560 (Mandarin L1, M, age 23), straight [human: Speechocean762 l2-0560, rolling window: WER n/a] | 0.00 | 0.0 | –/– | – | 0.0 | 0 | 1.00/2.29 | 0.0 | ✅ |
+| local-whisper-tiny-q8-0 · baseline | clean read, US voice [Samantha, rolling window: WER n/a] | 0.00 | 0.0 | –/– | – | 16.6 | 0 | 0.43/1.59 | 0.0 | ⚠️ report-only |
 
 Layer B (synthetic voices → real recognizers, real audio, one take per case per engine). Matcher: legacy (git f9c6c94)
 
-50/108 gating cases pass the launch bar (PLAN.md §8); 27 report-only.
+50/108 gating cases pass the launch bar (PLAN.md §8); 28 report-only.
 

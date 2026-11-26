@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-26",
+  "host": "m1-max-32gb",
+  "models": [
+    {
+      "decodeAt26sP50": 0.2679376250016503,
+      "model": "whisper-tiny-Q8_0.gguf",
+      "peakMemoryMB": 152.0320053100586,
+      "recommended": true,
+      "streamRtfP95": null,
+      "thermalsMeasured": false
+    },
+    {
+      "decodeAt26sP50": null,
+      "model": "moonshine-streaming-tiny-Q8_0.gguf",
+      "peakMemoryMB": 546.2511215209961,
+      "recommended": false,
+      "streamRtfP95": 9.574919580481946,
+      "thermalsMeasured": false
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 // pre-rewrite matcher from git, for comparison), runs it, and writes results/.
 //
 //	go run run.go [-seeds 30] [-legacy f9c6c94] [-check]   # Layer A + replay Layer B fixtures
+//	go run run.go -build <path>                            # just build the harness (render-audio, score-app) for ../desktop
 //	go run run.go -record apple-on-device                  # Layer B: (re-)record fixtures in real time (~75 min, macOS)
 //	go run run.go -record /path/to/nemotron.gguf           #   …core cases with a local transcribe.cpp model (the app's LocalSpeechEngine)
 //
@@ -24,6 +25,7 @@ func main() {
 	seeds := flag.Int("seeds", 30, "Layer A seeds per case")
 	legacyRef := flag.String("legacy", "f9c6c94", "git ref holding the pre-rewrite matcher")
 	check := flag.Bool("check", false, "exit 1 if any gating case fails")
+	buildOnly := flag.String("build", "", "only build the harness binary and copy it to this path (used by ../desktop/run.go)")
 	record := flag.String("record", "", "re-record Layer B fixtures with this engine: apple-on-device or a .gguf model path")
 	flag.Parse()
 
@@ -51,6 +53,16 @@ func main() {
 	build.Stdout, build.Stderr = os.Stderr, os.Stderr
 	must(build.Run())
 	bin := filepath.Join(here, ".build", "release", "bench")
+	if *buildOnly != "" {
+		must(os.MkdirAll(filepath.Dir(*buildOnly), 0o755))
+		must(exec.Command("cp", bin, *buildOnly).Run())
+		// The binary loads CTranscribe.framework from next to itself (@loader_path).
+		framework := filepath.Join(filepath.Dir(bin), "CTranscribe.framework")
+		dest := filepath.Join(filepath.Dir(*buildOnly), "CTranscribe.framework")
+		must(os.RemoveAll(dest))
+		must(exec.Command("cp", "-R", framework, dest).Run())
+		return
+	}
 
 	if *record != "" {
 		cmd := exec.Command(bin, "record-audio", here, *record)
