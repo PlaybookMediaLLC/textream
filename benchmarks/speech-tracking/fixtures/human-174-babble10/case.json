@@ -1,0 +1,13 @@
+{
+  "dimension" : "human · noise",
+  "gating" : true,
+  "hints" : true,
+  "id" : "human-174-babble10",
+  "name" : "LibriSpeech reader 174 (M), babble10",
+  "noise" : "babble",
+  "script" : "human\/librispeech-174",
+  "snr" : 10,
+  "truthSource" : "auto-aligned",
+  "voice" : "human: LibriSpeech 174",
+  "wpm" : 0
+}

@@ -1,6 +1,5 @@
 {
   "dimension" : "technical",
-  "engine" : "apple-on-device",
   "gating" : true,
   "hints" : false,
   "id" : "technical-nohints",

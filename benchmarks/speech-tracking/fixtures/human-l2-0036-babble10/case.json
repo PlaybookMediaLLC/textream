@@ -1,0 +1,13 @@
+{
+  "dimension" : "human · noise",
+  "gating" : true,
+  "hints" : true,
+  "id" : "human-l2-0036-babble10",
+  "name" : "Speechocean762 speaker 0036 (Mandarin L1, F, age 21), babble10",
+  "noise" : "babble",
+  "script" : "human\/speechocean-l2-0036",
+  "snr" : 10,
+  "truthSource" : "auto-aligned",
+  "voice" : "human: Speechocean762 l2-0036",
+  "wpm" : 0
+}

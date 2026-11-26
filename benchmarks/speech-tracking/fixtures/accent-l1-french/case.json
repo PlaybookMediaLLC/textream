@@ -1,6 +1,5 @@
 {
   "dimension" : "accent (non-native proxy)",
-  "engine" : "apple-on-device",
   "gating" : false,
   "hints" : true,
   "id" : "accent-l1-french",

@@ -74,9 +74,18 @@ struct PromptMatcherTests {
 
     @Test
     func scaledNumbersMatchSpokenForm() {
-        #expect(PromptMatcher.canonicalTokens("saved $4.5M and 30k") == ["saved", "45", "million", "and", "30", "thousand"])
-        #expect(PromptMatcher.canonicalTokens("4.5 million") == ["45", "million"])
+        #expect(PromptMatcher.canonicalTokens("saved $4.5M and 30k")
+            == ["saved", "forty", "five", "million", "and", "thirty", "thousand"])
+        #expect(PromptMatcher.canonicalTokens("4.5 million") == ["forty", "five", "million"])
         #expect(PromptMatcher.canonicalTokens("p99 v2") == ["p99", "v2"])
+    }
+
+    @Test
+    func digitsAndNumberWordsMatch() {
+        #expect(PromptMatcher.canonicalTokens("only 50 and 42,000") == PromptMatcher.canonicalTokens("only fifty and forty-two thousand"))
+        #expect(PromptMatcher.canonicalTokens("1,007") == ["one", "thousand", "seven"])
+        var matcher = PromptMatcher(source: PromptScript("Only fifty and Cosette eight years of age."))
+        #expect(speak("only 50 and cosette 8 years of age", into: &matcher) == matcher.source.characterCount)
     }
 
     @Test

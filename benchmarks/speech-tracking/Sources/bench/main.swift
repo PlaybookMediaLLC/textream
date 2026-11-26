@@ -172,7 +172,8 @@ struct ASRModel {
     var jargonMiss = 0.0       // chance a jargon word is transcribed with its common mis-hearing
     var latency = 0.35         // seconds from word start until it shows up in a partial
     var session = 55.0         // SFSpeech preemptive restart period (SpeechFollower)
-    var restartGap = 0.6       // audio lost while a new task spins up
+    var restartGap = 0.6       // audio lost while a new task spins up (a pause, under RecognitionRestartPolicy)
+    var quietRestart = true    // RecognitionRestartPolicy: restart in the first ≥0.2 s gap after 45 s (else at `session`)
     var utteranceReset = 0.0   // chance the transcript starts over (same session) at a speech gap,
                                // as Apple's on-device recognizer does (seen in Layer B fixtures)
 }
@@ -264,13 +265,27 @@ func simulatedPartials(_ heard: [Timed], until end: Double, asr: ASRModel, rng: 
     for (a, b) in zip(heard, heard.dropFirst()) where b.start - a.end >= 0.25 && rng.chance(asr.utteranceReset) {
         resets.append(b.start)
     }
+    // Recognition task starts, mirroring the apps' RecognitionRestartPolicy (45 s / quiet / 57 s).
+    var starts = [0.0]
+    let policy = RecognitionRestartPolicy()
+    while starts.last! + (asr.quietRestart ? policy.deadline : asr.session) < end {
+        let s = starts.last!
+        var next = s + (asr.quietRestart ? policy.deadline : asr.session)
+        if asr.quietRestart {
+            for (a, b) in zip(heard, heard.dropFirst()) where b.start > s + policy.earliest {
+                let quietAt = max(a.end + 0.2, s + policy.earliest)
+                if quietAt <= b.start, quietAt < next { next = quietAt; break }
+            }
+        }
+        starts.append(next)
+    }
     var out: [Partial] = []
     var t = 0.0
     var session = 0
     while t <= end {
-        let s = Int(t / asr.session)
+        let s = (starts.lastIndex { $0 <= t } ?? 0)
         if s != session { session = s; out.append(Partial(t: t, session: s, text: "")) }
-        let sessionStart = Double(s) * asr.session + (s > 0 ? asr.restartGap : 0)
+        let sessionStart = starts[s] + (s > 0 ? asr.restartGap : 0)
         let utteranceStart = max(sessionStart, resets.last { $0 + asr.latency <= t } ?? 0)
         var parts: [String] = []
         for h in heard where h.start >= utteranceStart && h.start + asr.latency <= t {
@@ -464,8 +479,11 @@ let tableHeader = """
 
 """
 
-/// One report row from all runs of a case, judged against the simplified PLAN.md §8 launch bar.
-func reportRow(dimension: String, name: String, gating: Bool, runs: [CaseResult]) -> (row: String, pass: Bool) {
+/// One report row from all runs of a case, judged against the PLAN.md §8 launch bar. Noisy and
+/// non-native-accent cases are bounded by lost-place and recovery like the rest, but §8 sets the tight
+/// lag limit for clean native reading only: in 10 dB babble, or when the recognizer mishears accented
+/// words, it trails itself, so their lag ceiling is 3 s instead of 1.5 s.
+func reportRow(dimension: String, name: String, gating: Bool, noisy: Bool = false, runs: [CaseResult]) -> (row: String, pass: Bool) {
     var agg = CaseResult()
     for r in runs {
         agg.seconds += r.seconds; agg.lostEvents += r.lostEvents; agg.lostSeconds += r.lostSeconds
@@ -480,7 +498,7 @@ func reportRow(dimension: String, name: String, gating: Bool, runs: [CaseResult]
     let finalErr = Double(agg.finalError) / Double(runs.count)
     let lagP95 = percentile(agg.lags, 0.95)
     let recoveryP95 = percentile(recovered, 0.95)
-    let pass = per10 <= 0.5 && never == 0 && agg.silenceDrift == 0 && aheadPct < 1 && (lagP95 ?? 99) <= 1.5
+    let pass = per10 <= 0.5 && never == 0 && agg.silenceDrift == 0 && aheadPct < 1 && (lagP95 ?? 99) <= (noisy ? 3.0 : 1.5)
         && finalErr <= 3 && (recoveryP95 ?? 0) <= 4
     let row = "| \(dimension) | \(name) | \(fmt(per10, 2)) | \(fmt(lostPct)) | \(fmt(percentile(recovered, 0.5)))/\(fmt(recoveryP95)) "
         + "| \(agg.recoveries.isEmpty ? "–" : "\(never)/\(agg.recoveries.count)") | \(fmt(aheadPct)) | \(agg.silenceDrift) "
@@ -493,6 +511,11 @@ func loadScripts(_ root: URL) throws -> [String: PromptScript] {
     for name in ["general", "repeated", "technical"] {
         let text = try String(contentsOf: root.appendingPathComponent("scripts/\(name).txt"), encoding: .utf8)
         scripts[name] = PromptScript(text)
+    }
+    // Human-reader scripts (Corpus.swift), keyed "human/<name>".
+    let human = root.appendingPathComponent("scripts/human")
+    for file in (try? FileManager.default.contentsOfDirectory(atPath: human.path)) ?? [] where file.hasSuffix(".txt") {
+        scripts["human/" + String(file.dropLast(4))] = PromptScript(try String(contentsOf: human.appendingPathComponent(file), encoding: .utf8))
     }
     return scripts
 }
@@ -514,6 +537,11 @@ case "ingest-audio":    // a person's take → fixture with auto-aligned truth
     try ingestAudio(root: URL(fileURLWithPath: args[2]), caseID: args[3], reader: args[4], wav: URL(fileURLWithPath: args[5]))
 case "offline-words":   // debug: offline recognizer word timings for a WAV
     _ = try offlineWordTimings(URL(fileURLWithPath: args[2]))
+case "human-corpus":    // real LibriSpeech readers → fixtures (Corpus.swift)
+    guard args.count > 4, let engine = Engine.parse(args[4]) else {
+        fatalError("usage: bench human-corpus <root> <LibriSpeech/dev-clean> apple-on-device|apple-server:<locale>|<model.gguf>")
+    }
+    try recordHumanCorpus(root: URL(fileURLWithPath: args[2]), librispeech: URL(fileURLWithPath: args[3]), engine: engine, filter: only)
 case "export-audio":    // the synthetic voice's clean take for a case (validates ingest)
     guard args.count > 4 else { fatalError("usage: bench export-audio <root> <case> <wav>") }
     try exportAudio(root: URL(fileURLWithPath: args[2]), caseID: args[3], out: URL(fileURLWithPath: args[4]))
@@ -529,7 +557,8 @@ default:               // Layer A: simulated speakers and ASR
         let runs = (0..<seeds).map { seed in
             run(script: scripts[cs.script]!, perf: cs.perf, asr: cs.asr, wpm: cs.wpm, seed: UInt64(seed) &* 7919 &+ 17)
         }
-        let (row, pass) = reportRow(dimension: cs.dimension, name: cs.name, gating: cs.gating, runs: runs)
+        let (row, pass) = reportRow(dimension: cs.dimension, name: cs.name, gating: cs.gating,
+                                    noisy: cs.dimension.hasPrefix("noise"), runs: runs)
         out += row
         total += 1
         if cs.gating { gated += 1; if !pass { failures += 1 } }

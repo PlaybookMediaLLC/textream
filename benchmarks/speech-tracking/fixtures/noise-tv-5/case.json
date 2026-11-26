@@ -1,6 +1,5 @@
 {
   "dimension" : "noise",
-  "engine" : "apple-on-device",
   "gating" : false,
   "hints" : true,
   "id" : "noise-tv-5",

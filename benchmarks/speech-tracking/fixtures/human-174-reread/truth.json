@@ -1,0 +1,1325 @@
+{
+  "end" : 91.67,
+  "pauses" : [
+
+  ],
+  "resumes" : [
+    52.99
+  ],
+  "tokens" : [
+    {
+      "end" : 1.1400000000000001,
+      "index" : 0,
+      "start" : 1.0470625,
+      "text" : "he"
+    },
+    {
+      "end" : 1.29,
+      "index" : 1,
+      "start" : 1.1400000000000001,
+      "text" : "had"
+    },
+    {
+      "end" : 1.6500000000000001,
+      "index" : 2,
+      "start" : 1.29,
+      "text" : "never"
+    },
+    {
+      "end" : 1.83,
+      "index" : 3,
+      "start" : 1.6500000000000001,
+      "text" : "been"
+    },
+    {
+      "end" : 2.4,
+      "index" : 4,
+      "start" : 1.83,
+      "text" : "father"
+    },
+    {
+      "end" : 3.06,
+      "index" : 5,
+      "start" : 2.49,
+      "text" : "lover"
+    },
+    {
+      "end" : 3.84,
+      "index" : 6,
+      "start" : 3.15,
+      "text" : "husband"
+    },
+    {
+      "end" : 4.4259375,
+      "index" : 7,
+      "start" : 3.93,
+      "text" : "friend"
+    },
+    {
+      "end" : 6.03,
+      "index" : 8,
+      "start" : 5.9366875,
+      "text" : "the"
+    },
+    {
+      "end" : 6.42,
+      "index" : 9,
+      "start" : 6.03,
+      "text" : "heart"
+    },
+    {
+      "end" : 6.6,
+      "index" : 10,
+      "start" : 6.42,
+      "text" : "of"
+    },
+    {
+      "end" : 6.9,
+      "index" : 11,
+      "start" : 6.6,
+      "text" : "that"
+    },
+    {
+      "end" : 7.41,
+      "index" : 12,
+      "start" : 6.9,
+      "text" : "ex"
+    },
+    {
+      "end" : 7.92,
+      "index" : 13,
+      "start" : 7.41,
+      "text" : "convict"
+    },
+    {
+      "end" : 8.31,
+      "index" : 14,
+      "start" : 8.04,
+      "text" : "was"
+    },
+    {
+      "end" : 8.67,
+      "index" : 15,
+      "start" : 8.31,
+      "text" : "full"
+    },
+    {
+      "end" : 8.79,
+      "index" : 16,
+      "start" : 8.67,
+      "text" : "of"
+    },
+    {
+      "end" : 9.3871875,
+      "index" : 17,
+      "start" : 8.79,
+      "text" : "virginity"
+    },
+    {
+      "end" : 10.979999999999999,
+      "index" : 18,
+      "start" : 10.879375,
+      "text" : "his"
+    },
+    {
+      "end" : 11.61,
+      "index" : 19,
+      "start" : 10.979999999999999,
+      "text" : "sister"
+    },
+    {
+      "end" : 11.76,
+      "index" : 20,
+      "start" : 11.61,
+      "text" : "and"
+    },
+    {
+      "end" : 11.879999999999999,
+      "index" : 21,
+      "start" : 11.76,
+      "text" : "his"
+    },
+    {
+      "end" : 12.299999999999999,
+      "index" : 22,
+      "start" : 11.879999999999999,
+      "text" : "sisters"
+    },
+    {
+      "end" : 12.899999999999999,
+      "index" : 23,
+      "start" : 12.36,
+      "text" : "children"
+    },
+    {
+      "end" : 13.424999999999999,
+      "index" : 24,
+      "start" : 13.139999999999999,
+      "text" : "had"
+    },
+    {
+      "end" : 13.709999999999999,
+      "index" : 25,
+      "start" : 13.424999999999999,
+      "text" : "left"
+    },
+    {
+      "end" : 13.919999999999998,
+      "index" : 26,
+      "start" : 13.709999999999999,
+      "text" : "him"
+    },
+    {
+      "end" : 14.28,
+      "index" : 27,
+      "start" : 13.919999999999998,
+      "text" : "only"
+    },
+    {
+      "end" : 14.34,
+      "index" : 28,
+      "start" : 14.28,
+      "text" : "a"
+    },
+    {
+      "end" : 14.61,
+      "index" : 29,
+      "start" : 14.34,
+      "text" : "vague"
+    },
+    {
+      "end" : 14.879999999999999,
+      "index" : 30,
+      "start" : 14.61,
+      "text" : "and"
+    },
+    {
+      "end" : 15.209999999999999,
+      "index" : 31,
+      "start" : 14.879999999999999,
+      "text" : "far"
+    },
+    {
+      "end" : 15.39,
+      "index" : 32,
+      "start" : 15.209999999999999,
+      "text" : "off"
+    },
+    {
+      "end" : 15.899999999999999,
+      "index" : 33,
+      "start" : 15.39,
+      "text" : "memory"
+    },
+    {
+      "end" : 16.38,
+      "index" : 34,
+      "start" : 16.14,
+      "text" : "which"
+    },
+    {
+      "end" : 16.5,
+      "index" : 35,
+      "start" : 16.38,
+      "text" : "had"
+    },
+    {
+      "end" : 17.1,
+      "index" : 36,
+      "start" : 16.5,
+      "text" : "finally"
+    },
+    {
+      "end" : 17.55,
+      "index" : 37,
+      "start" : 17.1,
+      "text" : "almost"
+    },
+    {
+      "end" : 18.06,
+      "index" : 38,
+      "start" : 17.55,
+      "text" : "completely"
+    },
+    {
+      "end" : 18.72,
+      "index" : 39,
+      "start" : 18.06,
+      "text" : "vanished"
+    },
+    {
+      "end" : 19.98,
+      "index" : 40,
+      "start" : 19.77,
+      "text" : "he"
+    },
+    {
+      "end" : 20.16,
+      "index" : 41,
+      "start" : 19.98,
+      "text" : "had"
+    },
+    {
+      "end" : 20.46,
+      "index" : 42,
+      "start" : 20.16,
+      "text" : "made"
+    },
+    {
+      "end" : 20.759999999999998,
+      "index" : 43,
+      "start" : 20.46,
+      "text" : "every"
+    },
+    {
+      "end" : 21.119999999999997,
+      "index" : 44,
+      "start" : 20.759999999999998,
+      "text" : "effort"
+    },
+    {
+      "end" : 21.21,
+      "index" : 45,
+      "start" : 21.119999999999997,
+      "text" : "to"
+    },
+    {
+      "end" : 21.54,
+      "index" : 46,
+      "start" : 21.21,
+      "text" : "find"
+    },
+    {
+      "end" : 21.869999999999997,
+      "index" : 47,
+      "start" : 21.54,
+      "text" : "them"
+    },
+    {
+      "end" : 22.65,
+      "index" : 48,
+      "start" : 22.439999999999998,
+      "text" : "and"
+    },
+    {
+      "end" : 22.89,
+      "index" : 49,
+      "start" : 22.65,
+      "text" : "not"
+    },
+    {
+      "end" : 23.22,
+      "index" : 50,
+      "start" : 22.89,
+      "text" : "having"
+    },
+    {
+      "end" : 23.4,
+      "index" : 51,
+      "start" : 23.22,
+      "text" : "been"
+    },
+    {
+      "end" : 23.64,
+      "index" : 52,
+      "start" : 23.4,
+      "text" : "able"
+    },
+    {
+      "end" : 23.759999999999998,
+      "index" : 53,
+      "start" : 23.64,
+      "text" : "to"
+    },
+    {
+      "end" : 24.060000000000002,
+      "index" : 54,
+      "start" : 23.759999999999998,
+      "text" : "find"
+    },
+    {
+      "end" : 24.36,
+      "index" : 55,
+      "start" : 24.060000000000002,
+      "text" : "them"
+    },
+    {
+      "end" : 24.78,
+      "index" : 56,
+      "start" : 24.57,
+      "text" : "he"
+    },
+    {
+      "end" : 24.93,
+      "index" : 57,
+      "start" : 24.78,
+      "text" : "had"
+    },
+    {
+      "end" : 25.439999999999998,
+      "index" : 58,
+      "start" : 24.93,
+      "text" : "forgotten"
+    },
+    {
+      "end" : 25.640749999999997,
+      "index" : 59,
+      "start" : 25.439999999999998,
+      "text" : "them"
+    },
+    {
+      "end" : 27.14,
+      "index" : 60,
+      "start" : 27.05425,
+      "text" : "he"
+    },
+    {
+      "end" : 27.71,
+      "index" : 61,
+      "start" : 27.14,
+      "text" : "suffered"
+    },
+    {
+      "end" : 27.950000000000003,
+      "index" : 62,
+      "start" : 27.71,
+      "text" : "all"
+    },
+    {
+      "end" : 28.1,
+      "index" : 63,
+      "start" : 27.950000000000003,
+      "text" : "the"
+    },
+    {
+      "end" : 28.55,
+      "index" : 64,
+      "start" : 28.1,
+      "text" : "pangs"
+    },
+    {
+      "end" : 28.67,
+      "index" : 65,
+      "start" : 28.55,
+      "text" : "of"
+    },
+    {
+      "end" : 28.76,
+      "index" : 66,
+      "start" : 28.67,
+      "text" : "a"
+    },
+    {
+      "end" : 29.330000000000002,
+      "index" : 67,
+      "start" : 28.76,
+      "text" : "mother"
+    },
+    {
+      "end" : 29.75,
+      "index" : 68,
+      "start" : 29.57,
+      "text" : "and"
+    },
+    {
+      "end" : 29.87,
+      "index" : 69,
+      "start" : 29.75,
+      "text" : "he"
+    },
+    {
+      "end" : 30.05,
+      "index" : 70,
+      "start" : 29.87,
+      "text" : "knew"
+    },
+    {
+      "end" : 30.380000000000003,
+      "index" : 71,
+      "start" : 30.05,
+      "text" : "not"
+    },
+    {
+      "end" : 30.53,
+      "index" : 72,
+      "start" : 30.380000000000003,
+      "text" : "what"
+    },
+    {
+      "end" : 30.650000000000002,
+      "index" : 73,
+      "start" : 30.53,
+      "text" : "it"
+    },
+    {
+      "end" : 31.01,
+      "index" : 74,
+      "start" : 30.650000000000002,
+      "text" : "meant"
+    },
+    {
+      "end" : 32.18,
+      "index" : 75,
+      "start" : 31.94,
+      "text" : "for"
+    },
+    {
+      "end" : 32.39,
+      "index" : 76,
+      "start" : 32.18,
+      "text" : "that"
+    },
+    {
+      "end" : 32.81,
+      "index" : 77,
+      "start" : 32.39,
+      "text" : "great"
+    },
+    {
+      "end" : 32.93,
+      "index" : 78,
+      "start" : 32.81,
+      "text" : "and"
+    },
+    {
+      "end" : 33.53,
+      "index" : 79,
+      "start" : 32.93,
+      "text" : "singular"
+    },
+    {
+      "end" : 34.1,
+      "index" : 80,
+      "start" : 33.53,
+      "text" : "movement"
+    },
+    {
+      "end" : 34.25,
+      "index" : 81,
+      "start" : 34.1,
+      "text" : "of"
+    },
+    {
+      "end" : 34.31,
+      "index" : 82,
+      "start" : 34.25,
+      "text" : "a"
+    },
+    {
+      "end" : 34.67,
+      "index" : 83,
+      "start" : 34.31,
+      "text" : "heart"
+    },
+    {
+      "end" : 34.85,
+      "index" : 84,
+      "start" : 34.67,
+      "text" : "which"
+    },
+    {
+      "end" : 35.3,
+      "index" : 85,
+      "start" : 34.85,
+      "text" : "begins"
+    },
+    {
+      "end" : 35.45,
+      "index" : 86,
+      "start" : 35.3,
+      "text" : "to"
+    },
+    {
+      "end" : 35.712500000000006,
+      "index" : 87,
+      "start" : 35.45,
+      "text" : "love"
+    },
+    {
+      "end" : 36.2375,
+      "index" : 88,
+      "start" : 35.975,
+      "text" : "is"
+    },
+    {
+      "end" : 36.5,
+      "index" : 89,
+      "start" : 36.2375,
+      "text" : "a"
+    },
+    {
+      "end" : 36.83,
+      "index" : 90,
+      "start" : 36.5,
+      "text" : "very"
+    },
+    {
+      "end" : 37.52,
+      "index" : 91,
+      "start" : 36.83,
+      "text" : "obscure"
+    },
+    {
+      "end" : 37.88,
+      "index" : 92,
+      "start" : 37.67,
+      "text" : "and"
+    },
+    {
+      "end" : 37.94,
+      "index" : 93,
+      "start" : 37.88,
+      "text" : "a"
+    },
+    {
+      "end" : 38.27,
+      "index" : 94,
+      "start" : 37.94,
+      "text" : "very"
+    },
+    {
+      "end" : 38.72,
+      "index" : 95,
+      "start" : 38.27,
+      "text" : "sweet"
+    },
+    {
+      "end" : 38.9980625,
+      "index" : 96,
+      "start" : 38.72,
+      "text" : "thing"
+    },
+    {
+      "end" : 40.95,
+      "index" : 97,
+      "start" : 40.4948125,
+      "text" : "only"
+    },
+    {
+      "end" : 41.28,
+      "index" : 98,
+      "start" : 41.04,
+      "text" : "as"
+    },
+    {
+      "end" : 41.46,
+      "index" : 99,
+      "start" : 41.28,
+      "text" : "he"
+    },
+    {
+      "end" : 41.7,
+      "index" : 100,
+      "start" : 41.46,
+      "text" : "was"
+    },
+    {
+      "end" : 42.120000000000005,
+      "index" : 101,
+      "start" : 41.7,
+      "text" : "five"
+    },
+    {
+      "end" : 42.21,
+      "index" : 102,
+      "start" : 42.120000000000005,
+      "text" : "and"
+    },
+    {
+      "end" : 42.870000000000005,
+      "index" : 103,
+      "start" : 42.21,
+      "text" : "fifty"
+    },
+    {
+      "end" : 43.2,
+      "index" : 104,
+      "start" : 43.02,
+      "text" : "and"
+    },
+    {
+      "end" : 43.74,
+      "index" : 105,
+      "start" : 43.2,
+      "text" : "cosette"
+    },
+    {
+      "end" : 44.13,
+      "index" : 106,
+      "start" : 43.77,
+      "text" : "eight"
+    },
+    {
+      "end" : 44.46,
+      "index" : 107,
+      "start" : 44.13,
+      "text" : "years"
+    },
+    {
+      "end" : 44.61,
+      "index" : 108,
+      "start" : 44.46,
+      "text" : "of"
+    },
+    {
+      "end" : 45.09,
+      "index" : 109,
+      "start" : 44.61,
+      "text" : "age"
+    },
+    {
+      "end" : 45.84,
+      "index" : 110,
+      "start" : 45.510000000000005,
+      "text" : "all"
+    },
+    {
+      "end" : 45.93,
+      "index" : 111,
+      "start" : 45.84,
+      "text" : "that"
+    },
+    {
+      "end" : 46.230000000000004,
+      "index" : 112,
+      "start" : 45.93,
+      "text" : "might"
+    },
+    {
+      "end" : 46.410000000000004,
+      "index" : 113,
+      "start" : 46.230000000000004,
+      "text" : "have"
+    },
+    {
+      "end" : 46.53,
+      "index" : 114,
+      "start" : 46.410000000000004,
+      "text" : "been"
+    },
+    {
+      "end" : 46.95,
+      "index" : 115,
+      "start" : 46.53,
+      "text" : "love"
+    },
+    {
+      "end" : 47.1,
+      "index" : 116,
+      "start" : 46.95,
+      "text" : "in"
+    },
+    {
+      "end" : 47.22,
+      "index" : 117,
+      "start" : 47.1,
+      "text" : "the"
+    },
+    {
+      "end" : 47.61,
+      "index" : 118,
+      "start" : 47.22,
+      "text" : "whole"
+    },
+    {
+      "end" : 48.03,
+      "index" : 119,
+      "start" : 47.61,
+      "text" : "course"
+    },
+    {
+      "end" : 48.150000000000006,
+      "index" : 120,
+      "start" : 48.03,
+      "text" : "of"
+    },
+    {
+      "end" : 48.27,
+      "index" : 121,
+      "start" : 48.150000000000006,
+      "text" : "his"
+    },
+    {
+      "end" : 48.84,
+      "index" : 122,
+      "start" : 48.27,
+      "text" : "life"
+    },
+    {
+      "end" : 49.635000000000005,
+      "index" : 123,
+      "start" : 49.02,
+      "text" : "flowed"
+    },
+    {
+      "end" : 50.25,
+      "index" : 124,
+      "start" : 49.635000000000005,
+      "text" : "together"
+    },
+    {
+      "end" : 50.61,
+      "index" : 125,
+      "start" : 50.25,
+      "text" : "into"
+    },
+    {
+      "end" : 50.67,
+      "index" : 126,
+      "start" : 50.61,
+      "text" : "a"
+    },
+    {
+      "end" : 51.03,
+      "index" : 127,
+      "start" : 50.67,
+      "text" : "sort"
+    },
+    {
+      "end" : 51.21,
+      "index" : 128,
+      "start" : 51.03,
+      "text" : "of"
+    },
+    {
+      "end" : 51.705,
+      "index" : 129,
+      "start" : 51.21,
+      "text" : "ineffable"
+    },
+    {
+      "end" : 52.0295625,
+      "index" : 130,
+      "start" : 51.705,
+      "text" : "light"
+    },
+    {
+      "end" : 54.02,
+      "index" : 97,
+      "start" : 53.5648125,
+      "text" : "only"
+    },
+    {
+      "end" : 54.35,
+      "index" : 98,
+      "start" : 54.11,
+      "text" : "as"
+    },
+    {
+      "end" : 54.53,
+      "index" : 99,
+      "start" : 54.35,
+      "text" : "he"
+    },
+    {
+      "end" : 54.77,
+      "index" : 100,
+      "start" : 54.53,
+      "text" : "was"
+    },
+    {
+      "end" : 55.190000000000005,
+      "index" : 101,
+      "start" : 54.77,
+      "text" : "five"
+    },
+    {
+      "end" : 55.28,
+      "index" : 102,
+      "start" : 55.190000000000005,
+      "text" : "and"
+    },
+    {
+      "end" : 55.940000000000005,
+      "index" : 103,
+      "start" : 55.28,
+      "text" : "fifty"
+    },
+    {
+      "end" : 56.27,
+      "index" : 104,
+      "start" : 56.09,
+      "text" : "and"
+    },
+    {
+      "end" : 56.81,
+      "index" : 105,
+      "start" : 56.27,
+      "text" : "cosette"
+    },
+    {
+      "end" : 57.2,
+      "index" : 106,
+      "start" : 56.84,
+      "text" : "eight"
+    },
+    {
+      "end" : 57.53,
+      "index" : 107,
+      "start" : 57.2,
+      "text" : "years"
+    },
+    {
+      "end" : 57.68,
+      "index" : 108,
+      "start" : 57.53,
+      "text" : "of"
+    },
+    {
+      "end" : 58.160000000000004,
+      "index" : 109,
+      "start" : 57.68,
+      "text" : "age"
+    },
+    {
+      "end" : 58.910000000000004,
+      "index" : 110,
+      "start" : 58.58,
+      "text" : "all"
+    },
+    {
+      "end" : 59,
+      "index" : 111,
+      "start" : 58.910000000000004,
+      "text" : "that"
+    },
+    {
+      "end" : 59.300000000000004,
+      "index" : 112,
+      "start" : 59,
+      "text" : "might"
+    },
+    {
+      "end" : 59.480000000000004,
+      "index" : 113,
+      "start" : 59.300000000000004,
+      "text" : "have"
+    },
+    {
+      "end" : 59.6,
+      "index" : 114,
+      "start" : 59.480000000000004,
+      "text" : "been"
+    },
+    {
+      "end" : 60.02,
+      "index" : 115,
+      "start" : 59.6,
+      "text" : "love"
+    },
+    {
+      "end" : 60.17,
+      "index" : 116,
+      "start" : 60.02,
+      "text" : "in"
+    },
+    {
+      "end" : 60.29,
+      "index" : 117,
+      "start" : 60.17,
+      "text" : "the"
+    },
+    {
+      "end" : 60.68,
+      "index" : 118,
+      "start" : 60.29,
+      "text" : "whole"
+    },
+    {
+      "end" : 61.1,
+      "index" : 119,
+      "start" : 60.68,
+      "text" : "course"
+    },
+    {
+      "end" : 61.22,
+      "index" : 120,
+      "start" : 61.1,
+      "text" : "of"
+    },
+    {
+      "end" : 61.34,
+      "index" : 121,
+      "start" : 61.22,
+      "text" : "his"
+    },
+    {
+      "end" : 61.910000000000004,
+      "index" : 122,
+      "start" : 61.34,
+      "text" : "life"
+    },
+    {
+      "end" : 62.705,
+      "index" : 123,
+      "start" : 62.09,
+      "text" : "flowed"
+    },
+    {
+      "end" : 63.32,
+      "index" : 124,
+      "start" : 62.705,
+      "text" : "together"
+    },
+    {
+      "end" : 63.68,
+      "index" : 125,
+      "start" : 63.32,
+      "text" : "into"
+    },
+    {
+      "end" : 63.74,
+      "index" : 126,
+      "start" : 63.68,
+      "text" : "a"
+    },
+    {
+      "end" : 64.1,
+      "index" : 127,
+      "start" : 63.74,
+      "text" : "sort"
+    },
+    {
+      "end" : 64.28,
+      "index" : 128,
+      "start" : 64.1,
+      "text" : "of"
+    },
+    {
+      "end" : 64.775,
+      "index" : 129,
+      "start" : 64.28,
+      "text" : "ineffable"
+    },
+    {
+      "end" : 65.0995625,
+      "index" : 130,
+      "start" : 64.775,
+      "text" : "light"
+    },
+    {
+      "end" : 67.18,
+      "index" : 131,
+      "start" : 66.6183125,
+      "text" : "cosette"
+    },
+    {
+      "end" : 67.51,
+      "index" : 132,
+      "start" : 67.18,
+      "text" : "on"
+    },
+    {
+      "end" : 67.66,
+      "index" : 133,
+      "start" : 67.51,
+      "text" : "her"
+    },
+    {
+      "end" : 68.2,
+      "index" : 134,
+      "start" : 67.66,
+      "text" : "side"
+    },
+    {
+      "end" : 68.5,
+      "index" : 135,
+      "start" : 68.2,
+      "text" : "had"
+    },
+    {
+      "end" : 69.01,
+      "index" : 136,
+      "start" : 68.5,
+      "text" : "also"
+    },
+    {
+      "end" : 69.43,
+      "index" : 137,
+      "start" : 69.01,
+      "text" : "unknown"
+    },
+    {
+      "end" : 69.64,
+      "index" : 138,
+      "start" : 69.43,
+      "text" : "to"
+    },
+    {
+      "end" : 70.3,
+      "index" : 139,
+      "start" : 69.64,
+      "text" : "herself"
+    },
+    {
+      "end" : 71.02,
+      "index" : 140,
+      "start" : 70.36,
+      "text" : "become"
+    },
+    {
+      "end" : 71.44,
+      "index" : 141,
+      "start" : 71.02,
+      "text" : "another"
+    },
+    {
+      "end" : 71.92,
+      "index" : 142,
+      "start" : 71.44,
+      "text" : "being"
+    },
+    {
+      "end" : 72.76,
+      "index" : 143,
+      "start" : 72.31,
+      "text" : "poor"
+    },
+    {
+      "end" : 73.06,
+      "index" : 144,
+      "start" : 72.76,
+      "text" : "little"
+    },
+    {
+      "end" : 73.396125,
+      "index" : 145,
+      "start" : 73.06,
+      "text" : "thing"
+    },
+    {
+      "end" : 75.05000000000001,
+      "index" : 146,
+      "start" : 74.877375,
+      "text" : "she"
+    },
+    {
+      "end" : 75.53,
+      "index" : 147,
+      "start" : 75.05000000000001,
+      "text" : "felt"
+    },
+    {
+      "end" : 75.80000000000001,
+      "index" : 148,
+      "start" : 75.53,
+      "text" : "that"
+    },
+    {
+      "end" : 75.95,
+      "index" : 149,
+      "start" : 75.80000000000001,
+      "text" : "which"
+    },
+    {
+      "end" : 76.13000000000001,
+      "index" : 150,
+      "start" : 75.95,
+      "text" : "she"
+    },
+    {
+      "end" : 76.31,
+      "index" : 151,
+      "start" : 76.13000000000001,
+      "text" : "had"
+    },
+    {
+      "end" : 76.73,
+      "index" : 152,
+      "start" : 76.31,
+      "text" : "never"
+    },
+    {
+      "end" : 77.09,
+      "index" : 153,
+      "start" : 76.73,
+      "text" : "felt"
+    },
+    {
+      "end" : 77.81,
+      "index" : 154,
+      "start" : 77.09,
+      "text" : "before"
+    },
+    {
+      "end" : 78.62,
+      "index" : 155,
+      "start" : 78.53,
+      "text" : "a"
+    },
+    {
+      "end" : 79.4,
+      "index" : 156,
+      "start" : 78.62,
+      "text" : "sensation"
+    },
+    {
+      "end" : 79.55000000000001,
+      "index" : 157,
+      "start" : 79.4,
+      "text" : "of"
+    },
+    {
+      "end" : 80.28325000000001,
+      "index" : 158,
+      "start" : 79.55000000000001,
+      "text" : "expansion"
+    },
+    {
+      "end" : 82.00999999999999,
+      "index" : 159,
+      "start" : 81.809625,
+      "text" : "the"
+    },
+    {
+      "end" : 82.28,
+      "index" : 160,
+      "start" : 82.00999999999999,
+      "text" : "man"
+    },
+    {
+      "end" : 82.39999999999999,
+      "index" : 161,
+      "start" : 82.28,
+      "text" : "no"
+    },
+    {
+      "end" : 82.82,
+      "index" : 162,
+      "start" : 82.39999999999999,
+      "text" : "longer"
+    },
+    {
+      "end" : 83.33,
+      "index" : 163,
+      "start" : 82.82,
+      "text" : "produced"
+    },
+    {
+      "end" : 83.45,
+      "index" : 164,
+      "start" : 83.33,
+      "text" : "on"
+    },
+    {
+      "end" : 83.81,
+      "index" : 165,
+      "start" : 83.45,
+      "text" : "her"
+    },
+    {
+      "end" : 84.02,
+      "index" : 166,
+      "start" : 83.81,
+      "text" : "the"
+    },
+    {
+      "end" : 84.5,
+      "index" : 167,
+      "start" : 84.02,
+      "text" : "effect"
+    },
+    {
+      "end" : 84.64999999999999,
+      "index" : 168,
+      "start" : 84.5,
+      "text" : "of"
+    },
+    {
+      "end" : 84.95,
+      "index" : 169,
+      "start" : 84.64999999999999,
+      "text" : "being"
+    },
+    {
+      "end" : 85.39999999999999,
+      "index" : 170,
+      "start" : 84.95,
+      "text" : "old"
+    },
+    {
+      "end" : 85.42999999999999,
+      "index" : 171,
+      "start" : 85.39999999999999,
+      "text" : "or"
+    },
+    {
+      "end" : 86,
+      "index" : 172,
+      "start" : 85.42999999999999,
+      "text" : "poor"
+    },
+    {
+      "end" : 86.99,
+      "index" : 173,
+      "start" : 86.69,
+      "text" : "she"
+    },
+    {
+      "end" : 87.24499999999999,
+      "index" : 174,
+      "start" : 86.99,
+      "text" : "thought"
+    },
+    {
+      "end" : 87.5,
+      "index" : 175,
+      "start" : 87.24499999999999,
+      "text" : "jean"
+    },
+    {
+      "end" : 88.02499999999999,
+      "index" : 176,
+      "start" : 87.5,
+      "text" : "valjean"
+    },
+    {
+      "end" : 88.55,
+      "index" : 177,
+      "start" : 88.02499999999999,
+      "text" : "handsome"
+    },
+    {
+      "end" : 89.3,
+      "index" : 178,
+      "start" : 88.91,
+      "text" : "just"
+    },
+    {
+      "end" : 89.39,
+      "index" : 179,
+      "start" : 89.3,
+      "text" : "as"
+    },
+    {
+      "end" : 89.57,
+      "index" : 180,
+      "start" : 89.39,
+      "text" : "she"
+    },
+    {
+      "end" : 89.87,
+      "index" : 181,
+      "start" : 89.57,
+      "text" : "thought"
+    },
+    {
+      "end" : 90.02,
+      "index" : 182,
+      "start" : 89.87,
+      "text" : "the"
+    },
+    {
+      "end" : 90.41,
+      "index" : 183,
+      "start" : 90.02,
+      "text" : "hovel"
+    },
+    {
+      "end" : 90.736375,
+      "index" : 184,
+      "start" : 90.41,
+      "text" : "pretty"
+    }
+  ]
+}

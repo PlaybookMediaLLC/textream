@@ -1,0 +1,1271 @@
+{
+  "end" : 89.75,
+  "pauses" : [
+
+  ],
+  "resumes" : [
+
+  ],
+  "tokens" : [
+    {
+      "end" : 1.5,
+      "index" : 0,
+      "start" : 0.909625,
+      "text" : "every"
+    },
+    {
+      "end" : 2.34,
+      "index" : 1,
+      "start" : 1.5,
+      "text" : "elevation"
+    },
+    {
+      "end" : 2.46,
+      "index" : 2,
+      "start" : 2.34,
+      "text" : "of"
+    },
+    {
+      "end" : 2.61,
+      "index" : 3,
+      "start" : 2.46,
+      "text" : "the"
+    },
+    {
+      "end" : 3.09,
+      "index" : 4,
+      "start" : 2.61,
+      "text" : "type"
+    },
+    {
+      "end" : 3.96,
+      "index" : 5,
+      "start" : 3.09,
+      "text" : "man"
+    },
+    {
+      "end" : 4.38,
+      "index" : 6,
+      "start" : 3.96,
+      "text" : "has"
+    },
+    {
+      "end" : 4.92,
+      "index" : 7,
+      "start" : 4.62,
+      "text" : "hitherto"
+    },
+    {
+      "end" : 5.22,
+      "index" : 8,
+      "start" : 4.92,
+      "text" : "been"
+    },
+    {
+      "end" : 5.34,
+      "index" : 9,
+      "start" : 5.22,
+      "text" : "the"
+    },
+    {
+      "end" : 5.7,
+      "index" : 10,
+      "start" : 5.34,
+      "text" : "work"
+    },
+    {
+      "end" : 5.82,
+      "index" : 11,
+      "start" : 5.7,
+      "text" : "of"
+    },
+    {
+      "end" : 5.91,
+      "index" : 12,
+      "start" : 5.82,
+      "text" : "an"
+    },
+    {
+      "end" : 6.78,
+      "index" : 13,
+      "start" : 5.91,
+      "text" : "aristocratic"
+    },
+    {
+      "end" : 7.71,
+      "index" : 14,
+      "start" : 6.78,
+      "text" : "society"
+    },
+    {
+      "end" : 8.13,
+      "index" : 15,
+      "start" : 7.890000000000001,
+      "text" : "and"
+    },
+    {
+      "end" : 8.4,
+      "index" : 16,
+      "start" : 8.13,
+      "text" : "so"
+    },
+    {
+      "end" : 8.52,
+      "index" : 17,
+      "start" : 8.4,
+      "text" : "it"
+    },
+    {
+      "end" : 8.700000000000001,
+      "index" : 18,
+      "start" : 8.52,
+      "text" : "will"
+    },
+    {
+      "end" : 9.18,
+      "index" : 19,
+      "start" : 8.700000000000001,
+      "text" : "always"
+    },
+    {
+      "end" : 9.57,
+      "index" : 20,
+      "start" : 9.18,
+      "text" : "be"
+    },
+    {
+      "end" : 9.9,
+      "index" : 21,
+      "start" : 9.81,
+      "text" : "a"
+    },
+    {
+      "end" : 10.59,
+      "index" : 22,
+      "start" : 9.9,
+      "text" : "society"
+    },
+    {
+      "end" : 11.19,
+      "index" : 23,
+      "start" : 10.59,
+      "text" : "believing"
+    },
+    {
+      "end" : 11.28,
+      "index" : 24,
+      "start" : 11.19,
+      "text" : "in"
+    },
+    {
+      "end" : 11.55,
+      "index" : 25,
+      "start" : 11.28,
+      "text" : "a"
+    },
+    {
+      "end" : 11.82,
+      "index" : 26,
+      "start" : 11.55,
+      "text" : "long"
+    },
+    {
+      "end" : 12.42,
+      "index" : 27,
+      "start" : 11.82,
+      "text" : "scale"
+    },
+    {
+      "end" : 12.540000000000001,
+      "index" : 28,
+      "start" : 12.42,
+      "text" : "of"
+    },
+    {
+      "end" : 13.35,
+      "index" : 29,
+      "start" : 12.540000000000001,
+      "text" : "gradations"
+    },
+    {
+      "end" : 13.530000000000001,
+      "index" : 30,
+      "start" : 13.35,
+      "text" : "of"
+    },
+    {
+      "end" : 14.01,
+      "index" : 31,
+      "start" : 13.530000000000001,
+      "text" : "rank"
+    },
+    {
+      "end" : 14.22,
+      "index" : 32,
+      "start" : 14.01,
+      "text" : "and"
+    },
+    {
+      "end" : 14.66,
+      "index" : 33,
+      "start" : 14.22,
+      "text" : "differences"
+    },
+    {
+      "end" : 15.100000000000001,
+      "index" : 34,
+      "start" : 14.66,
+      "text" : "of"
+    },
+    {
+      "end" : 15.540000000000001,
+      "index" : 35,
+      "start" : 15.100000000000001,
+      "text" : "worth"
+    },
+    {
+      "end" : 15.870000000000001,
+      "index" : 36,
+      "start" : 15.540000000000001,
+      "text" : "among"
+    },
+    {
+      "end" : 16.335,
+      "index" : 37,
+      "start" : 15.870000000000001,
+      "text" : "human"
+    },
+    {
+      "end" : 16.8,
+      "index" : 38,
+      "start" : 16.335,
+      "text" : "beings"
+    },
+    {
+      "end" : 17.31,
+      "index" : 39,
+      "start" : 17.07,
+      "text" : "and"
+    },
+    {
+      "end" : 18.09,
+      "index" : 40,
+      "start" : 17.31,
+      "text" : "requiring"
+    },
+    {
+      "end" : 18.84,
+      "index" : 41,
+      "start" : 18.09,
+      "text" : "slavery"
+    },
+    {
+      "end" : 18.990000000000002,
+      "index" : 42,
+      "start" : 18.84,
+      "text" : "in"
+    },
+    {
+      "end" : 19.38,
+      "index" : 43,
+      "start" : 18.990000000000002,
+      "text" : "some"
+    },
+    {
+      "end" : 19.8,
+      "index" : 44,
+      "start" : 19.38,
+      "text" : "form"
+    },
+    {
+      "end" : 19.98,
+      "index" : 45,
+      "start" : 19.8,
+      "text" : "or"
+    },
+    {
+      "end" : 20.277125,
+      "index" : 46,
+      "start" : 19.98,
+      "text" : "other"
+    },
+    {
+      "end" : 21.509999999999998,
+      "index" : 47,
+      "start" : 21.393375,
+      "text" : "the"
+    },
+    {
+      "end" : 22.32,
+      "index" : 48,
+      "start" : 21.509999999999998,
+      "text" : "distinctions"
+    },
+    {
+      "end" : 22.5,
+      "index" : 49,
+      "start" : 22.32,
+      "text" : "of"
+    },
+    {
+      "end" : 22.95,
+      "index" : 50,
+      "start" : 22.5,
+      "text" : "moral"
+    },
+    {
+      "end" : 23.52,
+      "index" : 51,
+      "start" : 22.95,
+      "text" : "values"
+    },
+    {
+      "end" : 23.7,
+      "index" : 52,
+      "start" : 23.52,
+      "text" : "have"
+    },
+    {
+      "end" : 23.91,
+      "index" : 53,
+      "start" : 23.7,
+      "text" : "either"
+    },
+    {
+      "end" : 24.66,
+      "index" : 54,
+      "start" : 23.91,
+      "text" : "originated"
+    },
+    {
+      "end" : 24.78,
+      "index" : 55,
+      "start" : 24.66,
+      "text" : "in"
+    },
+    {
+      "end" : 24.84,
+      "index" : 56,
+      "start" : 24.78,
+      "text" : "a"
+    },
+    {
+      "end" : 25.259999999999998,
+      "index" : 57,
+      "start" : 24.84,
+      "text" : "ruling"
+    },
+    {
+      "end" : 25.83,
+      "index" : 58,
+      "start" : 25.259999999999998,
+      "text" : "caste"
+    },
+    {
+      "end" : 26.43,
+      "index" : 59,
+      "start" : 25.83,
+      "text" : "pleasantly"
+    },
+    {
+      "end" : 26.97,
+      "index" : 60,
+      "start" : 26.43,
+      "text" : "conscious"
+    },
+    {
+      "end" : 27.12,
+      "index" : 61,
+      "start" : 26.97,
+      "text" : "of"
+    },
+    {
+      "end" : 27.45,
+      "index" : 62,
+      "start" : 27.12,
+      "text" : "being"
+    },
+    {
+      "end" : 27.93,
+      "index" : 63,
+      "start" : 27.45,
+      "text" : "different"
+    },
+    {
+      "end" : 28.11,
+      "index" : 64,
+      "start" : 27.93,
+      "text" : "from"
+    },
+    {
+      "end" : 28.23,
+      "index" : 65,
+      "start" : 28.11,
+      "text" : "the"
+    },
+    {
+      "end" : 28.77,
+      "index" : 66,
+      "start" : 28.23,
+      "text" : "ruled"
+    },
+    {
+      "end" : 29.43,
+      "index" : 67,
+      "start" : 29.07,
+      "text" : "or"
+    },
+    {
+      "end" : 29.7,
+      "index" : 68,
+      "start" : 29.43,
+      "text" : "among"
+    },
+    {
+      "end" : 29.82,
+      "index" : 69,
+      "start" : 29.7,
+      "text" : "the"
+    },
+    {
+      "end" : 30.33,
+      "index" : 70,
+      "start" : 29.82,
+      "text" : "ruled"
+    },
+    {
+      "end" : 30.84,
+      "index" : 71,
+      "start" : 30.33,
+      "text" : "class"
+    },
+    {
+      "end" : 30.96,
+      "index" : 72,
+      "start" : 30.84,
+      "text" : "the"
+    },
+    {
+      "end" : 31.560000000000002,
+      "index" : 73,
+      "start" : 30.96,
+      "text" : "slaves"
+    },
+    {
+      "end" : 31.61,
+      "index" : 74,
+      "start" : 31.560000000000002,
+      "text" : "and"
+    },
+    {
+      "end" : 32.28,
+      "index" : 75,
+      "start" : 31.61,
+      "text" : "dependents"
+    },
+    {
+      "end" : 32.43,
+      "index" : 76,
+      "start" : 32.28,
+      "text" : "of"
+    },
+    {
+      "end" : 32.64,
+      "index" : 77,
+      "start" : 32.43,
+      "text" : "all"
+    },
+    {
+      "end" : 33.1115625,
+      "index" : 78,
+      "start" : 32.64,
+      "text" : "sorts"
+    },
+    {
+      "end" : 34.324999999999996,
+      "index" : 79,
+      "start" : 33.995,
+      "text" : "we"
+    },
+    {
+      "end" : 34.955,
+      "index" : 80,
+      "start" : 34.324999999999996,
+      "text" : "truthful"
+    },
+    {
+      "end" : 35.435,
+      "index" : 81,
+      "start" : 34.955,
+      "text" : "ones"
+    },
+    {
+      "end" : 35.685,
+      "index" : 82,
+      "start" : 35.435,
+      "text" : "the"
+    },
+    {
+      "end" : 35.935,
+      "index" : 83,
+      "start" : 35.685,
+      "text" : "nobility"
+    },
+    {
+      "end" : 36.185,
+      "index" : 84,
+      "start" : 35.935,
+      "text" : "in"
+    },
+    {
+      "end" : 36.574999999999996,
+      "index" : 85,
+      "start" : 36.185,
+      "text" : "ancient"
+    },
+    {
+      "end" : 36.935,
+      "index" : 86,
+      "start" : 36.574999999999996,
+      "text" : "greece"
+    },
+    {
+      "end" : 37.295,
+      "index" : 87,
+      "start" : 36.935,
+      "text" : "called"
+    },
+    {
+      "end" : 37.93875,
+      "index" : 88,
+      "start" : 37.295,
+      "text" : "themselves"
+    },
+    {
+      "end" : 38.98,
+      "index" : 89,
+      "start" : 38.8483125,
+      "text" : "it"
+    },
+    {
+      "end" : 39.16,
+      "index" : 90,
+      "start" : 38.98,
+      "text" : "is"
+    },
+    {
+      "end" : 39.699999999999996,
+      "index" : 91,
+      "start" : 39.16,
+      "text" : "obvious"
+    },
+    {
+      "end" : 39.82,
+      "index" : 92,
+      "start" : 39.699999999999996,
+      "text" : "that"
+    },
+    {
+      "end" : 40.36,
+      "index" : 93,
+      "start" : 39.82,
+      "text" : "everywhere"
+    },
+    {
+      "end" : 40.449999999999996,
+      "index" : 94,
+      "start" : 40.36,
+      "text" : "the"
+    },
+    {
+      "end" : 41.26,
+      "index" : 95,
+      "start" : 40.449999999999996,
+      "text" : "designations"
+    },
+    {
+      "end" : 41.41,
+      "index" : 96,
+      "start" : 41.26,
+      "text" : "of"
+    },
+    {
+      "end" : 41.769999999999996,
+      "index" : 97,
+      "start" : 41.41,
+      "text" : "moral"
+    },
+    {
+      "end" : 42.19,
+      "index" : 98,
+      "start" : 41.769999999999996,
+      "text" : "value"
+    },
+    {
+      "end" : 42.43,
+      "index" : 99,
+      "start" : 42.19,
+      "text" : "were"
+    },
+    {
+      "end" : 42.489999999999995,
+      "index" : 100,
+      "start" : 42.43,
+      "text" : "at"
+    },
+    {
+      "end" : 42.849999999999994,
+      "index" : 101,
+      "start" : 42.489999999999995,
+      "text" : "first"
+    },
+    {
+      "end" : 43.36,
+      "index" : 102,
+      "start" : 42.849999999999994,
+      "text" : "applied"
+    },
+    {
+      "end" : 43.51,
+      "index" : 103,
+      "start" : 43.36,
+      "text" : "to"
+    },
+    {
+      "end" : 44.11,
+      "index" : 104,
+      "start" : 43.51,
+      "text" : "men"
+    },
+    {
+      "end" : 44.83,
+      "index" : 105,
+      "start" : 44.62,
+      "text" : "and"
+    },
+    {
+      "end" : 45.07,
+      "index" : 106,
+      "start" : 44.83,
+      "text" : "were"
+    },
+    {
+      "end" : 45.309999999999995,
+      "index" : 107,
+      "start" : 45.07,
+      "text" : "only"
+    },
+    {
+      "end" : 46.15,
+      "index" : 108,
+      "start" : 45.309999999999995,
+      "text" : "derivatively"
+    },
+    {
+      "end" : 46.3,
+      "index" : 109,
+      "start" : 46.15,
+      "text" : "and"
+    },
+    {
+      "end" : 46.42,
+      "index" : 110,
+      "start" : 46.3,
+      "text" : "at"
+    },
+    {
+      "end" : 46.48,
+      "index" : 111,
+      "start" : 46.42,
+      "text" : "a"
+    },
+    {
+      "end" : 46.87,
+      "index" : 112,
+      "start" : 46.48,
+      "text" : "later"
+    },
+    {
+      "end" : 47.364999999999995,
+      "index" : 113,
+      "start" : 46.87,
+      "text" : "period"
+    },
+    {
+      "end" : 47.86,
+      "index" : 114,
+      "start" : 47.364999999999995,
+      "text" : "applied"
+    },
+    {
+      "end" : 48.099999999999994,
+      "index" : 115,
+      "start" : 47.86,
+      "text" : "to"
+    },
+    {
+      "end" : 48.94,
+      "index" : 116,
+      "start" : 48.19,
+      "text" : "actions"
+    },
+    {
+      "end" : 49.629999999999995,
+      "index" : 117,
+      "start" : 49.48,
+      "text" : "it"
+    },
+    {
+      "end" : 49.75,
+      "index" : 118,
+      "start" : 49.629999999999995,
+      "text" : "is"
+    },
+    {
+      "end" : 49.839999999999996,
+      "index" : 119,
+      "start" : 49.75,
+      "text" : "a"
+    },
+    {
+      "end" : 50.26,
+      "index" : 120,
+      "start" : 49.839999999999996,
+      "text" : "gross"
+    },
+    {
+      "end" : 50.8,
+      "index" : 121,
+      "start" : 50.26,
+      "text" : "mistake"
+    },
+    {
+      "end" : 51.25,
+      "index" : 122,
+      "start" : 50.8,
+      "text" : "therefore"
+    },
+    {
+      "end" : 51.43,
+      "index" : 123,
+      "start" : 51.25,
+      "text" : "when"
+    },
+    {
+      "end" : 52.12,
+      "index" : 124,
+      "start" : 51.43,
+      "text" : "historians"
+    },
+    {
+      "end" : 52.269999999999996,
+      "index" : 125,
+      "start" : 52.12,
+      "text" : "of"
+    },
+    {
+      "end" : 52.839999999999996,
+      "index" : 126,
+      "start" : 52.269999999999996,
+      "text" : "morals"
+    },
+    {
+      "end" : 53.199999999999996,
+      "index" : 127,
+      "start" : 52.839999999999996,
+      "text" : "start"
+    },
+    {
+      "end" : 53.349999999999994,
+      "index" : 128,
+      "start" : 53.199999999999996,
+      "text" : "with"
+    },
+    {
+      "end" : 53.86,
+      "index" : 129,
+      "start" : 53.349999999999994,
+      "text" : "questions"
+    },
+    {
+      "end" : 54.25,
+      "index" : 130,
+      "start" : 53.86,
+      "text" : "like"
+    },
+    {
+      "end" : 54.849999999999994,
+      "index" : 131,
+      "start" : 54.489999999999995,
+      "text" : "why"
+    },
+    {
+      "end" : 55.03,
+      "index" : 132,
+      "start" : 54.849999999999994,
+      "text" : "have"
+    },
+    {
+      "end" : 55.78,
+      "index" : 133,
+      "start" : 55.03,
+      "text" : "sympathetic"
+    },
+    {
+      "end" : 56.349999999999994,
+      "index" : 134,
+      "start" : 55.78,
+      "text" : "actions"
+    },
+    {
+      "end" : 56.589999999999996,
+      "index" : 135,
+      "start" : 56.349999999999994,
+      "text" : "been"
+    },
+    {
+      "end" : 57.2194375,
+      "index" : 136,
+      "start" : 56.589999999999996,
+      "text" : "praised"
+    },
+    {
+      "end" : 58.475,
+      "index" : 137,
+      "start" : 58.265875,
+      "text" : "he"
+    },
+    {
+      "end" : 58.895,
+      "index" : 138,
+      "start" : 58.475,
+      "text" : "honours"
+    },
+    {
+      "end" : 59.285,
+      "index" : 139,
+      "start" : 58.895,
+      "text" : "whatever"
+    },
+    {
+      "end" : 59.405,
+      "index" : 140,
+      "start" : 59.285,
+      "text" : "he"
+    },
+    {
+      "end" : 60.125,
+      "index" : 141,
+      "start" : 59.405,
+      "text" : "recognizes"
+    },
+    {
+      "end" : 60.215,
+      "index" : 142,
+      "start" : 60.125,
+      "text" : "in"
+    },
+    {
+      "end" : 60.815,
+      "index" : 143,
+      "start" : 60.215,
+      "text" : "himself"
+    },
+    {
+      "end" : 61.565,
+      "index" : 144,
+      "start" : 61.115,
+      "text" : "such"
+    },
+    {
+      "end" : 62.225,
+      "index" : 145,
+      "start" : 61.565,
+      "text" : "morality"
+    },
+    {
+      "end" : 62.825,
+      "index" : 146,
+      "start" : 62.225,
+      "text" : "equals"
+    },
+    {
+      "end" : 63.425,
+      "index" : 147,
+      "start" : 62.825,
+      "text" : "self"
+    },
+    {
+      "end" : 64.37175,
+      "index" : 148,
+      "start" : 63.425,
+      "text" : "glorification"
+    },
+    {
+      "end" : 65.91,
+      "index" : 149,
+      "start" : 65.44012500000001,
+      "text" : "probably"
+    },
+    {
+      "end" : 66,
+      "index" : 150,
+      "start" : 65.91,
+      "text" : "a"
+    },
+    {
+      "end" : 66.72,
+      "index" : 151,
+      "start" : 66,
+      "text" : "pessimistic"
+    },
+    {
+      "end" : 67.26,
+      "index" : 152,
+      "start" : 66.72,
+      "text" : "suspicion"
+    },
+    {
+      "end" : 67.44,
+      "index" : 153,
+      "start" : 67.26,
+      "text" : "with"
+    },
+    {
+      "end" : 67.86,
+      "index" : 154,
+      "start" : 67.44,
+      "text" : "regard"
+    },
+    {
+      "end" : 67.95,
+      "index" : 155,
+      "start" : 67.86,
+      "text" : "to"
+    },
+    {
+      "end" : 68.10000000000001,
+      "index" : 156,
+      "start" : 67.95,
+      "text" : "the"
+    },
+    {
+      "end" : 68.52000000000001,
+      "index" : 157,
+      "start" : 68.10000000000001,
+      "text" : "entire"
+    },
+    {
+      "end" : 69.15,
+      "index" : 158,
+      "start" : 68.52000000000001,
+      "text" : "situation"
+    },
+    {
+      "end" : 69.27000000000001,
+      "index" : 159,
+      "start" : 69.15,
+      "text" : "of"
+    },
+    {
+      "end" : 69.57000000000001,
+      "index" : 160,
+      "start" : 69.27000000000001,
+      "text" : "man"
+    },
+    {
+      "end" : 69.75,
+      "index" : 161,
+      "start" : 69.57000000000001,
+      "text" : "will"
+    },
+    {
+      "end" : 70.08,
+      "index" : 162,
+      "start" : 69.75,
+      "text" : "find"
+    },
+    {
+      "end" : 70.74000000000001,
+      "index" : 163,
+      "start" : 70.08,
+      "text" : "expression"
+    },
+    {
+      "end" : 71.46000000000001,
+      "index" : 164,
+      "start" : 70.98,
+      "text" : "perhaps"
+    },
+    {
+      "end" : 71.55,
+      "index" : 165,
+      "start" : 71.46000000000001,
+      "text" : "a"
+    },
+    {
+      "end" : 72.39,
+      "index" : 166,
+      "start" : 71.55,
+      "text" : "condemnation"
+    },
+    {
+      "end" : 72.54,
+      "index" : 167,
+      "start" : 72.39,
+      "text" : "of"
+    },
+    {
+      "end" : 72.96000000000001,
+      "index" : 168,
+      "start" : 72.54,
+      "text" : "man"
+    },
+    {
+      "end" : 73.38000000000001,
+      "index" : 169,
+      "start" : 72.96000000000001,
+      "text" : "together"
+    },
+    {
+      "end" : 73.56,
+      "index" : 170,
+      "start" : 73.38000000000001,
+      "text" : "with"
+    },
+    {
+      "end" : 73.68,
+      "index" : 171,
+      "start" : 73.56,
+      "text" : "his"
+    },
+    {
+      "end" : 74.47575,
+      "index" : 172,
+      "start" : 73.68,
+      "text" : "situation"
+    },
+    {
+      "end" : 75.855,
+      "index" : 173,
+      "start" : 75.5335625,
+      "text" : "here"
+    },
+    {
+      "end" : 75.975,
+      "index" : 174,
+      "start" : 75.855,
+      "text" : "is"
+    },
+    {
+      "end" : 76.095,
+      "index" : 175,
+      "start" : 75.975,
+      "text" : "the"
+    },
+    {
+      "end" : 76.485,
+      "index" : 176,
+      "start" : 76.095,
+      "text" : "seat"
+    },
+    {
+      "end" : 76.575,
+      "index" : 177,
+      "start" : 76.485,
+      "text" : "of"
+    },
+    {
+      "end" : 76.755,
+      "index" : 178,
+      "start" : 76.575,
+      "text" : "the"
+    },
+    {
+      "end" : 77.265,
+      "index" : 179,
+      "start" : 76.755,
+      "text" : "origin"
+    },
+    {
+      "end" : 77.355,
+      "index" : 180,
+      "start" : 77.265,
+      "text" : "of"
+    },
+    {
+      "end" : 77.475,
+      "index" : 181,
+      "start" : 77.355,
+      "text" : "the"
+    },
+    {
+      "end" : 77.925,
+      "index" : 182,
+      "start" : 77.475,
+      "text" : "famous"
+    },
+    {
+      "end" : 78.735,
+      "index" : 183,
+      "start" : 77.925,
+      "text" : "antithesis"
+    },
+    {
+      "end" : 79.065,
+      "index" : 184,
+      "start" : 78.735,
+      "text" : "good"
+    },
+    {
+      "end" : 79.215,
+      "index" : 185,
+      "start" : 79.065,
+      "text" : "and"
+    },
+    {
+      "end" : 79.665,
+      "index" : 186,
+      "start" : 79.215,
+      "text" : "evil"
+    },
+    {
+      "end" : 80.745,
+      "index" : 187,
+      "start" : 80.175,
+      "text" : "power"
+    },
+    {
+      "end" : 80.895,
+      "index" : 188,
+      "start" : 80.745,
+      "text" : "and"
+    },
+    {
+      "end" : 81.735,
+      "index" : 189,
+      "start" : 80.895,
+      "text" : "dangerousness"
+    },
+    {
+      "end" : 81.855,
+      "index" : 190,
+      "start" : 81.735,
+      "text" : "are"
+    },
+    {
+      "end" : 82.365,
+      "index" : 191,
+      "start" : 81.855,
+      "text" : "assumed"
+    },
+    {
+      "end" : 82.455,
+      "index" : 192,
+      "start" : 82.365,
+      "text" : "to"
+    },
+    {
+      "end" : 82.995,
+      "index" : 193,
+      "start" : 82.455,
+      "text" : "reside"
+    },
+    {
+      "end" : 83.08500000000001,
+      "index" : 194,
+      "start" : 82.995,
+      "text" : "in"
+    },
+    {
+      "end" : 83.205,
+      "index" : 195,
+      "start" : 83.08500000000001,
+      "text" : "the"
+    },
+    {
+      "end" : 83.775,
+      "index" : 196,
+      "start" : 83.205,
+      "text" : "evil"
+    },
+    {
+      "end" : 84.075,
+      "index" : 197,
+      "start" : 83.955,
+      "text" : "a"
+    },
+    {
+      "end" : 84.495,
+      "index" : 198,
+      "start" : 84.075,
+      "text" : "certain"
+    },
+    {
+      "end" : 85.275,
+      "index" : 199,
+      "start" : 84.495,
+      "text" : "dreadfulness"
+    },
+    {
+      "end" : 85.875,
+      "index" : 200,
+      "start" : 85.275,
+      "text" : "subtlety"
+    },
+    {
+      "end" : 85.995,
+      "index" : 201,
+      "start" : 85.875,
+      "text" : "and"
+    },
+    {
+      "end" : 86.3325,
+      "index" : 202,
+      "start" : 85.995,
+      "text" : "strength"
+    },
+    {
+      "end" : 86.67,
+      "index" : 203,
+      "start" : 86.3325,
+      "text" : "which"
+    },
+    {
+      "end" : 87.0075,
+      "index" : 204,
+      "start" : 86.67,
+      "text" : "do"
+    },
+    {
+      "end" : 87.345,
+      "index" : 205,
+      "start" : 87.0075,
+      "text" : "not"
+    },
+    {
+      "end" : 87.675,
+      "index" : 206,
+      "start" : 87.345,
+      "text" : "admit"
+    },
+    {
+      "end" : 87.825,
+      "index" : 207,
+      "start" : 87.675,
+      "text" : "of"
+    },
+    {
+      "end" : 88.215,
+      "index" : 208,
+      "start" : 87.825,
+      "text" : "being"
+    },
+    {
+      "end" : 88.9446875,
+      "index" : 209,
+      "start" : 88.215,
+      "text" : "despised"
+    }
+  ]
+}

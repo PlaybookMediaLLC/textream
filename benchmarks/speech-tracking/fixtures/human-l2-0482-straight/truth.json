@@ -1,0 +1,863 @@
+{
+  "end" : 79.945,
+  "pauses" : [
+
+  ],
+  "resumes" : [
+
+  ],
+  "tokens" : [
+    {
+      "end" : 1.35,
+      "index" : 0,
+      "start" : 1.1400000000000001,
+      "text" : "our"
+    },
+    {
+      "end" : 1.68,
+      "index" : 1,
+      "start" : 1.35,
+      "text" : "wish"
+    },
+    {
+      "end" : 1.86,
+      "index" : 2,
+      "start" : 1.68,
+      "text" : "is"
+    },
+    {
+      "end" : 2.07,
+      "index" : 3,
+      "start" : 1.86,
+      "text" : "to"
+    },
+    {
+      "end" : 2.4,
+      "index" : 4,
+      "start" : 2.07,
+      "text" : "live"
+    },
+    {
+      "end" : 2.7600000000000002,
+      "index" : 5,
+      "start" : 2.4,
+      "text" : "through"
+    },
+    {
+      "end" : 3.06,
+      "index" : 6,
+      "start" : 2.7600000000000002,
+      "text" : "this"
+    },
+    {
+      "end" : 3.4375,
+      "index" : 7,
+      "start" : 3.06,
+      "text" : "season"
+    },
+    {
+      "end" : 5.254,
+      "index" : 8,
+      "start" : 4.774,
+      "text" : "we"
+    },
+    {
+      "end" : 5.524,
+      "index" : 9,
+      "start" : 5.254,
+      "text" : "have"
+    },
+    {
+      "end" : 6.183999999999999,
+      "index" : 10,
+      "start" : 5.524,
+      "text" : "others"
+    },
+    {
+      "end" : 6.484,
+      "index" : 11,
+      "start" : 6.183999999999999,
+      "text" : "who"
+    },
+    {
+      "end" : 6.843999999999999,
+      "index" : 12,
+      "start" : 6.484,
+      "text" : "can"
+    },
+    {
+      "end" : 7.204,
+      "index" : 13,
+      "start" : 6.843999999999999,
+      "text" : "do"
+    },
+    {
+      "end" : 7.354,
+      "index" : 14,
+      "start" : 7.204,
+      "text" : "the"
+    },
+    {
+      "end" : 7.744,
+      "index" : 15,
+      "start" : 7.354,
+      "text" : "same"
+    },
+    {
+      "end" : 8.088,
+      "index" : 16,
+      "start" : 7.744,
+      "text" : "thing"
+    },
+    {
+      "end" : 9.714,
+      "index" : 17,
+      "start" : 9.534625,
+      "text" : "but"
+    },
+    {
+      "end" : 10.404,
+      "index" : 18,
+      "start" : 9.714,
+      "text" : "again"
+    },
+    {
+      "end" : 10.854000000000001,
+      "index" : 19,
+      "start" : 10.614,
+      "text" : "he"
+    },
+    {
+      "end" : 11.034,
+      "index" : 20,
+      "start" : 10.854000000000001,
+      "text" : "has"
+    },
+    {
+      "end" : 11.484000000000002,
+      "index" : 21,
+      "start" : 11.034,
+      "text" : "made"
+    },
+    {
+      "end" : 11.604000000000001,
+      "index" : 22,
+      "start" : 11.484000000000002,
+      "text" : "a"
+    },
+    {
+      "end" : 11.994,
+      "index" : 23,
+      "start" : 11.604000000000001,
+      "text" : "very"
+    },
+    {
+      "end" : 12.414000000000001,
+      "index" : 24,
+      "start" : 11.994,
+      "text" : "clear"
+    },
+    {
+      "end" : 13.275625000000002,
+      "index" : 25,
+      "start" : 12.414000000000001,
+      "text" : "statement"
+    },
+    {
+      "end" : 14.912,
+      "index" : 26,
+      "start" : 14.7365,
+      "text" : "this"
+    },
+    {
+      "end" : 15.062000000000001,
+      "index" : 27,
+      "start" : 14.912,
+      "text" : "is"
+    },
+    {
+      "end" : 15.122,
+      "index" : 28,
+      "start" : 15.062000000000001,
+      "text" : "a"
+    },
+    {
+      "end" : 15.332,
+      "index" : 29,
+      "start" : 15.122,
+      "text" : "good"
+    },
+    {
+      "end" : 15.795,
+      "index" : 30,
+      "start" : 15.332,
+      "text" : "step"
+    },
+    {
+      "end" : 17.732,
+      "index" : 31,
+      "start" : 17.2556875,
+      "text" : "those"
+    },
+    {
+      "end" : 18.152,
+      "index" : 32,
+      "start" : 17.732,
+      "text" : "could"
+    },
+    {
+      "end" : 18.512,
+      "index" : 33,
+      "start" : 18.152,
+      "text" : "happen"
+    },
+    {
+      "end" : 18.872,
+      "index" : 34,
+      "start" : 18.512,
+      "text" : "to"
+    },
+    {
+      "end" : 19.415125,
+      "index" : 35,
+      "start" : 18.872,
+      "text" : "anyone"
+    },
+    {
+      "end" : 21.202,
+      "index" : 36,
+      "start" : 20.902,
+      "text" : "your"
+    },
+    {
+      "end" : 21.682000000000002,
+      "index" : 37,
+      "start" : 21.202,
+      "text" : "second"
+    },
+    {
+      "end" : 22.057000000000002,
+      "index" : 38,
+      "start" : 21.682000000000002,
+      "text" : "shot"
+    },
+    {
+      "end" : 22.432000000000002,
+      "index" : 39,
+      "start" : 22.057000000000002,
+      "text" : "will"
+    },
+    {
+      "end" : 22.672,
+      "index" : 40,
+      "start" : 22.432000000000002,
+      "text" : "be"
+    },
+    {
+      "end" : 22.762,
+      "index" : 41,
+      "start" : 22.672,
+      "text" : "a"
+    },
+    {
+      "end" : 23.212000000000003,
+      "index" : 42,
+      "start" : 22.762,
+      "text" : "choice"
+    },
+    {
+      "end" : 23.392000000000003,
+      "index" : 43,
+      "start" : 23.212000000000003,
+      "text" : "of"
+    },
+    {
+      "end" : 23.632,
+      "index" : 44,
+      "start" : 23.392000000000003,
+      "text" : "two"
+    },
+    {
+      "end" : 24.416625000000003,
+      "index" : 45,
+      "start" : 23.632,
+      "text" : "options"
+    },
+    {
+      "end" : 26.241,
+      "index" : 46,
+      "start" : 25.89575,
+      "text" : "time"
+    },
+    {
+      "end" : 26.480999999999998,
+      "index" : 47,
+      "start" : 26.241,
+      "text" : "to"
+    },
+    {
+      "end" : 26.781,
+      "index" : 48,
+      "start" : 26.480999999999998,
+      "text" : "make"
+    },
+    {
+      "end" : 26.871,
+      "index" : 49,
+      "start" : 26.781,
+      "text" : "a"
+    },
+    {
+      "end" : 27.500999999999998,
+      "index" : 50,
+      "start" : 26.871,
+      "text" : "statement"
+    },
+    {
+      "end" : 28.461937499999998,
+      "index" : 51,
+      "start" : 27.500999999999998,
+      "text" : "captains"
+    },
+    {
+      "end" : 30.078,
+      "index" : 52,
+      "start" : 29.448,
+      "text" : "tonight"
+    },
+    {
+      "end" : 30.228,
+      "index" : 53,
+      "start" : 30.078,
+      "text" : "he"
+    },
+    {
+      "end" : 30.558,
+      "index" : 54,
+      "start" : 30.228,
+      "text" : "was"
+    },
+    {
+      "end" : 31.038,
+      "index" : 55,
+      "start" : 30.558,
+      "text" : "worse"
+    },
+    {
+      "end" : 31.368000000000002,
+      "index" : 56,
+      "start" : 31.038,
+      "text" : "than"
+    },
+    {
+      "end" : 32.12675,
+      "index" : 57,
+      "start" : 31.368000000000002,
+      "text" : "anyone"
+    },
+    {
+      "end" : 33.604,
+      "index" : 58,
+      "start" : 33.484,
+      "text" : "i"
+    },
+    {
+      "end" : 33.844,
+      "index" : 59,
+      "start" : 33.604,
+      "text" : "fall"
+    },
+    {
+      "end" : 34.174,
+      "index" : 60,
+      "start" : 33.844,
+      "text" : "in"
+    },
+    {
+      "end" : 34.564,
+      "index" : 61,
+      "start" : 34.174,
+      "text" : "love"
+    },
+    {
+      "end" : 34.774,
+      "index" : 62,
+      "start" : 34.564,
+      "text" : "with"
+    },
+    {
+      "end" : 35.104,
+      "index" : 63,
+      "start" : 34.774,
+      "text" : "more"
+    },
+    {
+      "end" : 35.254,
+      "index" : 64,
+      "start" : 35.104,
+      "text" : "and"
+    },
+    {
+      "end" : 35.734,
+      "index" : 65,
+      "start" : 35.254,
+      "text" : "more"
+    },
+    {
+      "end" : 36.564625,
+      "index" : 66,
+      "start" : 36.094,
+      "text" : "everyday"
+    },
+    {
+      "end" : 38.519999999999996,
+      "index" : 67,
+      "start" : 37.92,
+      "text" : "music"
+    },
+    {
+      "end" : 38.699999999999996,
+      "index" : 68,
+      "start" : 38.519999999999996,
+      "text" : "will"
+    },
+    {
+      "end" : 38.91,
+      "index" : 69,
+      "start" : 38.699999999999996,
+      "text" : "be"
+    },
+    {
+      "end" : 39.269999999999996,
+      "index" : 70,
+      "start" : 38.91,
+      "text" : "here"
+    },
+    {
+      "end" : 39.9598125,
+      "index" : 71,
+      "start" : 39.269999999999996,
+      "text" : "forever"
+    },
+    {
+      "end" : 41.573,
+      "index" : 72,
+      "start" : 41.407999999999994,
+      "text" : "that"
+    },
+    {
+      "end" : 41.738,
+      "index" : 72,
+      "start" : 41.573,
+      "text" : "is"
+    },
+    {
+      "end" : 42.098,
+      "index" : 73,
+      "start" : 41.738,
+      "text" : "not"
+    },
+    {
+      "end" : 42.187999999999995,
+      "index" : 74,
+      "start" : 42.098,
+      "text" : "a"
+    },
+    {
+      "end" : 42.547999999999995,
+      "index" : 75,
+      "start" : 42.187999999999995,
+      "text" : "bad"
+    },
+    {
+      "end" : 42.848,
+      "index" : 76,
+      "start" : 42.547999999999995,
+      "text" : "deal"
+    },
+    {
+      "end" : 44.89,
+      "index" : 77,
+      "start" : 44.3113125,
+      "text" : "cheating"
+    },
+    {
+      "end" : 45.1,
+      "index" : 78,
+      "start" : 44.89,
+      "text" : "is"
+    },
+    {
+      "end" : 45.4,
+      "index" : 79,
+      "start" : 45.1,
+      "text" : "for"
+    },
+    {
+      "end" : 45.55,
+      "index" : 80,
+      "start" : 45.4,
+      "text" : "the"
+    },
+    {
+      "end" : 46.27725,
+      "index" : 81,
+      "start" : 45.55,
+      "text" : "childish"
+    },
+    {
+      "end" : 48.459999999999994,
+      "index" : 82,
+      "start" : 47.709999999999994,
+      "text" : "secretary"
+    },
+    {
+      "end" : 48.699999999999996,
+      "index" : 83,
+      "start" : 48.459999999999994,
+      "text" : "of"
+    },
+    {
+      "end" : 49.33,
+      "index" : 84,
+      "start" : 48.699999999999996,
+      "text" : "energy"
+    },
+    {
+      "end" : 49.51,
+      "index" : 85,
+      "start" : 49.33,
+      "text" : "is"
+    },
+    {
+      "end" : 49.9223125,
+      "index" : 86,
+      "start" : 49.51,
+      "text" : "wrong"
+    },
+    {
+      "end" : 51.675000000000004,
+      "index" : 87,
+      "start" : 51.393437500000005,
+      "text" : "just"
+    },
+    {
+      "end" : 51.885000000000005,
+      "index" : 88,
+      "start" : 51.675000000000004,
+      "text" : "tell"
+    },
+    {
+      "end" : 52.215,
+      "index" : 89,
+      "start" : 51.885000000000005,
+      "text" : "me"
+    },
+    {
+      "end" : 52.425000000000004,
+      "index" : 90,
+      "start" : 52.215,
+      "text" : "if"
+    },
+    {
+      "end" : 52.665,
+      "index" : 91,
+      "start" : 52.425000000000004,
+      "text" : "you"
+    },
+    {
+      "end" : 52.995000000000005,
+      "index" : 92,
+      "start" : 52.665,
+      "text" : "feel"
+    },
+    {
+      "end" : 53.145,
+      "index" : 93,
+      "start" : 52.995000000000005,
+      "text" : "the"
+    },
+    {
+      "end" : 53.505,
+      "index" : 94,
+      "start" : 53.145,
+      "text" : "same"
+    },
+    {
+      "end" : 53.715,
+      "index" : 95,
+      "start" : 53.505,
+      "text" : "way"
+    },
+    {
+      "end" : 54.1405625,
+      "index" : 96,
+      "start" : 53.715,
+      "text" : "too"
+    },
+    {
+      "end" : 55.754999999999995,
+      "index" : 97,
+      "start" : 55.61625,
+      "text" : "i"
+    },
+    {
+      "end" : 56.294999999999995,
+      "index" : 98,
+      "start" : 55.754999999999995,
+      "text" : "have"
+    },
+    {
+      "end" : 56.445,
+      "index" : 99,
+      "start" : 56.294999999999995,
+      "text" : "the"
+    },
+    {
+      "end" : 56.925,
+      "index" : 100,
+      "start" : 56.445,
+      "text" : "heart"
+    },
+    {
+      "end" : 57.375,
+      "index" : 101,
+      "start" : 56.925,
+      "text" : "of"
+    },
+    {
+      "end" : 57.614999999999995,
+      "index" : 102,
+      "start" : 57.495,
+      "text" : "a"
+    },
+    {
+      "end" : 58.0784375,
+      "index" : 103,
+      "start" : 57.614999999999995,
+      "text" : "lion"
+    },
+    {
+      "end" : 59.483375,
+      "index" : 104,
+      "start" : 59.483375,
+      "text" : "but"
+    },
+    {
+      "end" : 60.015,
+      "index" : 105,
+      "start" : 59.483375,
+      "text" : "the"
+    },
+    {
+      "end" : 60.255,
+      "index" : 106,
+      "start" : 60.015,
+      "text" : "city"
+    },
+    {
+      "end" : 60.55500000000001,
+      "index" : 107,
+      "start" : 60.255,
+      "text" : "was"
+    },
+    {
+      "end" : 60.945,
+      "index" : 108,
+      "start" : 60.55500000000001,
+      "text" : "already"
+    },
+    {
+      "end" : 61.650062500000004,
+      "index" : 109,
+      "start" : 60.945,
+      "text" : "dirty"
+    },
+    {
+      "end" : 63.625,
+      "index" : 110,
+      "start" : 63.355,
+      "text" : "she"
+    },
+    {
+      "end" : 63.955,
+      "index" : 111,
+      "start" : 63.625,
+      "text" : "might"
+    },
+    {
+      "end" : 64.285,
+      "index" : 112,
+      "start" : 63.955,
+      "text" : "push"
+    },
+    {
+      "end" : 64.585,
+      "index" : 113,
+      "start" : 64.285,
+      "text" : "him"
+    },
+    {
+      "end" : 65.095,
+      "index" : 114,
+      "start" : 64.675,
+      "text" : "off"
+    },
+    {
+      "end" : 65.785,
+      "index" : 115,
+      "start" : 65.185,
+      "text" : "into"
+    },
+    {
+      "end" : 65.935,
+      "index" : 116,
+      "start" : 65.785,
+      "text" : "the"
+    },
+    {
+      "end" : 66.451375,
+      "index" : 117,
+      "start" : 65.935,
+      "text" : "deeps"
+    },
+    {
+      "end" : 68.035,
+      "index" : 118,
+      "start" : 67.85499999999999,
+      "text" : "i"
+    },
+    {
+      "end" : 68.455,
+      "index" : 119,
+      "start" : 68.035,
+      "text" : "shut"
+    },
+    {
+      "end" : 69.02499999999999,
+      "index" : 120,
+      "start" : 68.455,
+      "text" : "my"
+    },
+    {
+      "end" : 69.205,
+      "index" : 121,
+      "start" : 69.02499999999999,
+      "text" : "eyes"
+    },
+    {
+      "end" : 69.38499999999999,
+      "index" : 122,
+      "start" : 69.205,
+      "text" : "for"
+    },
+    {
+      "end" : 69.71499999999999,
+      "index" : 123,
+      "start" : 69.38499999999999,
+      "text" : "one"
+    },
+    {
+      "end" : 70.4755625,
+      "index" : 124,
+      "start" : 69.71499999999999,
+      "text" : "breath"
+    },
+    {
+      "end" : 72.385,
+      "index" : 125,
+      "start" : 71.875,
+      "text" : "so"
+    },
+    {
+      "end" : 72.61500000000001,
+      "index" : 126,
+      "start" : 72.385,
+      "text" : "there"
+    },
+    {
+      "end" : 72.845,
+      "index" : 127,
+      "start" : 72.61500000000001,
+      "text" : "is"
+    },
+    {
+      "end" : 73.075,
+      "index" : 128,
+      "start" : 72.845,
+      "text" : "really"
+    },
+    {
+      "end" : 73.25500000000001,
+      "index" : 129,
+      "start" : 73.075,
+      "text" : "no"
+    },
+    {
+      "end" : 73.58500000000001,
+      "index" : 130,
+      "start" : 73.25500000000001,
+      "text" : "room"
+    },
+    {
+      "end" : 73.825,
+      "index" : 131,
+      "start" : 73.58500000000001,
+      "text" : "for"
+    },
+    {
+      "end" : 74.385,
+      "index" : 132,
+      "start" : 73.825,
+      "text" : "doubt"
+    },
+    {
+      "end" : 76.025,
+      "index" : 133,
+      "start" : 75.845,
+      "text" : "i"
+    },
+    {
+      "end" : 76.295,
+      "index" : 134,
+      "start" : 76.025,
+      "text" : "shall"
+    },
+    {
+      "end" : 76.685,
+      "index" : 135,
+      "start" : 76.295,
+      "text" : "never"
+    },
+    {
+      "end" : 77.105,
+      "index" : 136,
+      "start" : 76.685,
+      "text" : "forgive"
+    },
+    {
+      "end" : 77.555,
+      "index" : 137,
+      "start" : 77.105,
+      "text" : "myself"
+    },
+    {
+      "end" : 78.005,
+      "index" : 138,
+      "start" : 77.555,
+      "text" : "for"
+    },
+    {
+      "end" : 78.275,
+      "index" : 139,
+      "start" : 78.005,
+      "text" : "this"
+    },
+    {
+      "end" : 79.025,
+      "index" : 140,
+      "start" : 78.275,
+      "text" : "exposure"
+    }
+  ]
+}
