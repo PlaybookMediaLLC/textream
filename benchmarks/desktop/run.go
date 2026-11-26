@@ -73,6 +73,7 @@ var (
 	backendFlag    = flag.String("backend", "auto", "engine: transcribe.cpp backend (auto, cpu, metal)")
 	only           = flag.String("only", "", "idle/render: run only scenarios whose name contains this text")
 	appFlag        = flag.String("app", "", "use this BENCHMARK app binary instead of building one (A/B against another build)")
+	autoplayFrom   = flag.Float64("from", 0, "render: start the highlight this far into the script (0–1)")
 )
 
 func main() {
@@ -808,6 +809,10 @@ func benchRender() Report {
 	sizes := []int{1000, 10000, 50000}
 	fonts := []string{"sans", "dyslexia"}
 	modes := [][]string{{"pinned", "-overlayMode", "pinned"}, {"floating", "-overlayMode", "floating"}, {"fullscreen", "-overlayMode", "fullscreen"}}
+	from := []string{}
+	if *autoplayFrom > 0 {
+		from = []string{"-bench-autoplay-from", fmt.Sprint(*autoplayFrom)}
+	}
 	if screens() > 1 {
 		modes = append(modes, []string{"external", "-overlayMode", "floating", "-externalDisplayMode", "teleprompter"})
 	}
@@ -821,8 +826,8 @@ func benchRender() Report {
 				}
 				var hitch, worst, cpu, hz []float64
 				for i := 0; i < defaultRuns(3); i++ {
-					args := append([]string{"-bench-script", fmt.Sprintf("words:%d", n), "-bench-autoplay", "150", "-bench-probe", yes,
-						"-bench-sample-interval", "5", "-bench-quit-after", fmt.Sprint(*seconds + 3), "-fontFamilyPreset", font}, mode[1:]...)
+					args := append(append([]string{"-bench-script", fmt.Sprintf("words:%d", n), "-bench-autoplay", "150", "-bench-probe", yes,
+						"-bench-sample-interval", "5", "-bench-quit-after", fmt.Sprint(*seconds + 3), "-fontFamilyPreset", font}, mode[1:]...), from...)
 					var run AppRun
 					if *xctrace {
 						run = launchUnderXctrace(args, name, i)
@@ -1262,7 +1267,8 @@ func benchSoak() Report {
 	if c == "" {
 		fail("cannot render the soak case")
 	}
-	period := caseSeconds(c) + 1
+	// The rendered audio is the timeline plus ~1.3 s of lead-in and tail silence.
+	period := caseSeconds(c) + 2
 	loops := int(math.Ceil(mins * 60 / period))
 	// Reaching the last word closes the overlay (by design), which would end the session
 	// after one loop. A closing sentence the audio never speaks keeps it open; it sits
