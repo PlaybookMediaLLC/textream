@@ -955,16 +955,29 @@ struct AudioWaveformProgressView: View {
     let progress: Double // 0.0 to 1.0
     var activeColor: Color = DantePalette(colorScheme: .dark).accent
     var inactiveColor: Color = .white.opacity(0.16)
+    var maxBars: Int? = nil
+
+    private var sampledLevels: [CGFloat] {
+        guard let maxBars, maxBars > 0, levels.count > maxBars else {
+            return levels
+        }
+        let step = Double(levels.count - 1) / Double(max(1, maxBars - 1))
+        return (0..<maxBars).map { i in
+            let index = min(levels.count - 1, Int((Double(i) * step).rounded()))
+            return levels[index]
+        }
+    }
 
     var body: some View {
+        let displayLevels = sampledLevels
         HStack(alignment: .center, spacing: 2) {
-            ForEach(Array(levels.enumerated()), id: \.offset) { index, level in
-                let barProgress = Double(index) / Double(max(1, levels.count - 1))
+            ForEach(Array(displayLevels.enumerated()), id: \.offset) { index, level in
+                let barProgress = Double(index) / Double(max(1, displayLevels.count - 1))
                 let isLit = barProgress <= progress
 
                 RoundedRectangle(cornerRadius: 1.5)
                     .fill(isLit ? activeColor : inactiveColor)
-                    .frame(width: 3, height: max(3, level * 28))
+                    .frame(width: 3, height: max(3, level * 26))
                     .animation(.easeOut(duration: 0.08), value: level)
             }
         }

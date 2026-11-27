@@ -1083,10 +1083,10 @@ struct NotchOverlayView: View {
                         ? Double(effectiveCharCount) / Double(totalCharCount)
                         : 0,
                     activeColor: palette.accent,
-                    inactiveColor: Color.white.opacity(0.16)
+                    inactiveColor: Color.white.opacity(0.16),
+                    maxBars: 18
                 )
-                .frame(width: 80, height: 24)
-                .clipped()
+                .frame(width: 88, height: 24, alignment: .leading)
 
                 notchStatusReadout
 
@@ -1720,10 +1720,10 @@ struct FloatingOverlayView: View {
                         ? Double(effectiveCharCount) / Double(totalCharCount)
                         : 0,
                     activeColor: palette.accent,
-                    inactiveColor: palette.borderStrong
+                    inactiveColor: palette.borderStrong,
+                    maxBars: 26
                 )
-                .frame(width: 140, height: 24)
-                .clipped()
+                .frame(width: 128, height: 24, alignment: .leading)
 
                 floatingStatusReadout
 
