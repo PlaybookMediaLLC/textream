@@ -33,6 +33,7 @@ xcodebuild archive \
   BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
+  DEVELOPMENT_TEAM="" \
   -quiet
 
 echo "🔨 Building for Intel (x86_64)…"
@@ -48,6 +49,7 @@ xcodebuild archive \
   BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
+  DEVELOPMENT_TEAM="" \
   -quiet
 
 ARM_APP="$ARCHIVE_ARM/Products/Applications/$APP_NAME"
