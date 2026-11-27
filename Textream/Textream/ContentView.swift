@@ -12,7 +12,7 @@ import Speech
 import SwiftUI
 import UniformTypeIdentifiers
 
-private enum StudioWorkspaceView: String, CaseIterable {
+enum StudioWorkspaceView: String, CaseIterable {
     case editor
     case library
 }
@@ -39,7 +39,7 @@ struct ContentView: View {
     @State private var settings = NotchSettings.shared
     @State private var library = ScriptLibraryStore.shared
 
-    @State private var workspaceView: StudioWorkspaceView = .editor
+    @State private var workspaceView: StudioWorkspaceView
     @State private var librarySegment: LibrarySegment = .all
     @State private var presetFilter: CreatorPresetID? = nil
     @State private var isSidebarVisible = true
@@ -59,7 +59,15 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showAbout = false
     @State private var showOnboarding = false
-    @State private var showQuickComposer = false
+    @State private var showQuickComposer: Bool
+
+    init(
+        initialWorkspaceView: StudioWorkspaceView = .editor,
+        initialShowQuickComposer: Bool = false
+    ) {
+        _workspaceView = State(initialValue: initialWorkspaceView)
+        _showQuickComposer = State(initialValue: initialShowQuickComposer)
+    }
     @State private var showWPMPopover = false
     @State private var renamingScriptID: UUID?
     @State private var renameDraft: String = ""
