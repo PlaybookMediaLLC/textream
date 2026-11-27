@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.1.0...v1.2.0) (2026-11-27)
+
+
+### Features
+
+* **ui:** studio redesign for snapped-to-notch and floating teleprompter overlays ([#10](https://github.com/PlaybookMediaLLC/textream/issues/10)) ([c655151](https://github.com/PlaybookMediaLLC/textream/commit/c655151754fe4da4a4ebd5f811ba7faf387ea748))
+
 # [1.1.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.0.0...v1.1.0) (2026-11-27)
 
 
