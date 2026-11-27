@@ -58,9 +58,9 @@ enum CaptureIssue: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .cameraPermissionDenied:
-            "Camera access is turned off for Textream."
+            "Camera access is turned off for Dante for Creators."
         case .microphonePermissionDenied:
-            "Microphone access is turned off for Textream."
+            "Microphone access is turned off for Dante for Creators."
         case .cameraUnavailable:
             "A camera is not available on this device."
         case .microphoneUnavailable:
@@ -123,11 +123,11 @@ final class CaptureController: NSObject, AVCaptureAudioDataOutputSampleBufferDel
 
     @ObservationIgnored nonisolated let session = AVCaptureSession()
     @ObservationIgnored nonisolated private let sessionQueue = DispatchQueue(
-        label: "dev.fka.textream.ios.capture.session",
+        label: "com.playbookinteractivemediallc.app.ios.capture.session",
         qos: .userInitiated
     )
     @ObservationIgnored nonisolated private let sampleQueue = DispatchQueue(
-        label: "dev.fka.textream.ios.capture.samples",
+        label: "com.playbookinteractivemediallc.app.ios.capture.samples",
         qos: .userInitiated
     )
     @ObservationIgnored nonisolated(unsafe) private let movieOutput = AVCaptureMovieFileOutput()
@@ -765,7 +765,7 @@ final class CaptureController: NSObject, AVCaptureAudioDataOutputSampleBufferDel
 
     private func beginBackgroundTaskIfNeeded() {
         guard backgroundTaskID == .invalid else { return }
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Finish Textream Recording") {
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Finish Dante Recording") {
             Task { @MainActor [weak self] in self?.endBackgroundTask() }
         }
     }
@@ -818,7 +818,7 @@ final class CaptureController: NSObject, AVCaptureAudioDataOutputSampleBufferDel
     nonisolated private static func makePendingRecordingURL() throws -> URL {
         let baseURL = try pendingRecordingsDirectory(createIfNeeded: true)
         return baseURL
-            .appendingPathComponent("Textream-\(UUID().uuidString)")
+            .appendingPathComponent("Dante-\(UUID().uuidString)")
             .appendingPathExtension("mov")
     }
 

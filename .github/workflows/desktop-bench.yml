@@ -73,7 +73,7 @@ jobs:
         working-directory: benchmarks/desktop
         run: |
           go run run.go fetch-model whisper-base-gguf Q8_0
-          go run run.go fetch-model moonshine-streaming-tiny Q8_0
+          go run run.go fetch-model canary-180m-flash-gguf Q8_0
       - name: Launch metric (XCTApplicationLaunchMetric; the runner needs automation mode, see benchmarks/PLAN.md)
         working-directory: Textream
         run: |

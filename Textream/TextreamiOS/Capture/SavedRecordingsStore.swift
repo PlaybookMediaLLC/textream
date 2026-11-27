@@ -48,7 +48,7 @@ enum SavedRecordingsDeleteError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .photosAccessDenied:
-            "Allow full Photos access to delete Textream recordings."
+            "Allow full Photos access to delete Dante recordings."
         case .recordingsUnavailable:
             "The selected recordings are no longer available in Photos."
         case .deletionFailed(let detail):
@@ -88,7 +88,7 @@ struct SavedRecordingEditWorkspace: Equatable, Sendable {
         in temporaryDirectory: URL = FileManager.default.temporaryDirectory
     ) throws -> Self {
         let directory = temporaryDirectory
-            .appendingPathComponent("TextreamVideoEdits", isDirectory: true)
+            .appendingPathComponent("DanteVideoEdits", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(
             at: directory,
@@ -120,7 +120,7 @@ private final class PhotosSaveBackgroundActivity {
 
     init() {
         identifier = UIApplication.shared.beginBackgroundTask(
-            withName: "Save Textream Edit"
+            withName: "Save Dante Edit"
         ) { [weak self] in
             Task { @MainActor in self?.end() }
         }

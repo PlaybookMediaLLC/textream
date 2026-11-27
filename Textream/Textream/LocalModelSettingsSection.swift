@@ -10,9 +10,85 @@
 //  is shown and the model stays uninstalled: nothing else is substituted.
 //
 
-import SwiftUI
 import AppKit
+import Foundation
+import SwiftUI
 import UniformTypeIdentifiers
+
+enum LocalSpeechHardwareAdvisor {
+    static var isAppleSilicon: Bool {
+        #if arch(arm64)
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    static var physicalMemoryBytes: UInt64 {
+        ProcessInfo.processInfo.physicalMemory
+    }
+
+    static var physicalMemoryGB: Int {
+        max(1, Int((Double(physicalMemoryBytes) / 1_073_741_824.0).rounded()))
+    }
+
+    /// Models above 300 MB require Apple Silicon Metal acceleration to keep up
+    /// with live real-time speech tracking.
+    static let appleSiliconThresholdBytes: UInt64 = 300 * 1024 * 1024
+
+    static func requiresAppleSilicon(for fileSizeBytes: UInt64) -> Bool {
+        fileSizeBytes > appleSiliconThresholdBytes
+    }
+
+    static func estimatedRAMBytes(for fileSizeBytes: UInt64) -> UInt64 {
+        UInt64(Double(fileSizeBytes) * 1.45) + 180 * 1024 * 1024
+    }
+
+    static func formattedRAM(for fileSizeBytes: UInt64) -> String {
+        let ramGB = Double(estimatedRAMBytes(for: fileSizeBytes)) / 1_073_741_824.0
+        if ramGB < 1.0 {
+            let mb = estimatedRAMBytes(for: fileSizeBytes) / (1024 * 1024)
+            return "~\(mb) MB RAM"
+        }
+        return String(format: "~%.1f GB RAM", ramGB)
+    }
+
+    static func benchmarkBadge(for repoID: String) -> (title: String, icon: String)? {
+        switch repoID.lowercased() {
+        case "handy-computer/nemotron-3.5-asr-streaming-0.6b-gguf":
+            return ("Best Live Streaming", "bolt.fill")
+        case "handy-computer/qwen3-asr-1.7b-gguf":
+            return ("Best for Strong Accents", "globe")
+        case "handy-computer/canary-180m-flash-gguf":
+            return ("Fastest Low-Memory", "hare.fill")
+        case "handy-computer/parakeet-unified-en-0.6b-gguf":
+            return ("Fast Live English", "waveform.path")
+        default:
+            return nil
+        }
+    }
+
+    static func memoryWarning(
+        for fileSizeBytes: UInt64,
+        physicalMemoryBytes: UInt64 = Self.physicalMemoryBytes
+    ) -> String? {
+        let estimated = estimatedRAMBytes(for: fileSizeBytes)
+        let comfortableLimit = UInt64(Double(physicalMemoryBytes) * 0.45)
+        guard estimated > comfortableLimit else { return nil }
+        return "May exceed comfortable RAM headroom on this \(max(1, Int((Double(physicalMemoryBytes) / 1_073_741_824.0).rounded()))) GB Mac. Choose a smaller quantization or Canary 180M Flash."
+    }
+
+    static func hardwareWarning(
+        for fileSizeBytes: UInt64,
+        isAppleSilicon: Bool = Self.isAppleSilicon,
+        physicalMemoryBytes: UInt64 = Self.physicalMemoryBytes
+    ) -> String? {
+        if !isAppleSilicon && requiresAppleSilicon(for: fileSizeBytes) {
+            return "Requires Apple Silicon for real-time speed. Use Apple Speech or a lightweight model on Intel Macs."
+        }
+        return memoryWarning(for: fileSizeBytes, physicalMemoryBytes: physicalMemoryBytes)
+    }
+}
 
 struct LocalModelSettingsSection: View {
     @Bindable var settings: NotchSettings
@@ -30,6 +106,21 @@ struct LocalModelSettingsSection: View {
                     .controlSize(.small)
             }
 
+            if !LocalSpeechHardwareAdvisor.isAppleSilicon {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "cpu")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.orange)
+                    Text("Intel Mac detected: Apple Speech, Classic, and Voice-Activated modes are fully supported. Heavy local neural models require Apple Silicon for real-time speed.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            }
+
             HStack(spacing: 6) {
                 Circle()
                     .fill(statusColor)
@@ -42,7 +133,7 @@ struct LocalModelSettingsSection: View {
             }
 
             if store.models.isEmpty {
-                Text("No models installed. Open Manage Models to download one from Hugging Face.")
+                Text("No models installed. Open Manage Models to download an on-device model from Hugging Face.")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             } else {
@@ -55,7 +146,7 @@ struct LocalModelSettingsSection: View {
                 .labelsHidden()
             }
 
-            Text("Models marked Live stream words as you speak. Other models update the transcript in batches.")
+            Text("Models marked Live stream words as you speak. All local inference stays 100% on your Mac.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
         }
@@ -429,12 +520,19 @@ private struct CatalogModelRow: View {
     private var isInstalled: Bool { store.model(named: file.filename) != nil }
     private var isActive: Bool { selectedFilename == file.filename }
     private var state: ModelDownloadState? { downloads.state(for: file.filename) }
+    private var isBlockedOnIntel: Bool {
+        !LocalSpeechHardwareAdvisor.isAppleSilicon
+            && LocalSpeechHardwareAdvisor.requiresAppleSilicon(for: file.sizeBytes)
+    }
+    private var hardwareWarning: String? {
+        LocalSpeechHardwareAdvisor.hardwareWarning(for: file.sizeBytes)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 5) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         Text(model.name)
                             .font(.headline)
                         modelBadges
@@ -475,7 +573,18 @@ private struct CatalogModelRow: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Label(LocalSpeechHardwareAdvisor.formattedRAM(for: file.sizeBytes), systemImage: "memorychip")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                 Spacer()
+            }
+
+            if let hardwareWarning {
+                Label(hardwareWarning, systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             progressArea
@@ -484,6 +593,14 @@ private struct CatalogModelRow: View {
 
     @ViewBuilder
     private var modelBadges: some View {
+        if let badge = LocalSpeechHardwareAdvisor.benchmarkBadge(for: model.repoID) {
+            Label(badge.title, systemImage: badge.icon)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.accentColor)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 2)
+                .background(Color.accentColor.opacity(0.12), in: Capsule())
+        }
         if model.capabilities.streaming {
             Label("Live", systemImage: "waveform")
                 .foregroundStyle(.tint)
@@ -589,6 +706,13 @@ private struct CatalogModelRow: View {
                 Button("Use") { onSelect() }
                     .controlSize(.small)
             }
+        } else if isBlockedOnIntel {
+            Text("Apple Silicon")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.06), in: Capsule())
         } else {
             Button(state == nil ? "Download" : "Retry") { onDownload() }
                 .controlSize(.small)

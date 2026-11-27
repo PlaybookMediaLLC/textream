@@ -14,6 +14,7 @@ struct OuterDisplayPromptAccessory<Prompt: View>: ViewModifier {
     let prompt: () -> Prompt
 
     func body(content: Content) -> some View {
+        #if DANTE_ENABLE_IOS27_DUO
         if #available(iOS 27.1, *) {
             content.sceneAccessory {
                 CameraCaptureAccessory(isEnabled: $isEnabled) {
@@ -24,6 +25,9 @@ struct OuterDisplayPromptAccessory<Prompt: View>: ViewModifier {
         } else {
             content
         }
+        #else
+        content
+        #endif
     }
 }
 

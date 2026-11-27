@@ -54,12 +54,24 @@ final class LocalSpeechModelStore {
     private(set) var models: [LocalSpeechModel] = []
     var lastError: String?
 
-    static var modelsDirectory: URL {
+    nonisolated static var modelsDirectory: URL {
         #if BENCHMARK
         if let directory = Bench.modelsDirectory { return URL(fileURLWithPath: directory, isDirectory: true) }
         #endif
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("Textream/Models", isDirectory: true)
+        return base.appendingPathComponent("Dante for Creators/Models", isDirectory: true)
+    }
+
+    /// Creates the models directory if needed and excludes large downloaded
+    /// GGUF weights from Time Machine / iCloud backups (Guideline 2.23).
+    @discardableResult
+    nonisolated static func ensureModelsDirectory() throws -> URL {
+        var directory = modelsDirectory
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? directory.setResourceValues(values)
+        return directory
     }
 
     private init() {
@@ -69,8 +81,7 @@ final class LocalSpeechModelStore {
     /// Re-scan the models directory for `.bin` / `.gguf` files.
     func refresh() {
         let fileManager = FileManager.default
-        let directory = Self.modelsDirectory
-        try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = (try? Self.ensureModelsDirectory()) ?? Self.modelsDirectory
 
         let keys: [URLResourceKey] = [.isRegularFileKey, .fileSizeKey]
         let entries = (try? fileManager.contentsOfDirectory(
@@ -102,8 +113,7 @@ final class LocalSpeechModelStore {
         let ext = sourceURL.pathExtension.lowercased()
         guard ext == "bin" || ext == "gguf" else { throw LocalModelError.unsupportedFileType }
 
-        let directory = Self.modelsDirectory
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = try Self.ensureModelsDirectory()
         let destination = directory.appendingPathComponent(sourceURL.lastPathComponent)
         if FileManager.default.fileExists(atPath: destination.path) {
             throw LocalModelError.alreadyExists(sourceURL.lastPathComponent)
@@ -124,8 +134,7 @@ final class LocalSpeechModelStore {
     }
 
     func revealInFinder() {
-        let directory = Self.modelsDirectory
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = (try? Self.ensureModelsDirectory()) ?? Self.modelsDirectory
         NSWorkspace.shared.activateFileViewerSelecting([directory])
     }
 

@@ -1,5 +1,5 @@
 // Command run drives the desktop benchmark suite (../PLAN.md). It builds a BENCHMARK copy of
-// the app (bundle id dev.fka.textream.bench, never shipped), launches it with -bench-*
+// the app (bundle id com.playbookinteractivemediallc.app.bench, never shipped), launches it with -bench-*
 // arguments, reads its event log, and writes results/<host>/<bench>.{md,json}.
 //
 //	go run run.go build                         # app + harness + engine tool into .cache/
@@ -94,7 +94,7 @@ func main() {
 	root = filepath.Clean(filepath.Join(here, "..", ".."))
 	cacheDir = filepath.Join(here, ".cache")
 	must(os.MkdirAll(cacheDir, 0o755))
-	appBinary = filepath.Join(cacheDir, "dd", "Build", "Products", "Release", "Textream.app", "Contents", "MacOS", "Textream")
+	appBinary = filepath.Join(cacheDir, "dd", "Build", "Products", "Release", "Dante.app", "Contents", "MacOS", "Dante")
 	if *appFlag != "" {
 		appBinary = *appFlag
 		*skipBuild = true
@@ -415,7 +415,7 @@ func buildApp() {
 		"-scheme", "Textream", "-configuration", "Release", "-destination", "platform=macOS",
 		"-derivedDataPath", filepath.Join(cacheDir, "dd"),
 		"CODE_SIGNING_ALLOWED=NO", "SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) BENCHMARK",
-		"PRODUCT_BUNDLE_IDENTIFIER=dev.fka.textream.bench", "build")
+		"PRODUCT_BUNDLE_IDENTIFIER=com.playbookinteractivemediallc.app.bench", "build")
 	var out bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &out
 	if err := cmd.Run(); err != nil {
@@ -546,7 +546,7 @@ func launchApp(args []string, timeout time.Duration, during func(pid int, logPat
 	must(os.MkdirAll(logDir, 0o755))
 	logPath := filepath.Join(logDir, fmt.Sprintf("%s-%03d.jsonl", time.Now().Format("150405"), runCounter))
 	// Fresh preferences every run: the bench bundle id never shares the user's.
-	_ = exec.Command("defaults", "delete", "dev.fka.textream.bench").Run()
+	_ = exec.Command("defaults", "delete", "com.playbookinteractivemediallc.app.bench").Run()
 	all := append([]string{"-bench-log", logPath, "-NSQuitAlwaysKeepsWindows", "NO", "-ApplePersistenceIgnoreState", yes}, args...)
 	cmd := exec.Command(appBinary, all...)
 	var stderr bytes.Buffer
@@ -868,7 +868,7 @@ func launchUnderXctrace(args []string, name string, i int) AppRun {
 	traces := filepath.Join(cacheDir, "traces")
 	must(os.MkdirAll(traces, 0o755))
 	logPath := filepath.Join(cacheDir, "logs", fmt.Sprintf("%s-%d.jsonl", name, i))
-	_ = exec.Command("defaults", "delete", "dev.fka.textream.bench").Run()
+	_ = exec.Command("defaults", "delete", "com.playbookinteractivemediallc.app.bench").Run()
 	caffeinate := exec.Command("caffeinate", "-d", "-i", "-u")
 	_ = caffeinate.Start()
 	defer func() { _ = caffeinate.Process.Kill() }()

@@ -1201,48 +1201,6 @@
       "recommended": false
     },
     {
-      "repo_id": "handy-computer/moonshine-streaming-tiny-gguf",
-      "revision": "85ddff612fa3a2cf40b2f745abcfa90ef82f293b",
-      "name": "Moonshine Streaming Tiny",
-      "description": "English speech-to-text with streaming.",
-      "architecture": "moonshine_streaming",
-      "parameters": "44M",
-      "base_model": "UsefulSensors/moonshine-streaming-tiny",
-      "license": "mit",
-      "languages": [
-        "en"
-      ],
-      "capabilities": {
-        "streaming": true,
-        "translate": false,
-        "lang_detect": false
-      },
-      "speed_score": 100,
-      "accuracy_score": 74,
-      "default_quant": "Q8_0",
-      "files": [
-        {
-          "filename": "moonshine-streaming-tiny-Q8_0.gguf",
-          "quant": "Q8_0",
-          "size_bytes": 50462816,
-          "sha256": "930e4622ad3a24158b91406c30c977fa6a26b34cb32d6ac3e57cfb23383a869e"
-        },
-        {
-          "filename": "moonshine-streaming-tiny-F16.gguf",
-          "quant": "F16",
-          "size_bytes": 89784416,
-          "sha256": "cfe64aacd68b0c4244369c04dab9828e324f005e4799af5ec33bbc1d37ebd681"
-        },
-        {
-          "filename": "moonshine-streaming-tiny-F32.gguf",
-          "quant": "F32",
-          "size_bytes": 177817696,
-          "sha256": "38ad83ec7a9db0b23be02f71fea1615ef8403eb28e79a915668d26026415d5f6"
-        }
-      ],
-      "recommended": false
-    },
-    {
       "repo_id": "handy-computer/moonshine-streaming-small-gguf",
       "revision": "41444173ed8210852a883e046fadcfba3e7bfbae",
       "name": "Moonshine Streaming Small",

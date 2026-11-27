@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct RootView: View {
@@ -77,6 +78,12 @@ struct RootView: View {
         .sheet(isPresented: $model.isShowingSettings) {
             SettingsView(model: model)
         }
+        .sheet(isPresented: $model.isShowingLibrary) {
+            ScriptLibrarySheet(model: model)
+        }
+        .sheet(isPresented: $model.isShowingOnboarding) {
+            CreatorOnboardingSheet(model: model)
+        }
         .fullScreenCover(isPresented: $isShowingExpandedScriptEditor) {
             ExpandedScriptEditor(
                 model: model,
@@ -113,31 +120,38 @@ struct RootView: View {
                 currentLocaleIdentifier: localeIdentifier
             )
         }
+        .onAppear {
+            let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            if !isRunningTests && !model.hasCompletedOnboarding {
+                model.isShowingOnboarding = true
+            }
+        }
     }
 
     private var header: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 10) {
                         headerLogo
                         headerTitle
                         Spacer(minLength: 8)
+                        libraryButton
                         settingsButton
                     }
 
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("The teleprompter")
+                        Text("Smart teleprompter")
                             .font(.system(size: 17, weight: .medium))
                             .lineLimit(1)
-                        Text("that follows you")
+                        Text("for creators")
                             .font(.system(size: 17, weight: .medium))
                             .lineLimit(1)
                     }
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("The teleprompter that follows you")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Smart teleprompter for creators")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
@@ -154,6 +168,7 @@ struct RootView: View {
                     .layoutPriority(1)
 
                     Spacer()
+                    libraryButton
                     settingsButton
                 }
             }
@@ -161,7 +176,7 @@ struct RootView: View {
     }
 
     private var headerLogo: some View {
-        Image("TextreamLogo")
+        Image("DanteLogo")
             .resizable()
             .scaledToFit()
             .frame(width: 52, height: 52)
@@ -169,14 +184,28 @@ struct RootView: View {
     }
 
     private var headerTitle: some View {
-        Text("Textream")
+        Text(DanteAppLinks.shortName)
             .font(.system(size: 24, weight: .bold, design: .rounded))
     }
 
     private var headerTagline: some View {
-        Text("The teleprompter that follows you")
+        Text("Smart teleprompter for creators")
             .font(.caption.weight(.medium))
             .foregroundStyle(.secondary)
+    }
+
+    private var libraryButton: some View {
+        Button {
+            isInlineScriptEditorFocused = false
+            model.isShowingLibrary = true
+        } label: {
+            Image(systemName: "books.vertical.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(width: 38, height: 38)
+        }
+        .buttonStyle(.glass)
+        .accessibilityLabel("Script library")
+        .accessibilityIdentifier("scriptLibraryButton")
     }
 
     private var settingsButton: some View {
@@ -193,14 +222,37 @@ struct RootView: View {
     }
 
     private var editorPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Script", systemImage: "text.alignleft")
-                    .font(.headline)
-                Spacer()
-                Text("\(model.normalizedScript.words.count) words")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+        let metrics = model.scriptMetrics
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Button {
+                    isInlineScriptEditorFocused = false
+                    model.isShowingLibrary = true
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "text.alignleft")
+                            .foregroundStyle(Color.accentColor)
+                        Text(model.activeScript?.displayTitle ?? "Script")
+                            .font(.headline)
+                            .lineLimit(1)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                Spacer(minLength: 4)
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(metrics.summaryLabel)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    if let targetSeconds = model.activePreset?.targetDurationSeconds,
+                       metrics.spokenWordCount > 0 {
+                        let fits = metrics.estimatedSeconds <= targetSeconds
+                        Text(fits ? "Fits \(targetSeconds)s" : "+\(metrics.estimatedSeconds - targetSeconds)s over \(targetSeconds)s")
+                            .font(.caption2.monospacedDigit().weight(.semibold))
+                            .foregroundStyle(fits ? .green : .orange)
+                    }
+                }
 
                 Button {
                     isInlineScriptEditorFocused = false
@@ -237,10 +289,10 @@ struct RootView: View {
                 accessibilityLabel: "Script",
                 accessibilityIdentifier: "scriptEditor"
             )
-                .padding(2)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(2)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Text("Use [brackets] for stage directions. Textream displays them but skips them while following your voice.")
+            Text("Use [brackets] for stage directions. Dante displays them but skips them while following your voice.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -258,6 +310,40 @@ struct RootView: View {
 
     private var setupPanel: some View {
         VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("CREATOR PRESET")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.secondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(CreatorPreset.all) { preset in
+                            let isSelected = model.activePreset?.id == preset.id
+                            Button {
+                                withAnimation(.snappy) {
+                                    model.apply(preset: preset)
+                                }
+                            } label: {
+                                Label(preset.shortName, systemImage: preset.systemImage)
+                                    .font(.caption.weight(.semibold))
+                                    .padding(.horizontal, 11)
+                                    .padding(.vertical, 7)
+                                    .background(
+                                        isSelected ? Color.accentColor.opacity(0.28) : Color.white.opacity(0.08),
+                                        in: Capsule()
+                                    )
+                                    .overlay {
+                                        Capsule()
+                                            .stroke(isSelected ? Color.accentColor : Color.white.opacity(0.12), lineWidth: 1)
+                                    }
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("creatorPreset_\(preset.id.rawValue)")
+                        }
+                    }
+                }
+            }
+
             Picker("Session", selection: $model.sessionMode) {
                 ForEach(SessionMode.allCases) { mode in
                     Label(mode.label, systemImage: mode.icon).tag(mode)
@@ -296,7 +382,7 @@ struct RootView: View {
                             .foregroundStyle(.secondary)
                     }
                     Slider(value: $model.scrollSpeed, in: 0.5...8, step: 0.5)
-                        .tint(.indigo)
+                        .tint(Color.accentColor)
                         .accessibilityIdentifier("scrollSpeedSlider")
                 }
             }
@@ -309,7 +395,7 @@ struct RootView: View {
                 .font(.subheadline.weight(.medium))
             }
             .disabled(model.sessionMode == .record)
-            .tint(.indigo)
+            .tint(Color.accentColor)
             .accessibilityIdentifier("cameraToggle")
 
             if model.sessionMode == .read {
@@ -323,7 +409,7 @@ struct RootView: View {
                         )
                         .font(.subheadline.weight(.medium))
                     }
-                    .tint(.indigo)
+                    .tint(Color.accentColor)
                     .accessibilityIdentifier("mirrorModeToggle")
 
                     if model.mirrorEnabled {
@@ -343,7 +429,6 @@ struct RootView: View {
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
-
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -422,7 +507,7 @@ struct RootView: View {
             .frame(maxWidth: .infinity, minHeight: RootFloatingActionLayout.buttonMinimumHeight)
         }
         .buttonStyle(.glassProminent)
-        .tint(.indigo)
+        .tint(Color.accentColor)
         .disabled(!model.canStart)
         .accessibilityIdentifier("startSessionButton")
     }
@@ -455,7 +540,7 @@ struct RootView: View {
         if model.followMode == mode {
             button
                 .buttonStyle(.glassProminent)
-                .tint(.indigo)
+                .tint(Color.accentColor)
         } else {
             button
                 .buttonStyle(.glass)
@@ -489,8 +574,21 @@ private struct ExpandedScriptEditor: View {
     }
 
     var body: some View {
+        let metrics = ScriptMetrics.measure(text: draft, wordsPerMinute: model.activeTargetWPM)
         NavigationStack {
             VStack(spacing: 8) {
+                HStack {
+                    Text(metrics.summaryLabel)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text("\(model.activeTargetWPM) WPM")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 4)
+
                 if let suggestion = languageSuggestions.suggestion {
                     LanguageSuggestionBanner(
                         suggestion: suggestion,
@@ -513,23 +611,23 @@ private struct ExpandedScriptEditor: View {
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-                .background(AppBackground().ignoresSafeArea())
-                .navigationTitle("Edit Script")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") {
-                            commitDraft()
-                            dismiss()
-                        }
-                            .buttonStyle(.glassProminent)
+            .background(AppBackground().ignoresSafeArea())
+            .navigationTitle(model.activeScript?.displayTitle ?? "Edit Script")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        commitDraft()
+                        dismiss()
                     }
-
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") { isEditorFocused = false }
-                    }
+                    .buttonStyle(.glassProminent)
                 }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { isEditorFocused = false }
+                }
+            }
         }
         .preferredColorScheme(.dark)
         .task {
@@ -566,19 +664,19 @@ private struct AppBackground: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(red: 0.035, green: 0.035, blue: 0.055), .black],
+                colors: [Color(red: 0.055, green: 0.040, blue: 0.032), .black],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             Circle()
-                .fill(.indigo.opacity(0.22))
+                .fill(Color.accentColor.opacity(0.20))
                 .frame(width: 360, height: 360)
-                .blur(radius: 90)
+                .blur(radius: 95)
                 .offset(x: -170, y: -270)
             Circle()
-                .fill(.blue.opacity(0.14))
+                .fill(Color.orange.opacity(0.12))
                 .frame(width: 300, height: 300)
-                .blur(radius: 100)
+                .blur(radius: 105)
                 .offset(x: 190, y: 320)
         }
     }

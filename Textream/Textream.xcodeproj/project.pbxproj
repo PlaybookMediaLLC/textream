@@ -35,8 +35,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		446966B42F37E47300AF141F /* Textream.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Textream.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A10000000000000000000001 /* TextreamiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TextreamiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		446966B42F37E47300AF141F /* Dante.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dante.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000001 /* Dante.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dante.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000002 /* TextreamiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TextreamiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B30000000000000000000001 /* TextreamTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TextreamTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B30000000000000000000002 /* TextreamUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TextreamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,8 +131,8 @@
 		446966B52F37E47300AF141F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				446966B42F37E47300AF141F /* Textream.app */,
-				A10000000000000000000001 /* TextreamiOS.app */,
+				446966B42F37E47300AF141F /* Dante.app */,
+				A10000000000000000000001 /* Dante.app */,
 				A10000000000000000000002 /* TextreamiOSTests.xctest */,
 				B30000000000000000000001 /* TextreamTests.xctest */,
 				B30000000000000000000002 /* TextreamUITests.xctest */,
@@ -163,8 +163,8 @@
 			packageProductDependencies = (
 				A20000000000000000000002 /* TranscribeCpp */,
 			);
-			productName = Textream;
-			productReference = 446966B42F37E47300AF141F /* Textream.app */;
+			productName = Dante;
+			productReference = 446966B42F37E47300AF141F /* Dante.app */;
 			productType = "com.apple.product-type.application";
 		};
 		A1000000000000000000000B /* TextreamiOS */ = {
@@ -186,8 +186,8 @@
 			name = TextreamiOS;
 			packageProductDependencies = (
 			);
-			productName = TextreamiOS;
-			productReference = A10000000000000000000001 /* TextreamiOS.app */;
+			productName = Dante;
+			productReference = A10000000000000000000001 /* Dante.app */;
 			productType = "com.apple.product-type.application";
 		};
 		A1000000000000000000000C /* TextreamiOSTests */ = {
@@ -446,7 +446,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -513,7 +513,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -545,29 +545,30 @@
 				CODE_SIGN_ENTITLEMENTS = Textream/Textream.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Textream;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Fatih Kadir Akın";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Textream lets nearby devices view or control your teleprompter over your local network.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Textream needs microphone access to listen to your speech and highlight words as you read them.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Textream uses Apple's speech-recognition service to follow along as you read and highlight the current word. Microphone audio may be processed by Apple.";
+				INFOPLIST_KEY_CFBundleDisplayName = "Dante for Creators";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Playbook Interactive Media LLC";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Dante for Creators lets nearby devices view or control your teleprompter over your local network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Dante for Creators needs microphone access to listen to your speech and highlight words as you read them.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Dante for Creators uses Apple's speech-recognition service to follow along as you read and highlight the current word. Microphone audio may be processed by Apple.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.8.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app;
+				PRODUCT_MODULE_NAME = Textream;
+				PRODUCT_NAME = Dante;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -586,29 +587,30 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = T44K9669GA;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Textream;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Fatih Kadir Akın";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Textream lets nearby devices view or control your teleprompter over your local network.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Textream needs microphone access to listen to your speech and highlight words as you read them.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Textream uses Apple's speech-recognition service to follow along as you read and highlight the current word. Microphone audio may be processed by Apple.";
+				INFOPLIST_KEY_CFBundleDisplayName = "Dante for Creators";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Playbook Interactive Media LLC";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Dante for Creators lets nearby devices view or control your teleprompter over your local network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Dante for Creators needs microphone access to listen to your speech and highlight words as you read them.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Dante for Creators uses Apple's speech-recognition service to follow along as you read and highlight the current word. Microphone audio may be processed by Apple.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.8.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app;
+				PRODUCT_MODULE_NAME = Textream;
+				PRODUCT_NAME = Dante;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -654,7 +656,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -686,30 +688,30 @@
 				CODE_SIGN_ENTITLEMENTS = Textream/Textream.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Textream;
+				INFOPLIST_KEY_CFBundleDisplayName = "Dante for Creators";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Fatih Kadir Akın";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Textream lets nearby devices view or control your teleprompter over your local network.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Textream needs microphone access to listen to your speech and highlight words as you read them.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Textream uses Apple's speech-recognition service to follow along as you read and highlight the current word. Microphone audio may be processed by Apple.";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Playbook Interactive Media LLC";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Dante for Creators lets nearby devices view or control your teleprompter over your local network.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Dante for Creators needs microphone access to listen to your speech and highlight words as you read them.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Dante for Creators uses Apple's speech-recognition service to follow along as you read and highlight the current word. Microphone audio may be processed by Apple.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.8.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app;
+				PRODUCT_MODULE_NAME = Textream;
+				PRODUCT_NAME = Dante;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APP_STORE $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -727,22 +729,24 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "TextreamiOS-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Textream;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_CFBundleDisplayName = Dante;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Playbook Interactive Media LLC";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app;
+				PRODUCT_MODULE_NAME = TextreamiOS;
+				PRODUCT_NAME = Dante;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -764,22 +768,24 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "TextreamiOS-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Textream;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_CFBundleDisplayName = Dante;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Playbook Interactive Media LLC";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app;
+				PRODUCT_MODULE_NAME = TextreamiOS;
+				PRODUCT_NAME = Dante;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -801,26 +807,29 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "TextreamiOS-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Textream;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_CFBundleDisplayName = Dante;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Playbook Interactive Media LLC";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app;
+				PRODUCT_MODULE_NAME = TextreamiOS;
+				PRODUCT_NAME = Dante;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APP_STORE $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -837,7 +846,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -846,7 +855,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.iosTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.iosTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -856,7 +865,7 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TextreamiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TextreamiOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dante.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dante";
 			};
 			name = Debug;
 		};
@@ -866,7 +875,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -875,7 +884,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.iosTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.iosTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -885,7 +894,7 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TextreamiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TextreamiOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dante.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dante";
 			};
 			name = Release;
 		};
@@ -895,7 +904,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -904,7 +913,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.iosTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.iosTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -914,7 +923,7 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TextreamiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TextreamiOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dante.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dante";
 			};
 			name = AppStore;
 		};
@@ -924,17 +933,17 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Textream.app/Contents/MacOS/Textream";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dante.app/Contents/MacOS/Dante";
 			};
 			name = Debug;
 		};
@@ -944,17 +953,17 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Textream.app/Contents/MacOS/Textream";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dante.app/Contents/MacOS/Dante";
 			};
 			name = Release;
 		};
@@ -964,17 +973,17 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Textream.app/Contents/MacOS/Textream";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dante.app/Contents/MacOS/Dante";
 			};
 			name = AppStore;
 		};
@@ -983,11 +992,11 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -1002,11 +1011,11 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -1021,11 +1030,11 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJA7656U34;
+				DEVELOPMENT_TEAM = T44K9669GA;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.fka.textream.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.playbookinteractivemediallc.app.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;

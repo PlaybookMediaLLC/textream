@@ -62,7 +62,7 @@ nonisolated final class LocalSpeechEngine: @unchecked Sendable {
         }
     }
 
-    private let queue = DispatchQueue(label: "dev.fka.textream.local-speech-engine", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.playbookinteractivemediallc.app.local-speech-engine", qos: .userInitiated)
     private let bufferLock = NSLock()
     /// Protected by `bufferLock`; audio, stop state, and callbacks stay with
     /// their owning session even when another session is queued behind it.

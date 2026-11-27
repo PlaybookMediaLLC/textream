@@ -512,7 +512,7 @@ class NotchOverlayController: NSObject {
                 .idleSystemSleepDisabled,
                 .idleDisplaySleepDisabled
             ],
-            reason: "Textream teleprompter reading session"
+            reason: "Dante for Creators reading session"
         )
     }
 
@@ -992,13 +992,26 @@ struct NotchOverlayView: View {
                 .clipped()
 
                 if let error = speechRecognizer.error {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.red.opacity(0.9))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .help(error)
+                    HStack(spacing: 6) {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.red.opacity(0.9))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .help(error)
+                        if speechRecognizer.permissionSettingsURL != nil {
+                            Button("Settings") {
+                                speechRecognizer.openPermissionSettings()
+                            }
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(.white.opacity(0.2), in: Capsule())
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 } else if listeningMode == .wordTracking,
                           NotchSettings.shared.showLastSpokenWords {
                     Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))
@@ -1509,13 +1522,26 @@ struct FloatingOverlayView: View {
                 .frame(width: 160, height: 24)
 
                 if let error = speechRecognizer.error {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.red.opacity(0.9))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .help(error)
+                    HStack(spacing: 6) {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.red.opacity(0.9))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .help(error)
+                        if speechRecognizer.permissionSettingsURL != nil {
+                            Button("Settings") {
+                                speechRecognizer.openPermissionSettings()
+                            }
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(.white.opacity(0.2), in: Capsule())
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 } else if listeningMode == .wordTracking,
                           NotchSettings.shared.showLastSpokenWords {
                     Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))

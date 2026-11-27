@@ -9,7 +9,7 @@ extension UIApplication: IdleTimerControlling {}
 
 /// Keeps the display awake while one or more fullscreen prompter sessions are open.
 ///
-/// The coordinator remembers the process-wide value that existed before Textream's
+/// The coordinator remembers the process-wide value that existed before Dante's
 /// first session opened and restores it only after the final session closes. This
 /// makes repeated SwiftUI appearances and overlapping scenes safe.
 @MainActor

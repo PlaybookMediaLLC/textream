@@ -1,3 +1,4 @@
+import Foundation
 import Speech
 import SwiftUI
 
@@ -11,7 +12,7 @@ struct SettingsView: View {
             Form {
                 Section {
                     Toggle("Mirror prompt in landscape", isOn: $model.mirrorEnabled)
-                        .tint(.indigo)
+                        .tint(Color.accentColor)
                         .accessibilityIdentifier("settingsMirrorModeToggle")
 
                     if model.mirrorEnabled {
@@ -81,7 +82,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Opacity")
                         Slider(value: $model.overlayOpacity, in: 0.3...0.8, step: 0.05)
-                            .tint(.indigo)
+                            .tint(Color.accentColor)
                         Text("\(Int(model.overlayOpacity * 100))%")
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(.secondary)
@@ -105,28 +106,28 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("Speech")
+                    Text("Speech & Smart Follow")
                 } footer: {
-                    Text("Word Tracking uses Apple Speech Recognition. Classic mode works without microphone or speech access.")
+                    Text("Smart Follow uses Apple Speech Recognition to recover naturally when you pause, ad-lib, skip, or re-read lines. Classic mode works without microphone or speech access.")
                 }
 
                 Section("About") {
                     VStack(spacing: 12) {
-                        Image("TextreamLogo")
+                        Image("DanteLogo")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 100, height: 100)
                             .accessibilityHidden(true)
 
                         VStack(spacing: 3) {
-                            Text("Textream")
+                            Text(DanteAppLinks.appName)
                                 .font(.title3.bold())
-                            Text(TextreamAppInfo.versionLabel)
+                            Text(DanteAppInfo.versionLabel)
                                 .font(.caption.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }
 
-                        Text("A free, open-source teleprompter that highlights your script in real-time as you speak.")
+                        Text("A studio-grade teleprompter with Smart Follow speech tracking, creator format presets, and presenter-only camera recording.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -137,42 +138,47 @@ struct SettingsView: View {
                     .accessibilityElement(children: .combine)
 
                     AboutLink(
-                        title: "Textream for Mac",
-                        subtitle: "Available on the Mac App Store",
+                        title: "Dante for Creators on Mac",
+                        subtitle: "Included with Universal Purchase",
                         systemImage: "macbook",
-                        destination: TextreamAppInfo.macAppStoreURL,
-                        accessibilityHint: "Opens the Textream for Mac App Store page"
+                        destination: DanteAppInfo.macAppStoreURL,
+                        accessibilityHint: "Opens Dante for Creators on the App Store"
                     )
 
                     AboutLink(
-                        title: "GitHub",
-                        systemImage: "chevron.left.forwardslash.chevron.right",
-                        destination: URL(string: "https://github.com/f/textream")!
-                    )
-
-                    AboutLink(
-                        title: "Privacy",
+                        title: "Privacy Policy",
                         systemImage: "hand.raised.fill",
-                        destination: URL(string: "https://textream.net/privacy.html")!
+                        destination: DanteAppLinks.privacyURL
                     )
 
                     AboutLink(
                         title: "Support",
                         systemImage: "questionmark.circle.fill",
-                        destination: URL(string: "https://textream.net/support.html")!
+                        destination: DanteAppLinks.supportURL
                     )
 
+                    Button {
+                        dismiss()
+                        Task { @MainActor in
+                            await Task.yield()
+                            model.isShowingOnboarding = true
+                        }
+                    } label: {
+                        Label("Creator Setup Guide", systemImage: "sparkles")
+                    }
+                    .foregroundStyle(.primary)
+
                     NavigationLink {
-                        OpenDyslexicLicenseView()
+                        AcknowledgementsView()
                     } label: {
                         Label("Acknowledgements", systemImage: "doc.text.fill")
                     }
-                    .accessibilityHint("Shows the OpenDyslexic font license")
+                    .accessibilityHint("Shows open-source licenses and attributions")
 
                     VStack(spacing: 4) {
-                        Text("Made by Fatih Kadir Akin")
+                        Text(DanteAppLinks.companyName)
                             .font(.footnote.weight(.medium))
-                        Text("Original idea by Semih Kışlar")
+                        Text(DanteAppLinks.copyrightNotice)
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
@@ -229,32 +235,8 @@ struct SettingsView: View {
     }
 }
 
-struct OpenDyslexicLicenseView: View {
-    private var licenseText: String {
-        guard let url = Bundle.main.url(
-            forResource: "OpenDyslexic-OFL",
-            withExtension: "txt"
-        ), let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return "The OpenDyslexic font is distributed under the SIL Open Font License 1.1."
-        }
-        return text
-    }
-
-    var body: some View {
-        ScrollView {
-            Text(licenseText)
-                .font(.footnote.monospaced())
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-        }
-        .navigationTitle("OpenDyslexic License")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-enum TextreamAppInfo {
-    static let macAppStoreURL = URL(string: "https://apps.apple.com/app/textream/id6800061488")!
+enum DanteAppInfo {
+    static let macAppStoreURL = DanteAppLinks.appStoreURL
 
     static var versionLabel: String {
         versionLabel(from: Bundle.main.infoDictionary ?? [:])

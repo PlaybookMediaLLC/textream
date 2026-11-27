@@ -4,18 +4,20 @@
 <dict>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
+	<key>CFBundleName</key>
+	<string>Dante for Creators</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>Textream Document</string>
+			<string>Dante Script</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>dev.fka.textream.document</string>
+				<string>com.playbookinteractivemediallc.app.document</string>
 			</array>
 		</dict>
 	</array>
@@ -28,14 +30,14 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Textream Document</string>
+			<string>Dante Script</string>
 			<key>UTTypeIdentifier</key>
-			<string>dev.fka.textream.document</string>
+			<string>com.playbookinteractivemediallc.app.document</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
-					<string>textream</string>
+					<string>dante</string>
 				</array>
 			</dict>
 		</dict>
@@ -44,10 +46,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>dev.fka.textream</string>
+			<string>com.playbookinteractivemediallc.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>textream</string>
+				<string>dante</string>
 			</array>
 		</dict>
 	</array>
@@ -57,12 +59,12 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Read in Textream</string>
+				<string>Read in Dante for Creators</string>
 			</dict>
 			<key>NSMessage</key>
-			<string>readInTextream</string>
+			<string>readInDante</string>
 			<key>NSPortName</key>
-			<string>Textream</string>
+			<string>Dante</string>
 			<key>NSSendTypes</key>
 			<array>
 				<string>public.utf8-plain-text</string>

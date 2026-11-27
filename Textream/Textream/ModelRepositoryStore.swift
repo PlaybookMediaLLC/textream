@@ -100,7 +100,7 @@ final class ModelRepositoryStore {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             try encoder.encode(Root(models: models)).write(to: url, options: .atomic)
         } catch {
-            NSLog("Textream: could not save custom model repositories: \(error.localizedDescription)")
+            NSLog("Dante for Creators: could not save custom model repositories: \(error.localizedDescription)")
         }
     }
 }
@@ -349,11 +349,11 @@ enum ModelRepositoryError: LocalizedError {
         case .notFound(let value):
             return "\(value) does not exist on Hugging Face."
         case .notPublic(let value):
-            return "\(value) is private or gated, so Textream cannot download from it."
+            return "\(value) is private or gated, so Dante for Creators cannot download from it."
         case .notReachable(let value):
             return "\(value) could not be read. Check the spelling, and note that private and gated repos are not supported."
         case .noUsableFiles(let value):
-            return "\(value) has no GGUF model files Textream can run."
+            return "\(value) has no GGUF model files Dante for Creators can run."
         case .lookupFailed(let message):
             return message
         }

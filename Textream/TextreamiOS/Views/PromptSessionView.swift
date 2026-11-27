@@ -397,7 +397,7 @@ struct PromptSessionView: View {
                     .regular
                         .tint(
                             (isShowingMirrorSettings || isMirrorActive)
-                                ? Color.indigo.opacity(0.32)
+                                ? Color.accentColor.opacity(0.32)
                                 : Color.black.opacity(0.12)
                         )
                         .interactive(),
@@ -426,7 +426,7 @@ struct PromptSessionView: View {
                     .regular
                         .tint(
                             showsScriptOnOuterDisplay
-                                ? Color.indigo.opacity(0.32)
+                                ? Color.accentColor.opacity(0.32)
                                 : Color.black.opacity(0.12)
                         )
                         .interactive(),
@@ -443,11 +443,15 @@ struct PromptSessionView: View {
     }
 
     private var outerDisplaySymbolName: String {
+        #if DANTE_ENABLE_IOS27_DUO
         if #available(iOS 27.2, *) {
             "iphone.duo.rear.camera"
         } else {
             "iphone.rear.camera"
         }
+        #else
+        "iphone.rear.camera"
+        #endif
     }
 
     private func bottomControls(isLandscape: Bool) -> some View {
@@ -490,7 +494,7 @@ struct PromptSessionView: View {
                                 Task { await controller.retrySaving() }
                             }
                             .buttonStyle(.glassProminent)
-                            .tint(.indigo)
+                            .tint(Color.accentColor)
                             .accessibilityIdentifier("retrySaveButton")
 
                             Button(role: .destructive) {
@@ -535,7 +539,7 @@ struct PromptSessionView: View {
                                 .frame(width: 58, height: 52)
                         }
                         .buttonStyle(.glassProminent)
-                        .tint(.indigo)
+                        .tint(Color.accentColor)
                         .disabled(!controller.canStartPrompt || controller.isFinished)
                         .accessibilityLabel(controller.isPromptRunning ? "Pause" : "Play")
                         .accessibilityIdentifier("playPauseButton")
@@ -631,8 +635,8 @@ struct PromptSessionView: View {
             .rotationEffect(.degrees(isSavedRecordingPlaced ? 0 : 14))
             .opacity(isSavedRecordingPlaced ? 1 : 0.15)
             .allowsHitTesting(isSavedRecordingPlaced)
-            .accessibilityLabel("Show Textream recordings")
-            .accessibilityHint("Opens videos saved by Textream in Photos")
+            .accessibilityLabel("Show Dante recordings")
+            .accessibilityHint("Opens videos saved by Dante for Creators in Photos")
             .accessibilityIdentifier("savedRecordingsButton")
         } else if controller.captureController.savedRecordingsStore.hasRememberedRecordings {
             Button {
@@ -642,8 +646,8 @@ struct PromptSessionView: View {
             }
             .buttonStyle(.plain)
             .disabled(controller.captureController.recordingState != .idle)
-            .accessibilityLabel("Show Textream recordings")
-            .accessibilityHint("Opens videos saved by Textream in Photos")
+            .accessibilityLabel("Show Dante recordings")
+            .accessibilityHint("Opens videos saved by Dante for Creators in Photos")
             .accessibilityIdentifier("savedRecordingsButton")
         } else {
             Color.clear
@@ -847,7 +851,7 @@ private struct MirrorSessionSettingsPanel: View {
         VStack(alignment: .leading, spacing: 10) {
             Toggle("Mirror prompt", isOn: $settings.mirrorEnabled)
                 .font(.subheadline.weight(.semibold))
-                .tint(.indigo)
+                .tint(Color.accentColor)
                 .accessibilityIdentifier("sessionMirrorToggle")
 
             if settings.mirrorEnabled {
@@ -916,14 +920,14 @@ private struct MirrorSessionSettingsPanel: View {
                         in: PromptScrollSpeedAdjustment.minimumSpeed...PromptScrollSpeedAdjustment.maximumSpeed,
                         step: PromptScrollSpeedAdjustment.speedStep
                     )
-                    .tint(.indigo)
+                    .tint(Color.accentColor)
                     .accessibilityIdentifier("sessionScrollSpeedSlider")
                 }
             }
 
             Toggle("Show playback controls", isOn: $showsSessionControls)
                 .font(.subheadline.weight(.semibold))
-                .tint(.indigo)
+                .tint(Color.accentColor)
                 .accessibilityIdentifier("sessionControlsToggle")
         }
     }
