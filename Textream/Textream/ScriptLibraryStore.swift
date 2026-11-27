@@ -35,11 +35,12 @@ final class ScriptLibraryStore {
             loaded = ScriptLibraryPersistence.sorted(loaded)
             persistence.save(loaded)
         }
+        let visible = loaded.filter { !$0.isDeleted }
         self.allScripts = loaded
-        self.scripts = loaded.filter { !$0.isDeleted }
-        self.selectedScriptID = self.scripts[0].id
-        TextreamService.shared.activeTargetWPM = self.scripts[0].targetWPM
-        TextreamService.shared.activeScriptTitle = self.scripts[0].displayTitle
+        self.scripts = visible
+        self.selectedScriptID = visible[0].id
+        TextreamService.shared.activeTargetWPM = visible[0].targetWPM
+        TextreamService.shared.activeScriptTitle = visible[0].displayTitle
 
         coordinator.onStatusChange = { [weak self] status in
             self?.syncStatus = status

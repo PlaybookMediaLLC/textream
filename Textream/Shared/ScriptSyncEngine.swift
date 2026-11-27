@@ -51,6 +51,7 @@ enum ScriptSyncStatus: Equatable, Sendable {
     }
 }
 
+@MainActor
 protocol ScriptSyncTransport: Sendable {
     func isAvailable() async -> Bool
     func fetchAllScripts() async throws -> [DanteScript]
@@ -59,7 +60,8 @@ protocol ScriptSyncTransport: Sendable {
 
 /// Deterministic in-memory transport used by automated unit tests to simulate
 /// two-device bidirectional CloudKit sync without requiring an Apple ID.
-actor InMemoryScriptSyncTransport: ScriptSyncTransport {
+@MainActor
+final class InMemoryScriptSyncTransport: ScriptSyncTransport {
     private var storage: [UUID: DanteScript] = [:]
     private var available: Bool
 
@@ -100,9 +102,12 @@ actor InMemoryScriptSyncTransport: ScriptSyncTransport {
 // MARK: - CloudKit Private Database Transport
 
 #if canImport(CloudKit)
-actor CloudKitScriptSyncTransport: ScriptSyncTransport {
-    static let containerIdentifier = "iCloud.com.playbookinteractivemediallc.app"
-    private static let zoneID = CKRecordZone.ID(zoneName: "DanteScriptsZone", ownerName: CKCurrentUserDefaultName)
+@MainActor
+final class CloudKitScriptSyncTransport: ScriptSyncTransport {
+    nonisolated static let containerIdentifier = "iCloud.com.playbookinteractivemediallc.app"
+    private static var zoneID: CKRecordZone.ID {
+        CKRecordZone.ID(zoneName: "DanteScriptsZone", ownerName: CKCurrentUserDefaultName)
+    }
     private static let recordType = "DanteScriptRecord"
 
     private var cachedContainer: CKContainer?
@@ -156,7 +161,12 @@ actor CloudKitScriptSyncTransport: ScriptSyncTransport {
         var scripts: [DanteScript] = []
         var cursor: CKQueryOperation.Cursor?
 
-        let firstPage = try await db.records(matching: query, inZoneWith: Self.zoneID)
+        let firstPage = try await db.records(
+            matching: query,
+            inZoneWith: Self.zoneID,
+            desiredKeys: nil,
+            resultsLimit: CKQueryOperation.maximumResults
+        )
         for (_, result) in firstPage.matchResults {
             if case .success(let record) = result, let parsed = Self.script(from: record) {
                 scripts.append(parsed)
@@ -165,7 +175,11 @@ actor CloudKitScriptSyncTransport: ScriptSyncTransport {
         cursor = firstPage.queryCursor
 
         while let activeCursor = cursor {
-            let page = try await db.records(continuingMatchFrom: activeCursor)
+            let page = try await db.records(
+                continuingMatchFrom: activeCursor,
+                desiredKeys: nil,
+                resultsLimit: CKQueryOperation.maximumResults
+            )
             for (_, result) in page.matchResults {
                 if case .success(let record) = result, let parsed = Self.script(from: record) {
                     scripts.append(parsed)
@@ -190,7 +204,7 @@ actor CloudKitScriptSyncTransport: ScriptSyncTransport {
         _ = try await db.modifyRecordZones(saving: [zone], deleting: [])
     }
 
-    private nonisolated static func record(from script: DanteScript) -> CKRecord {
+    private static func record(from script: DanteScript) -> CKRecord {
         let recordID = CKRecord.ID(recordName: script.id.uuidString, zoneID: zoneID)
         let record = CKRecord(recordType: recordType, recordID: recordID)
         record["title"] = script.title as CKRecordValue
@@ -207,7 +221,7 @@ actor CloudKitScriptSyncTransport: ScriptSyncTransport {
         return record
     }
 
-    private nonisolated static func script(from record: CKRecord) -> DanteScript? {
+    private static func script(from record: CKRecord) -> DanteScript? {
         guard let id = UUID(uuidString: record.recordID.recordName) else { return nil }
         let title = record["title"] as? String ?? ""
         let pages: [String]
