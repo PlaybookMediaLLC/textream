@@ -5,6 +5,7 @@
 
 import Compression
 import Foundation
+import SwiftUI
 import XCTest
 @testable import Textream
 
@@ -201,6 +202,53 @@ final class DanteComplianceTests: XCTestCase {
     private func appendUInt16(_ data: inout Data, _ value: UInt16) {
         data.append(UInt8(value & 0xFF))
         data.append(UInt8((value >> 8) & 0xFF))
+    }
+
+    // MARK: - Studio Theme, Light/Dark Appearance & Setup Checklist
+
+    func testAppAppearanceMappingAndCycling() {
+        XCTAssertNil(AppAppearance.system.colorScheme)
+        XCTAssertEqual(AppAppearance.light.colorScheme, .light)
+        XCTAssertEqual(AppAppearance.dark.colorScheme, .dark)
+        XCTAssertEqual(AppAppearance.system.next(), .dark)
+        XCTAssertEqual(AppAppearance.dark.next(), .light)
+        XCTAssertEqual(AppAppearance.light.next(), .system)
+
+        let dark = DantePalette(colorScheme: .dark)
+        let light = DantePalette(colorScheme: .light)
+        XCTAssertTrue(dark.isDark)
+        XCTAssertFalse(light.isDark)
+    }
+
+    func testCreatorSetupChecklistTracksCompletionProgress() {
+        let partial = CreatorSetupChecklistState.evaluate(
+            hasChosenPreset: true,
+            hasConfiguredGuidance: false,
+            hasCustomScript: true,
+            hasRunSession: false
+        )
+        XCTAssertEqual(partial.completedCount, 2)
+        XCTAssertEqual(partial.totalCount, 4)
+        XCTAssertEqual(partial.progress, 0.5, accuracy: 0.001)
+        XCTAssertEqual(partial.progressLabel, "2 of 4")
+        XCTAssertFalse(partial.isAllComplete)
+
+        let complete = CreatorSetupChecklistState.evaluate(
+            hasChosenPreset: true,
+            hasConfiguredGuidance: true,
+            hasCustomScript: true,
+            hasRunSession: true
+        )
+        XCTAssertTrue(complete.isAllComplete)
+        XCTAssertEqual(complete.progress, 1.0, accuracy: 0.001)
+    }
+
+    func testCreatorPresetTemplatesProvideStarterContent() {
+        for preset in CreatorPreset.all {
+            XCTAssertFalse(preset.badgeLabel.isEmpty)
+            XCTAssertFalse(preset.starterPages.isEmpty)
+            XCTAssertFalse(preset.starterPages[0].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
     }
 
     private func appendUInt32(_ data: inout Data, _ value: UInt32) {

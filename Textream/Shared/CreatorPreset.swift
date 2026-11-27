@@ -112,6 +112,42 @@ struct CreatorPreset: Identifiable, Hashable, Sendable {
         )
     ]
 
+    var badgeLabel: String {
+        switch id {
+        case .youtubeStudio:
+            return "\(targetWPM) WPM · 16:9"
+        case .shortsReels:
+            return "60s Target · \(targetWPM) WPM"
+        case .podcastInterview:
+            return "\(targetWPM) WPM · Ad-lib Safe"
+        case .keynoteLive:
+            return "\(targetWPM) WPM · Multi-Slide"
+        }
+    }
+
+    var starterPages: [String] {
+        switch id {
+        case .youtubeStudio:
+            return [
+                "[hook — lock eyes with lens]\nMost creators lose half their viewers in the first ten seconds—not because of bad lighting, but because they look away from the camera to check their notes.\n\n[slight smile]\nToday I'll walk through the exact three-step studio workflow I use to nail a clean take on the first try.",
+                "[section 2 — main takeaway]\nFirst, keep every sentence short and conversational. Use [brackets] for breathing cues so Dante skips them while tracking your voice automatically.\n\n[call to action]\nIf this workflow helped, subscribe for next week's deep dive."
+            ]
+        case .shortsReels:
+            return [
+                "[high energy — 60s target]\nStop memorizing scripts word for word.\n\n[pause 1s]\nHere's the fastest way to shoot a crisp 60-second vertical video without a single jump cut.\n\n[lean in]\nTurn on Smart Follow, keep the prompt right beside the lens, and talk like you're explaining it to a friend. Even if you ad-lib a line, Dante catches right back up."
+            ]
+        case .podcastInterview:
+            return [
+                "[intro — warm conversational tone]\nWelcome back to the show. Today we're diving into how independent creators build repeatable production systems without burning out.\n\n[transition to guest]\nBefore we jump into the rapid-fire questions, let's set the stage with three numbers that surprised our whole team."
+            ]
+        case .keynoteLive:
+            return [
+                "[slide 1 — opening]\nGood morning everyone, and thank you for joining us live. Over the next few minutes, we're going to share what we've been building and why it matters for your workflow.",
+                "[slide 2 — live demo]\n[pause for screen transition]\nNotice how the teleprompter stays pinned below the camera while remaining completely hidden from screen share."
+            ]
+        }
+    }
+
     static func preset(for id: CreatorPresetID) -> CreatorPreset {
         all.first { $0.id == id } ?? all[0]
     }

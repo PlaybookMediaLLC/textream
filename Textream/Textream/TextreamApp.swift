@@ -13,6 +13,7 @@ extension Notification.Name {
     static let openSettings = Notification.Name("openSettings")
     static let openAbout = Notification.Name("openAbout")
     static let openOnboarding = Notification.Name("openOnboarding")
+    static let openQuickComposer = Notification.Name("openQuickComposer")
     static let newScript = Notification.Name("newScript")
     static let startPrompter = Notification.Name("startPrompter")
 }
@@ -41,6 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         #if BENCHMARK
         Bench.didFinishLaunchingBegan()
         #endif
+        NotchSettings.shared.appAppearance.applyToApplication()
         NSApp.servicesProvider = TextreamService.shared
         NSUpdateDynamicServices()
         benchLog("launch.step", ["name": "services"])
@@ -72,13 +74,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         TextreamService.shared.updateDirectorServer()
         benchLog("launch.step", ["name": "directorServer"])
 
-        // Set window delegate to intercept close, disable tabs and fullscreen
+        // Set window delegate to intercept close, disable tabs, and make titlebar seamless
         DispatchQueue.main.async {
             for window in NSApp.windows where !(window is NSPanel) {
                 window.delegate = self
                 window.tabbingMode = .disallowed
-                window.collectionBehavior.remove(.fullScreenPrimary)
-                window.collectionBehavior.insert(.fullScreenNone)
+                window.titlebarAppearsTransparent = true
+                window.titleVisibility = .hidden
+                window.styleMask.insert(.fullSizeContentView)
             }
             self.removeUnwantedMenus()
             benchAttachProbe(to: NSApp.windows.first { !($0 is NSPanel) && $0.isVisible }, label: "main") { 0 }
@@ -177,10 +180,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 @main
 struct TextreamApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @State private var settings = NotchSettings.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(settings.appAppearance.colorScheme)
                 .onOpenURL { url in
                     if url.pathExtension.lowercased() == DanteAppLinks.fileExtension {
                         TextreamService.shared.openFileAtURL(url)
@@ -190,7 +195,8 @@ struct TextreamApp: App {
                 }
         }
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
+        .defaultSize(width: 1080, height: 700)
+        .windowResizability(.contentMinSize)
 
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -205,6 +211,11 @@ struct TextreamApp: App {
                 .keyboardShortcut(",", modifiers: .command)
             }
             CommandGroup(replacing: .newItem) {
+                Button("Quick Composer…") {
+                    NotificationCenter.default.post(name: .openQuickComposer, object: nil)
+                }
+                .keyboardShortcut("k", modifiers: .command)
+
                 Button("New Script") {
                     NotificationCenter.default.post(name: .newScript, object: nil)
                 }

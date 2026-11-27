@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 
 struct RootView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Bindable var model: AppModel
     @State private var floatingActionOverlayHeight = RootFloatingActionLayout.fallbackOverlayHeight
@@ -9,6 +10,10 @@ struct RootView: View {
     @State private var isInlineScriptEditorFocused = false
     @State private var languageSuggestions = SpeechLanguageSuggestionCoordinator()
     @State private var foldLayout: PromptFoldLayout?
+
+    private var palette: DantePalette {
+        DantePalette(colorScheme: colorScheme)
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -19,10 +24,10 @@ struct RootView: View {
                 if let foldLayout {
                     foldedLayout(foldLayout)
                 } else if geometry.size.width > 700 || geometry.size.width > geometry.size.height * 1.35 {
-                    VStack(spacing: 18) {
+                    VStack(spacing: 16) {
                         header
 
-                        HStack(spacing: 18) {
+                        HStack(spacing: 16) {
                             editorPanel
                             landscapeSetupColumn
                                 .frame(width: min(390, geometry.size.width * 0.42))
@@ -33,7 +38,7 @@ struct RootView: View {
                 } else {
                     ZStack(alignment: .bottom) {
                         ScrollView {
-                            VStack(spacing: 18) {
+                            VStack(spacing: 16) {
                                 header
 
                                 editorPanel
@@ -42,7 +47,7 @@ struct RootView: View {
                                 setupPanel
                             }
                             .padding(.horizontal, 18)
-                            .padding(.top, 14)
+                            .padding(.top, 12)
                             .padding(
                                 .bottom,
                                 RootFloatingActionLayout.contentBottomClearance(
@@ -81,6 +86,11 @@ struct RootView: View {
         .sheet(isPresented: $model.isShowingLibrary) {
             ScriptLibrarySheet(model: model)
         }
+        .sheet(isPresented: $model.isShowingQuickComposer) {
+            QuickComposerSheet(model: model)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
         .sheet(isPresented: $model.isShowingOnboarding) {
             CreatorOnboardingSheet(model: model)
         }
@@ -103,6 +113,7 @@ struct RootView: View {
                     model.fontSize = settings.fontSize
                 }
             )
+            .preferredColorScheme(.dark)
         }
         .onChange(of: model.sessionMode) { _, mode in
             if mode == .record { model.cameraEnabled = true }
@@ -132,10 +143,12 @@ struct RootView: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         headerLogo
                         headerTitle
-                        Spacer(minLength: 8)
+                        Spacer(minLength: 6)
+                        themeToggleButton
+                        quickComposeButton
                         libraryButton
                         settingsButton
                     }
@@ -148,7 +161,7 @@ struct RootView: View {
                             .font(.system(size: 17, weight: .medium))
                             .lineLimit(1)
                     }
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("Smart teleprompter for creators")
@@ -156,7 +169,7 @@ struct RootView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
             } else {
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     headerLogo
 
                     VStack(alignment: .leading, spacing: 1) {
@@ -167,7 +180,9 @@ struct RootView: View {
                     }
                     .layoutPriority(1)
 
-                    Spacer()
+                    Spacer(minLength: 8)
+                    themeToggleButton
+                    quickComposeButton
                     libraryButton
                     settingsButton
                 }
@@ -179,19 +194,61 @@ struct RootView: View {
         Image("DanteLogo")
             .resizable()
             .scaledToFit()
-            .frame(width: 52, height: 52)
+            .frame(width: 40, height: 40)
             .accessibilityHidden(true)
     }
 
     private var headerTitle: some View {
         Text(DanteAppLinks.shortName)
-            .font(.system(size: 24, weight: .bold, design: .rounded))
+            .font(.system(size: 20, weight: .bold))
+            .foregroundStyle(palette.textPrimary)
     }
 
     private var headerTagline: some View {
-        Text("Smart teleprompter for creators")
+        Text("Studio Teleprompter")
             .font(.caption.weight(.medium))
-            .foregroundStyle(.secondary)
+            .foregroundStyle(palette.textTertiary)
+    }
+
+    private var themeToggleButton: some View {
+        Button {
+            withAnimation(.snappy) {
+                model.appAppearance = model.appAppearance.next()
+            }
+        } label: {
+            Image(systemName: model.appAppearance.systemImage)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(palette.textSecondary)
+                .frame(width: 34, height: 34)
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Theme: \(model.appAppearance.label)")
+        .accessibilityIdentifier("themeToggleButton")
+    }
+
+    private var quickComposeButton: some View {
+        Button {
+            isInlineScriptEditorFocused = false
+            model.isShowingQuickComposer = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(palette.textPrimary)
+                .frame(width: 34, height: 34)
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Quick compose script")
+        .accessibilityIdentifier("quickComposeButton")
     }
 
     private var libraryButton: some View {
@@ -199,11 +256,17 @@ struct RootView: View {
             isInlineScriptEditorFocused = false
             model.isShowingLibrary = true
         } label: {
-            Image(systemName: "books.vertical.fill")
-                .font(.system(size: 16, weight: .semibold))
-                .frame(width: 38, height: 38)
+            Image(systemName: "square.grid.2x2")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(palette.textSecondary)
+                .frame(width: 34, height: 34)
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                )
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.plain)
         .accessibilityLabel("Script library")
         .accessibilityIdentifier("scriptLibraryButton")
     }
@@ -213,28 +276,39 @@ struct RootView: View {
             model.isShowingSettings = true
         } label: {
             Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 17, weight: .semibold))
-                .frame(width: 38, height: 38)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(palette.textSecondary)
+                .frame(width: 34, height: 34)
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                )
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.plain)
         .accessibilityLabel("Settings")
         .accessibilityIdentifier("settingsButton")
     }
 
     private var editorPanel: some View {
         let metrics = model.scriptMetrics
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Button {
                     isInlineScriptEditorFocused = false
                     model.isShowingLibrary = true
                 } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "text.alignleft")
-                            .foregroundStyle(Color.accentColor)
+                    HStack(spacing: 6) {
+                        Image(systemName: "doc.text")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(palette.accent)
                         Text(model.activeScript?.displayTitle ?? "Script")
-                            .font(.headline)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(palette.textPrimary)
                             .lineLimit(1)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(palette.textTertiary)
                     }
                 }
                 .buttonStyle(.plain)
@@ -244,13 +318,13 @@ struct RootView: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(metrics.summaryLabel)
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.textSecondary)
                     if let targetSeconds = model.activePreset?.targetDurationSeconds,
                        metrics.spokenWordCount > 0 {
                         let fits = metrics.estimatedSeconds <= targetSeconds
                         Text(fits ? "Fits \(targetSeconds)s" : "+\(metrics.estimatedSeconds - targetSeconds)s over \(targetSeconds)s")
                             .font(.caption2.monospacedDigit().weight(.semibold))
-                            .foregroundStyle(fits ? .green : .orange)
+                            .foregroundStyle(fits ? palette.statusSuccess : palette.statusWarning)
                     }
                 }
 
@@ -262,16 +336,25 @@ struct RootView: View {
                     }
                 } label: {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .frame(width: 32, height: 32)
-                        .glassEffect(.regular.interactive(), in: .circle)
-                        .frame(width: 44, height: 44)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(palette.textSecondary)
+                        .frame(width: 30, height: 30)
+                        .background(palette.surfaceHover, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                        )
+                        .frame(width: 40, height: 40)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Edit script full screen")
                 .accessibilityIdentifier("expandScriptEditorButton")
             }
+
+            Rectangle()
+                .fill(palette.borderSubtle)
+                .frame(height: 1)
 
             if let suggestion = languageSuggestions.suggestion {
                 LanguageSuggestionBanner(
@@ -293,14 +376,17 @@ struct RootView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Text("Use [brackets] for stage directions. Dante displays them but skips them while following your voice.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.caption2)
+                .foregroundStyle(palette.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(20)
+        .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black.opacity(0.2), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .glassEffect(.regular.tint(.black.opacity(0.12)), in: .rect(cornerRadius: 28))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+        )
     }
 
     private func useSuggestedLanguage() {
@@ -309,11 +395,11 @@ struct RootView: View {
     }
 
     private var setupPanel: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("CREATOR PRESET")
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.textTertiary)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -326,15 +412,16 @@ struct RootView: View {
                             } label: {
                                 Label(preset.shortName, systemImage: preset.systemImage)
                                     .font(.caption.weight(.semibold))
-                                    .padding(.horizontal, 11)
-                                    .padding(.vertical, 7)
+                                    .foregroundStyle(isSelected ? palette.accent : palette.textSecondary)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
                                     .background(
-                                        isSelected ? Color.accentColor.opacity(0.28) : Color.white.opacity(0.08),
-                                        in: Capsule()
+                                        isSelected ? palette.accentSubtle : palette.canvasBackground,
+                                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
                                     )
                                     .overlay {
-                                        Capsule()
-                                            .stroke(isSelected ? Color.accentColor : Color.white.opacity(0.12), lineWidth: 1)
+                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                            .strokeBorder(isSelected ? palette.accent.opacity(0.65) : palette.borderSubtle, lineWidth: 1)
                                     }
                             }
                             .buttonStyle(.plain)
@@ -352,22 +439,20 @@ struct RootView: View {
             .pickerStyle(.segmented)
             .accessibilityIdentifier("sessionModePicker")
 
-            VStack(alignment: .leading, spacing: 9) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("FOLLOW MODE")
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.textTertiary)
 
-                GlassEffectContainer(spacing: 8) {
-                    HStack(spacing: 8) {
-                        ForEach(FollowMode.allCases) { mode in
-                            followModeButton(mode)
-                        }
+                HStack(spacing: 8) {
+                    ForEach(FollowMode.allCases) { mode in
+                        followModeButton(mode)
                     }
                 }
 
                 Text(model.followMode.description)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -376,13 +461,14 @@ struct RootView: View {
                     HStack {
                         Text("Speed")
                             .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(palette.textPrimary)
                         Spacer()
                         Text(String(format: "%.1f words/s", model.scrollSpeed))
                             .font(.caption.monospacedDigit())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(palette.textSecondary)
                     }
                     Slider(value: $model.scrollSpeed, in: 0.5...8, step: 0.5)
-                        .tint(Color.accentColor)
+                        .tint(palette.accent)
                         .accessibilityIdentifier("scrollSpeedSlider")
                 }
             }
@@ -393,13 +479,14 @@ struct RootView: View {
                     systemImage: model.cameraEnabled ? "camera.fill" : "camera"
                 )
                 .font(.subheadline.weight(.medium))
+                .foregroundStyle(palette.textPrimary)
             }
             .disabled(model.sessionMode == .record)
-            .tint(Color.accentColor)
+            .tint(palette.accent)
             .accessibilityIdentifier("cameraToggle")
 
             if model.sessionMode == .read {
-                Divider()
+                Rectangle().fill(palette.borderSubtle).frame(height: 1)
 
                 VStack(alignment: .leading, spacing: 10) {
                     Toggle(isOn: $model.mirrorEnabled) {
@@ -408,8 +495,9 @@ struct RootView: View {
                             systemImage: "arrow.left.and.right"
                         )
                         .font(.subheadline.weight(.medium))
+                        .foregroundStyle(palette.textPrimary)
                     }
-                    .tint(Color.accentColor)
+                    .tint(palette.accent)
                     .accessibilityIdentifier("mirrorModeToggle")
 
                     if model.mirrorEnabled {
@@ -423,17 +511,20 @@ struct RootView: View {
 
                         Text("Rotate to landscape for teleprompter glass. Prompt controls stay readable on the device.")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(20)
+        .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(.black.opacity(0.17), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .glassEffect(.regular.tint(.black.opacity(0.1)), in: .rect(cornerRadius: 28))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+        )
     }
 
     /// On a partially folded display the script takes the upright half of a
@@ -499,16 +590,23 @@ struct RootView: View {
         Button {
             model.startSession()
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Image(systemName: startSessionIcon)
+                    .font(.subheadline.weight(.semibold))
                 Text(startSessionLabel)
+                    .font(.headline)
             }
-            .font(.headline)
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity, minHeight: RootFloatingActionLayout.buttonMinimumHeight)
+            .background(
+                palette.accent,
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            )
+            .shadow(color: palette.accent.opacity(palette.isDark ? 0.35 : 0.22), radius: 14, y: 6)
         }
-        .buttonStyle(.glassProminent)
-        .tint(Color.accentColor)
+        .buttonStyle(.plain)
         .disabled(!model.canStart)
+        .opacity(model.canStart ? 1 : 0.45)
         .accessibilityIdentifier("startSessionButton")
     }
 
@@ -522,29 +620,30 @@ struct RootView: View {
         return model.mirrorEnabled ? "Start Mirror Mode" : "Start Prompter"
     }
 
-    @ViewBuilder
     private func followModeButton(_ mode: FollowMode) -> some View {
-        let button = Button {
+        let isSelected = model.followMode == mode
+        return Button {
             withAnimation(.snappy) { model.followMode = mode }
         } label: {
             VStack(spacing: 5) {
                 Image(systemName: mode.icon)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                 Text(mode.shortLabel)
                     .font(.caption2.weight(.semibold))
             }
-            .frame(maxWidth: .infinity, minHeight: 54)
+            .foregroundStyle(isSelected ? .white : palette.textSecondary)
+            .frame(maxWidth: .infinity, minHeight: 52)
+            .background(
+                isSelected ? palette.accent : palette.canvasBackground,
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(isSelected ? palette.accent : palette.borderSubtle, lineWidth: 1)
+            )
         }
+        .buttonStyle(.plain)
         .accessibilityIdentifier("followMode_\(mode.rawValue)")
-
-        if model.followMode == mode {
-            button
-                .buttonStyle(.glassProminent)
-                .tint(Color.accentColor)
-        } else {
-            button
-                .buttonStyle(.glass)
-        }
     }
 }
 
@@ -561,11 +660,16 @@ enum RootFloatingActionLayout {
 }
 
 private struct ExpandedScriptEditor: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: AppModel
     let languageSuggestions: SpeechLanguageSuggestionCoordinator
     @State private var draft: String
     @State private var isEditorFocused = false
+
+    private var palette: DantePalette {
+        DantePalette(colorScheme: colorScheme)
+    }
 
     init(model: AppModel, languageSuggestions: SpeechLanguageSuggestionCoordinator) {
         self.model = model
@@ -580,14 +684,18 @@ private struct ExpandedScriptEditor: View {
                 HStack {
                     Text(metrics.summaryLabel)
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.textSecondary)
                     Spacer()
                     Text("\(model.activeTargetWPM) WPM")
                         .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(palette.textTertiary)
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 4)
+                .padding(.top, 6)
+
+                Rectangle()
+                    .fill(palette.borderSubtle)
+                    .frame(height: 1)
 
                 if let suggestion = languageSuggestions.suggestion {
                     LanguageSuggestionBanner(
@@ -607,7 +715,7 @@ private struct ExpandedScriptEditor: View {
                     accessibilityIdentifier: "expandedScriptEditor"
                 )
                 .scrollDismissesKeyboard(.interactively)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -629,7 +737,7 @@ private struct ExpandedScriptEditor: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(model.appAppearance.colorScheme)
         .task {
             await Task.yield()
             isEditorFocused = true
@@ -661,23 +769,9 @@ private struct ExpandedScriptEditor: View {
 }
 
 private struct AppBackground: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color(red: 0.055, green: 0.040, blue: 0.032), .black],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            Circle()
-                .fill(Color.accentColor.opacity(0.20))
-                .frame(width: 360, height: 360)
-                .blur(radius: 95)
-                .offset(x: -170, y: -270)
-            Circle()
-                .fill(Color.orange.opacity(0.12))
-                .frame(width: 300, height: 300)
-                .blur(radius: 105)
-                .offset(x: 190, y: 320)
-        }
+        DantePalette(colorScheme: colorScheme).canvasBackground
     }
 }

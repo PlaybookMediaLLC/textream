@@ -16,8 +16,9 @@ extension NSFont {
 }
 
 struct HighlightingTextEditor: NSViewRepresentable {
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var text: String
-    var font: NSFont = .systemFont(ofSize: 16, weight: .regular)
+    var font: NSFont = .systemFont(ofSize: 15, weight: .regular)
     var isFocused: FocusState<Bool>.Binding?
     /// Range of newly dictated text to highlight with a bump effect
     var highlightRange: NSRange? = nil
@@ -32,7 +33,7 @@ struct HighlightingTextEditor: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
-        scrollView.hasVerticalScroller = false
+        scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
         scrollView.autohidesScrollers = true
         scrollView.borderType = .noBorder
@@ -44,7 +45,8 @@ struct HighlightingTextEditor: NSViewRepresentable {
         textView.allowsUndo = true
         textView.isRichText = false
         textView.drawsBackground = false
-        textView.textContainerInset = NSSize(width: 0, height: 0)
+        textView.insertionPointColor = .labelColor
+        textView.textContainerInset = NSSize(width: 0, height: 12)
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
@@ -57,6 +59,7 @@ struct HighlightingTextEditor: NSViewRepresentable {
 
         scrollView.documentView = textView
         context.coordinator.textView = textView
+        context.coordinator.lastColorScheme = colorScheme
 
         // Set initial text and apply highlighting
         textView.string = text
@@ -69,13 +72,19 @@ struct HighlightingTextEditor: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
+        context.coordinator.parent = self
+        textView.insertionPointColor = .labelColor
 
+        let appearanceChanged = context.coordinator.lastColorScheme != colorScheme
         if textView.string != text {
             let selectedRanges = textView.selectedRanges
             textView.string = text
             textView.selectedRanges = selectedRanges
             context.coordinator.applyHighlighting(textView)
+        } else if appearanceChanged {
+            context.coordinator.applyHighlighting(textView)
         }
+        context.coordinator.lastColorScheme = colorScheme
         updateWritingDirection(textView, text: text)
 
         // Apply bump highlight on newly dictated range
@@ -109,6 +118,7 @@ struct HighlightingTextEditor: NSViewRepresentable {
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: HighlightingTextEditor
         weak var textView: NSTextView?
+        var lastColorScheme: ColorScheme?
 
         private static let annotationPattern = try! NSRegularExpression(
             pattern: "\\[[^\\]]+\\]",
@@ -163,14 +173,19 @@ struct HighlightingTextEditor: NSViewRepresentable {
             // Preserve selection
             let selectedRanges = textView.selectedRanges
 
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.lineSpacing = 5
+
             textStorage.beginEditing()
 
             // Reset to default style
             let defaultAttributes: [NSAttributedString.Key: Any] = [
                 .font: parent.font,
-                .foregroundColor: NSColor.labelColor
+                .foregroundColor: NSColor.labelColor,
+                .paragraphStyle: paragraphStyle
             ]
             textStorage.setAttributes(defaultAttributes, range: fullRange)
+            textView.typingAttributes = defaultAttributes
 
             // Highlight [bracket] annotations
             let matches = Self.annotationPattern.matches(in: text, options: [], range: fullRange)
@@ -178,7 +193,8 @@ struct HighlightingTextEditor: NSViewRepresentable {
                 let annotationAttributes: [NSAttributedString.Key: Any] = [
                     .font: NSFontManager.shared.convert(parent.font, toHaveTrait: .italicFontMask),
                     .foregroundColor: NSColor.secondaryLabelColor,
-                    .backgroundColor: NSColor.secondaryLabelColor.withAlphaComponent(0.08)
+                    .backgroundColor: NSColor.secondaryLabelColor.withAlphaComponent(0.08),
+                    .paragraphStyle: paragraphStyle
                 ]
                 textStorage.addAttributes(annotationAttributes, range: match.range)
             }

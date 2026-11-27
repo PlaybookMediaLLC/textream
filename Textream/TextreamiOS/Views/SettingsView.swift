@@ -11,6 +11,21 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
+                    Picker("Theme", selection: $model.appAppearance) {
+                        ForEach(AppAppearance.allCases) { appearance in
+                            Label(appearance.label, systemImage: appearance.systemImage)
+                                .tag(appearance)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("appAppearancePicker")
+                } header: {
+                    Text("Appearance")
+                } footer: {
+                    Text("Choose Light, Dark, or follow your device System appearance. Live teleprompter playback stays dark for lens contrast.")
+                }
+
+                Section {
                     Toggle("Mirror prompt in landscape", isOn: $model.mirrorEnabled)
                         .tint(Color.accentColor)
                         .accessibilityIdentifier("settingsMirrorModeToggle")
@@ -197,7 +212,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(model.appAppearance.colorScheme)
         .task {
             guard locales.isEmpty else { return }
             let supported = await Task.detached(priority: .userInitiated) {
