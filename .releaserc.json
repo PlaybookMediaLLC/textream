@@ -1,0 +1,48 @@
+{
+  "branches": [
+    "master"
+  ],
+  "tagFormat": "v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "release-artifacts/Dante-for-Creators-macOS-universal.dmg",
+            "label": "Dante for Creators — macOS Universal Installer (.dmg)"
+          },
+          {
+            "path": "release-artifacts/Dante-for-Creators-macOS-universal.app.zip",
+            "label": "Dante for Creators — macOS Universal App (.app.zip)"
+          },
+          {
+            "path": "release-artifacts/Dante-for-Creators-macOS-AppStore.xcarchive.zip",
+            "label": "Dante for Creators — macOS App Store Archive (.xcarchive.zip)"
+          },
+          {
+            "path": "release-artifacts/Dante-for-Creators-iOS-AppStore.xcarchive.zip",
+            "label": "Dante for Creators — iOS & iPadOS App Store Archive (.xcarchive.zip)"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}
