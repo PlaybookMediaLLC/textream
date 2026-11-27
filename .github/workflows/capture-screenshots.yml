@@ -18,9 +18,9 @@ jobs:
         working-directory: Textream
         env:
           TEST_RUNNER_DANTE_CAPTURE_SCREENSHOTS: "1"
-          TEST_RUNNER_DANTE_SCREENSHOT_DIR: "${{ github.workspace }}/screenshots/macos"
         run: |
-          mkdir -p "${{ github.workspace }}/screenshots/macos"
+          OUT="${{ github.workspace }}/screenshots/macos"
+          mkdir -p "$OUT"
           xcodebuild test \
             -project Textream.xcodeproj \
             -scheme Textream \
@@ -28,8 +28,14 @@ jobs:
             -only-testing:TextreamTests/DanteScreenshotCaptureTests \
             CODE_SIGN_IDENTITY=- \
             DEVELOPMENT_TEAM="" \
-            CODE_SIGN_STYLE=Manual
-          ls -lh "${{ github.workspace }}/screenshots/macos"
+            CODE_SIGN_STYLE=Manual | tee /tmp/macos_shots.log
+          SRC_DIR=$(grep -o 'DANTE_SCREENSHOT_DIR_OUT=.*' /tmp/macos_shots.log | tail -n 1 | cut -d= -f2-)
+          if [ -n "$SRC_DIR" ] && [ -d "$SRC_DIR" ]; then
+            cp "$SRC_DIR"/*.png "$OUT"/
+          else
+            find "$HOME/Library/Containers" /var/folders /tmp -name "macos-*.png" -exec cp {} "$OUT"/ \; 2>/dev/null || true
+          fi
+          ls -lh "$OUT"
 
       - name: Upload macOS screenshots
         uses: actions/upload-artifact@v4
