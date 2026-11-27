@@ -151,180 +151,214 @@ struct ContentView: View {
     // MARK: - Body
 
     var body: some View {
+        withLifecycleModifiers(
+            withPresentationModifiers(rootLayer)
+        )
+    }
+
+    private var rootLayer: some View {
         ZStack {
-            Group {
-                if settings.directorModeEnabled {
-                    directorOverlay
-                } else {
-                    studioShell
-                }
+            if settings.directorModeEnabled {
+                directorOverlay
+            } else {
+                studioShell
             }
 
             if showQuickComposer {
-                QuickComposerOverlay(
-                    settings: settings,
-                    scripts: library.scripts,
-                    onCreateScript: { title, text, preset, startImmediately in
-                        let created = library.createScript(
-                            title: title,
-                            pages: [text],
-                            presetID: preset.id
-                        )
-                        settings.apply(preset: preset)
-                        loadScriptIntoEditor(created)
-                        workspaceView = .editor
-                        if startImmediately && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            DispatchQueue.main.async {
-                                run()
-                            }
-                        }
-                    },
-                    onSelectScript: { script in
-                        selectScript(script)
-                        workspaceView = .editor
-                    },
-                    onImportFile: {
-                        service.openFile()
-                    },
-                    onDismiss: {
-                        withAnimation(.easeOut(duration: 0.16)) {
-                            showQuickComposer = false
-                        }
-                    }
-                )
-                .transition(.opacity)
-                .zIndex(50)
+                quickComposerLayer
+                    .transition(.opacity)
+                    .zIndex(50)
             }
         }
         .background(palette.sidebarBackground)
         .frame(minWidth: 760, minHeight: 500)
-        .alert(dropAlertTitle, isPresented: Binding(get: { dropError != nil }, set: { if !$0 { dropError = nil } })) {
-            Button("OK") { dropError = nil }
-        } message: {
-            Text(dropError ?? "")
+    }
+
+    private var quickComposerLayer: some View {
+        QuickComposerOverlay(
+            settings: settings,
+            scripts: library.scripts,
+            onCreateScript: handleQuickComposerCreate,
+            onSelectScript: { script in
+                selectScript(script)
+                workspaceView = .editor
+            },
+            onImportFile: {
+                service.openFile()
+            },
+            onDismiss: dismissQuickComposer
+        )
+    }
+
+    private func handleQuickComposerCreate(
+        title: String,
+        text: String,
+        preset: CreatorPreset,
+        startImmediately: Bool
+    ) {
+        let created = library.createScript(
+            title: title,
+            pages: [text],
+            presetID: preset.id
+        )
+        settings.apply(preset: preset)
+        loadScriptIntoEditor(created)
+        workspaceView = .editor
+        if startImmediately && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            DispatchQueue.main.async {
+                run()
+            }
         }
-        .alert("Microphone or Speech Unavailable", isPresented: Binding(
+    }
+
+    private func dismissQuickComposer() {
+        withAnimation(.easeOut(duration: 0.16)) {
+            showQuickComposer = false
+        }
+    }
+
+    private func withPresentationModifiers<Content: View>(_ content: Content) -> some View {
+        let dropPresented = Binding(
+            get: { dropError != nil },
+            set: { if !$0 { dropError = nil } }
+        )
+        let dictationErrorPresented = Binding(
             get: { dictation.error != nil },
             set: { if !$0 { dictation.error = nil } }
-        )) {
-            if dictation.permissionSettingsURL != nil {
-                Button("Open System Settings") {
-                    dictation.openPermissionSettings()
-                    dictation.error = nil
-                }
-            }
-            Button("OK", role: .cancel) { dictation.error = nil }
-        } message: {
-            Text(dictation.error ?? "")
-        }
-        .alert("Rename Script", isPresented: Binding(
+        )
+        let renamePresented = Binding(
             get: { renamingScriptID != nil },
             set: { if !$0 { renamingScriptID = nil } }
-        )) {
-            TextField("Script title", text: $renameDraft)
-            Button("Cancel", role: .cancel) { renamingScriptID = nil }
-            Button("Rename") {
-                if let id = renamingScriptID {
-                    library.renameScript(id: id, to: renameDraft)
-                }
-                renamingScriptID = nil
+        )
+
+        return content
+            .alert(dropAlertTitle, isPresented: dropPresented) {
+                Button("OK") { dropError = nil }
+            } message: {
+                Text(dropError ?? "")
             }
-        }
-        .sheet(isPresented: $showSettings) {
-            SettingsView(settings: settings)
-                .preferredColorScheme(settings.appAppearance.colorScheme)
-        }
-        .sheet(isPresented: $showAbout) {
-            AboutView()
-                .preferredColorScheme(settings.appAppearance.colorScheme)
-        }
-        .sheet(isPresented: $showOnboarding) {
-            CreatorOnboardingView { preset in
-                applyPreset(preset)
-            }
-            .preferredColorScheme(settings.appAppearance.colorScheme)
-        }
-        .onChange(of: showSettings) { _, isShowing in
-            if isShowing && isRecording {
-                stopRecording()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .startPrompter)) { _ in
-            guard !showSettings, !showOnboarding, !showQuickComposer, !isRunning, !isRecording, hasAnyContent else { return }
-            isTextFocused = false
-            run()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openQuickComposer)) { _ in
-            guard !showSettings, !showOnboarding else { return }
-            if isRecording { stopRecording() }
-            withAnimation(.easeOut(duration: 0.16)) {
-                showQuickComposer.toggle()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openSettings)) { _ in
-            showSettings = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openAbout)) { _ in
-            showAbout = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openOnboarding)) { _ in
-            showOnboarding = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .newScript)) { _ in
-            createNewScript()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            isRunning = service.overlayController.isShowing
-        }
-        .onChange(of: service.currentPageText, initial: true) { _, text in
-            scheduleLanguageDetection(for: text)
-        }
-        .onChange(of: service.currentPageIndex) { _, _ in
-            if isRecording {
-                stopRecording()
-            }
-            ignoredLanguageIdentifier = nil
-            scheduleLanguageDetection(for: service.currentPageText)
-        }
-        .onChange(of: settings.speechLocale) { _, _ in
-            if isRecording {
-                stopRecording()
-            }
-            ignoredLanguageIdentifier = nil
-            scheduleLanguageDetection(for: service.currentPageText)
-        }
-        .onDisappear {
-            languageDetectionTask?.cancel()
-            if isRecording {
-                stopRecording()
-            }
-        }
-        .onAppear {
-            if service.currentFileURL == nil,
-               service.pages.count == 1 && service.pages[0].isEmpty,
-               let active = library.activeScript {
-                service.pages = active.pages
-                service.savedPages = active.pages
-                service.currentPageIndex = 0
-            }
-            if service.overlayController.isShowing {
-                isRunning = true
-            }
-            if TextreamService.shared.launchedExternally {
-                DispatchQueue.main.async {
-                    for window in NSApp.windows where !(window is NSPanel) {
-                        window.orderOut(nil)
+            .alert("Microphone or Speech Unavailable", isPresented: dictationErrorPresented) {
+                if dictation.permissionSettingsURL != nil {
+                    Button("Open System Settings") {
+                        dictation.openPermissionSettings()
+                        dictation.error = nil
                     }
                 }
-            } else {
-                isTextFocused = true
-                #if !BENCHMARK
-                let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-                if !isRunningTests && !UserDefaults.standard.bool(forKey: CreatorOnboardingView.completedDefaultsKey) {
-                    showOnboarding = true
-                }
-                #endif
+                Button("OK", role: .cancel) { dictation.error = nil }
+            } message: {
+                Text(dictation.error ?? "")
             }
+            .alert("Rename Script", isPresented: renamePresented) {
+                TextField("Script title", text: $renameDraft)
+                Button("Cancel", role: .cancel) { renamingScriptID = nil }
+                Button("Rename") {
+                    if let id = renamingScriptID {
+                        library.renameScript(id: id, to: renameDraft)
+                    }
+                    renamingScriptID = nil
+                }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView(settings: settings)
+                    .preferredColorScheme(settings.appAppearance.colorScheme)
+            }
+            .sheet(isPresented: $showAbout) {
+                AboutView()
+                    .preferredColorScheme(settings.appAppearance.colorScheme)
+            }
+            .sheet(isPresented: $showOnboarding) {
+                CreatorOnboardingView { preset in
+                    applyPreset(preset)
+                }
+                .preferredColorScheme(settings.appAppearance.colorScheme)
+            }
+    }
+
+    private func withLifecycleModifiers<Content: View>(_ content: Content) -> some View {
+        content
+            .onChange(of: showSettings) { _, isShowing in
+                if isShowing && isRecording {
+                    stopRecording()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .startPrompter)) { _ in
+                guard !showSettings, !showOnboarding, !showQuickComposer, !isRunning, !isRecording, hasAnyContent else { return }
+                isTextFocused = false
+                run()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openQuickComposer)) { _ in
+                guard !showSettings, !showOnboarding else { return }
+                if isRecording { stopRecording() }
+                withAnimation(.easeOut(duration: 0.16)) {
+                    showQuickComposer.toggle()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openSettings)) { _ in
+                showSettings = true
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openAbout)) { _ in
+                showAbout = true
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openOnboarding)) { _ in
+                showOnboarding = true
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .newScript)) { _ in
+                createNewScript()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                isRunning = service.overlayController.isShowing
+            }
+            .onChange(of: service.currentPageText, initial: true) { _, text in
+                scheduleLanguageDetection(for: text)
+            }
+            .onChange(of: service.currentPageIndex) { _, _ in
+                if isRecording {
+                    stopRecording()
+                }
+                ignoredLanguageIdentifier = nil
+                scheduleLanguageDetection(for: service.currentPageText)
+            }
+            .onChange(of: settings.speechLocale) { _, _ in
+                if isRecording {
+                    stopRecording()
+                }
+                ignoredLanguageIdentifier = nil
+                scheduleLanguageDetection(for: service.currentPageText)
+            }
+            .onDisappear {
+                languageDetectionTask?.cancel()
+                if isRecording {
+                    stopRecording()
+                }
+            }
+            .onAppear(perform: handleOnAppear)
+    }
+
+    private func handleOnAppear() {
+        if service.currentFileURL == nil,
+           service.pages.count == 1 && service.pages[0].isEmpty,
+           let active = library.activeScript {
+            service.pages = active.pages
+            service.savedPages = active.pages
+            service.currentPageIndex = 0
+        }
+        if service.overlayController.isShowing {
+            isRunning = true
+        }
+        if TextreamService.shared.launchedExternally {
+            DispatchQueue.main.async {
+                for window in NSApp.windows where !(window is NSPanel) {
+                    window.orderOut(nil)
+                }
+            }
+        } else {
+            isTextFocused = true
+            #if !BENCHMARK
+            let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            if !isRunningTests && !UserDefaults.standard.bool(forKey: CreatorOnboardingView.completedDefaultsKey) {
+                showOnboarding = true
+            }
+            #endif
         }
     }
 

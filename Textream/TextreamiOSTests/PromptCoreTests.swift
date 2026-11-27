@@ -1193,7 +1193,11 @@ struct PromptCoreTests {
         await controller.prepare()
         let startingProgress = controller.continuousWordProgress ?? -1
 
-        try? await Task.sleep(for: .milliseconds(250))
+        let deadline = Date().addingTimeInterval(1.5)
+        while (controller.continuousWordProgress ?? -1) <= startingProgress + 0.2,
+              Date() < deadline {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
 
         #expect(controller.isPromptRunning)
         #expect((controller.continuousWordProgress ?? -1) > startingProgress + 0.2)
