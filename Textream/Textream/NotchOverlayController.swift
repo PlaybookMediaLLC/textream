@@ -527,10 +527,12 @@ class NotchOverlayController: NSObject {
 
     private func installKeyMonitor() {
         removeEscMonitor()
-        hardwareBridge.onAction = { [weak self] action in
-            self?.handleStudioAction(action)
+        MainActor.assumeIsolated {
+            hardwareBridge.onAction = { [weak self] action in
+                self?.handleStudioAction(action)
+            }
+            hardwareBridge.start()
         }
-        hardwareBridge.start()
 
         escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
@@ -671,7 +673,9 @@ class NotchOverlayController: NSObject {
     }
 
     private func removeEscMonitor() {
-        hardwareBridge.stop()
+        MainActor.assumeIsolated {
+            hardwareBridge.stop()
+        }
         if let escMonitor {
             NSEvent.removeMonitor(escMonitor)
         }

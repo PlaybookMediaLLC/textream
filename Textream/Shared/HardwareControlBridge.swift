@@ -18,7 +18,7 @@ final class HardwareControlBridge {
     private var isStarted = false
     private var observers: [NSObjectProtocol] = []
 
-    init() {}
+    nonisolated init() {}
 
     func start() {
         guard !isStarted else { return }

@@ -469,29 +469,31 @@ class TextreamService: NSObject, ObservableObject {
 
     func updateOBSConnection() {
         let settings = NotchSettings.shared
-        obsClient.onRecordingStarted = { [weak self] in
-            guard let self, NotchSettings.shared.obsAutoStartTeleprompter else { return }
-            if !self.overlayController.isShowing {
-                self.readCurrentPage()
-            } else {
-                self.overlayController.triggerResume()
+        MainActor.assumeIsolated {
+            obsClient.onRecordingStarted = { [weak self] in
+                guard let self, NotchSettings.shared.obsAutoStartTeleprompter else { return }
+                if !self.overlayController.isShowing {
+                    self.readCurrentPage()
+                } else {
+                    self.overlayController.triggerResume()
+                }
             }
-        }
-        obsClient.onRecordingStopped = { [weak self] in
-            guard let self, NotchSettings.shared.obsAutoStopTeleprompter else { return }
-            if self.overlayController.isShowing {
-                self.overlayController.dismiss()
+            obsClient.onRecordingStopped = { [weak self] in
+                guard let self, NotchSettings.shared.obsAutoStopTeleprompter else { return }
+                if self.overlayController.isShowing {
+                    self.overlayController.dismiss()
+                }
             }
-        }
 
-        if settings.obsWebSocketEnabled {
-            obsClient.connect(
-                host: settings.obsHost,
-                port: settings.obsPort,
-                password: settings.obsPassword
-            )
-        } else {
-            obsClient.disconnect()
+            if settings.obsWebSocketEnabled {
+                obsClient.connect(
+                    host: settings.obsHost,
+                    port: settings.obsPort,
+                    password: settings.obsPassword
+                )
+            } else {
+                obsClient.disconnect()
+            }
         }
     }
 

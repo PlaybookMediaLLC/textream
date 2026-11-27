@@ -24,6 +24,8 @@ final class OBSWebSocketClient {
     @ObservationIgnored private var activeHost: String = "127.0.0.1"
     @ObservationIgnored private var activePassword: String = ""
 
+    nonisolated init() {}
+
     func connect(host: String, port: UInt16, password: String) {
         disconnect()
 
