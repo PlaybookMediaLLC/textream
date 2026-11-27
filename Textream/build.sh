@@ -80,14 +80,27 @@ find "$ARM_APP" -type f | while read -r arm_file; do
   fi
 done
 
-if [ -n "${SIGNING_IDENTITY:-}" ]; then
-  echo "🖋️  Signing universal app with Developer ID…"
+# Strip extended attributes / Finder metadata before signing so codesign & Gatekeeper stay clean
+xattr -cr "$OUTPUT_APP"
+
+sign_nested_code() {
+  local identity="$1"
+  shift
   if [ -d "$OUTPUT_APP/Contents/Frameworks" ]; then
     while IFS= read -r -d '' code; do
-      codesign --force --sign "$SIGNING_IDENTITY" --options runtime --timestamp "$code"
+      if [ "$#" -gt 0 ]; then
+        codesign --force --sign "$identity" "$@" "$code"
+      else
+        codesign --force --sign "$identity" "$code"
+      fi
     done < <(find "$OUTPUT_APP/Contents/Frameworks" -depth \
       \( -type d -name '*.framework' -o -type f -name '*.dylib' \) -print0)
   fi
+}
+
+if [ -n "${SIGNING_IDENTITY:-}" ]; then
+  echo "🖋️  Signing universal app with Developer ID…"
+  sign_nested_code "$SIGNING_IDENTITY" --options runtime --timestamp
   codesign \
     --force \
     --sign "$SIGNING_IDENTITY" \
@@ -99,8 +112,10 @@ if [ -n "${SIGNING_IDENTITY:-}" ]; then
 
   codesign --verify --deep --strict --verbose=2 "$OUTPUT_APP"
 else
-  echo "⚠️  SIGNING_IDENTITY is not set; creating an ad-hoc signed local build."
+  echo "⚠️  SIGNING_IDENTITY is not set; creating a deeply ad-hoc signed build."
+  sign_nested_code -
   codesign --force --sign - "$OUTPUT_APP"
+  codesign --verify --deep --strict --verbose=2 "$OUTPUT_APP"
 fi
 
 echo "📦 Creating DMG…"
@@ -110,6 +125,7 @@ DMG_STAGING="$BUILD_DIR/dmg_staging"
 rm -rf "$DMG_STAGING"
 mkdir -p "$DMG_STAGING"
 cp -R "$OUTPUT_APP" "$DMG_STAGING/"
+xattr -cr "$DMG_STAGING/$APP_NAME"
 ln -s /Applications "$DMG_STAGING/Applications"
 
 hdiutil create \
@@ -130,6 +146,38 @@ if [ -n "${SIGNING_IDENTITY:-}" ]; then
     "$DMG_PATH"
 
   codesign --verify --strict --verbose=2 "$DMG_PATH"
+
+  if [ -n "${APPLE_NOTARY_KEY_PATH:-}" ] && [ -n "${APPLE_NOTARY_KEY_ID:-}" ] && [ -n "${APPLE_NOTARY_ISSUER_ID:-}" ]; then
+    echo "🍎 Submitting DMG for Apple notarization (App Store Connect API key)…"
+    xcrun notarytool submit "$DMG_PATH" \
+      --key "$APPLE_NOTARY_KEY_PATH" \
+      --key-id "$APPLE_NOTARY_KEY_ID" \
+      --issuer "$APPLE_NOTARY_ISSUER_ID" \
+      --wait
+    echo "📎 Stapling notarization ticket to DMG and universal app…"
+    xcrun stapler staple "$DMG_PATH"
+    xcrun stapler validate "$DMG_PATH"
+    xcrun stapler staple "$OUTPUT_APP"
+    xcrun stapler validate "$OUTPUT_APP"
+    spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG_PATH"
+    spctl --assess --type execute --verbose=2 "$OUTPUT_APP"
+  elif [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_APP_PASSWORD:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ]; then
+    echo "🍎 Submitting DMG for Apple notarization (Apple ID)…"
+    xcrun notarytool submit "$DMG_PATH" \
+      --apple-id "$APPLE_ID" \
+      --password "$APPLE_APP_PASSWORD" \
+      --team-id "$APPLE_TEAM_ID" \
+      --wait
+    echo "📎 Stapling notarization ticket to DMG and universal app…"
+    xcrun stapler staple "$DMG_PATH"
+    xcrun stapler validate "$DMG_PATH"
+    xcrun stapler staple "$OUTPUT_APP"
+    xcrun stapler validate "$OUTPUT_APP"
+    spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG_PATH"
+    spctl --assess --type execute --verbose=2 "$OUTPUT_APP"
+  else
+    echo "⚠️  Developer ID signed, but notarization credentials are not set; skipping notarytool."
+  fi
 fi
 
 rm -rf "$DMG_STAGING"
