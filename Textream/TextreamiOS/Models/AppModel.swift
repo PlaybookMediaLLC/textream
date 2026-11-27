@@ -25,13 +25,18 @@ final class AppModel {
         static let overlayOpacity = "ios.overlayOpacity"
         static let speechLocale = "ios.speechLocale"
         static let appAppearance = "ios.appAppearance"
+        static let iCloudSyncEnabled = "ios.iCloudSyncEnabled"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let filePersistence: ScriptLibraryPersistence?
+    @ObservationIgnored private let syncCoordinator: ScriptSyncCoordinator
+    @ObservationIgnored private var allScripts: [DanteScript]
     @ObservationIgnored private var isSynchronizingLibrary = false
+    @ObservationIgnored private var syncTask: Task<Void, Never>?
 
     private(set) var scripts: [DanteScript]
+    private(set) var syncStatus: ScriptSyncStatus = .idle(lastSynced: nil)
     var selectedScriptID: UUID
 
     var script: String {
@@ -61,6 +66,12 @@ final class AppModel {
     var appAppearance: AppAppearance {
         didSet { defaults.set(appAppearance.rawValue, forKey: Key.appAppearance) }
     }
+    var iCloudSyncEnabled: Bool {
+        didSet {
+            defaults.set(iCloudSyncEnabled, forKey: Key.iCloudSyncEnabled)
+            syncCoordinator.setEnabled(iCloudSyncEnabled)
+        }
+    }
     var hasCompletedOnboarding: Bool {
         didSet { defaults.set(hasCompletedOnboarding, forKey: Key.hasCompletedOnboarding) }
     }
@@ -72,21 +83,33 @@ final class AppModel {
 
     init(
         defaults: UserDefaults = .standard,
-        filePersistence: ScriptLibraryPersistence? = nil
+        filePersistence: ScriptLibraryPersistence? = nil,
+        syncCoordinator: ScriptSyncCoordinator? = nil
     ) {
         self.defaults = defaults
         let resolvedPersistence: ScriptLibraryPersistence? =
             filePersistence ?? (defaults === UserDefaults.standard ? ScriptLibraryPersistence() : nil)
         self.filePersistence = resolvedPersistence
+        let coordinator = syncCoordinator ?? ScriptSyncCoordinator.makeDefault()
+        self.syncCoordinator = coordinator
 
-        let loadedScripts = Self.loadInitialScripts(
+        let loadedAll = Self.loadInitialScripts(
             defaults: defaults,
             filePersistence: resolvedPersistence
         )
-        self.scripts = loadedScripts
+        var visible = loadedAll.filter { !$0.isDeleted }
+        var normalizedAll = loadedAll
+        if visible.isEmpty {
+            let welcome = DanteScript.welcomeScript(forMac: false)
+            normalizedAll.append(welcome)
+            normalizedAll = ScriptLibraryPersistence.sorted(normalizedAll)
+            visible = normalizedAll.filter { !$0.isDeleted }
+        }
+        self.allScripts = normalizedAll
+        self.scripts = visible
 
         let savedSelection = defaults.string(forKey: Key.selectedScriptID).flatMap(UUID.init(uuidString:))
-        let initialSelected = loadedScripts.first(where: { $0.id == savedSelection }) ?? loadedScripts[0]
+        let initialSelected = visible.first(where: { $0.id == savedSelection }) ?? visible[0]
         self.selectedScriptID = initialSelected.id
 
         if let explicitSavedScript = defaults.string(forKey: Key.script) {
@@ -119,6 +142,7 @@ final class AppModel {
         let savedOpacity = defaults.double(forKey: Key.overlayOpacity)
         overlayOpacity = savedOpacity > 0 ? savedOpacity : 0.52
         appAppearance = AppAppearance(rawValue: defaults.string(forKey: Key.appAppearance) ?? "") ?? .system
+        iCloudSyncEnabled = defaults.object(forKey: Key.iCloudSyncEnabled) as? Bool ?? true
         hasCompletedOnboarding = defaults.bool(forKey: Key.hasCompletedOnboarding)
         if let savedLocale = defaults.string(forKey: Key.speechLocale), !savedLocale.isEmpty {
             speechLocaleIdentifier = savedLocale
@@ -130,6 +154,9 @@ final class AppModel {
             // valid Picker tag until Settings lazily resolves a closer locale.
             speechLocaleIdentifier = "en-US"
             defaults.set(speechLocaleIdentifier, forKey: Key.speechLocale)
+        }
+        coordinator.onStatusChange = { [weak self] status in
+            self?.syncStatus = status
         }
     }
 
@@ -172,12 +199,58 @@ final class AppModel {
         cueBrightness = preset.prefersBrightCues ? .bright : .medium
         scrollSpeed = preset.recommendedScrollWordsPerSecond
 
-        if let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) {
-            scripts[idx].presetID = preset.id
-            scripts[idx].targetWPM = preset.targetWPM
-            scripts[idx].updatedAt = Date()
+        if let idx = allScripts.firstIndex(where: { $0.id == selectedScriptID }) {
+            allScripts[idx].presetID = preset.id
+            allScripts[idx].targetWPM = preset.targetWPM
+            allScripts[idx].updatedAt = Date()
+            refreshVisibleScripts()
             persistLibrary()
         }
+    }
+
+    // MARK: - iCloud Sync
+
+    func syncWithCloud() async {
+        let merged = await syncCoordinator.synchronize(
+            localScripts: allScripts,
+            enabled: iCloudSyncEnabled
+        )
+        applyMergedScripts(merged)
+    }
+
+    private func scheduleSync() {
+        syncTask?.cancel()
+        syncTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(800))
+            guard !Task.isCancelled, let self else { return }
+            await self.syncWithCloud()
+        }
+    }
+
+    private func applyMergedScripts(_ merged: [DanteScript]) {
+        var nextAll = ScriptLibraryPersistence.sorted(merged)
+        var visible = nextAll.filter { !$0.isDeleted }
+        if visible.isEmpty {
+            let welcome = DanteScript.welcomeScript(forMac: false)
+            nextAll.append(welcome)
+            nextAll = ScriptLibraryPersistence.sorted(nextAll)
+            visible = nextAll.filter { !$0.isDeleted }
+        }
+        allScripts = nextAll
+        scripts = visible
+        if let active = visible.first(where: { $0.id == selectedScriptID }) {
+            isSynchronizingLibrary = true
+            script = active.pages.first ?? ""
+            isSynchronizingLibrary = false
+        } else if let first = visible.first {
+            selectScript(first)
+        }
+        persistLibrary(triggerSync: false)
+    }
+
+    private func refreshVisibleScripts() {
+        allScripts = ScriptLibraryPersistence.sorted(allScripts)
+        scripts = allScripts.filter { !$0.isDeleted }
     }
 
     // MARK: - Creator Script Library
@@ -190,8 +263,8 @@ final class AppModel {
             presetID: activePreset?.id,
             targetWPM: activeTargetWPM
         )
-        scripts.insert(newEntry, at: 0)
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        allScripts.insert(newEntry, at: 0)
+        refreshVisibleScripts()
         selectScript(newEntry)
         persistLibrary()
         return newEntry
@@ -206,8 +279,8 @@ final class AppModel {
             presetID: preset.id,
             targetWPM: preset.targetWPM
         )
-        scripts.insert(newEntry, at: 0)
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        allScripts.insert(newEntry, at: 0)
+        refreshVisibleScripts()
         selectScript(newEntry)
         apply(preset: preset)
         persistLibrary()
@@ -223,17 +296,18 @@ final class AppModel {
     }
 
     func renameScript(scriptID: UUID, to newTitle: String) {
-        guard let idx = scripts.firstIndex(where: { $0.id == scriptID }) else { return }
-        scripts[idx].title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        scripts[idx].updatedAt = Date()
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        guard let idx = allScripts.firstIndex(where: { $0.id == scriptID }) else { return }
+        allScripts[idx].title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        allScripts[idx].updatedAt = Date()
+        refreshVisibleScripts()
         persistLibrary()
     }
 
     func togglePin(scriptID: UUID) {
-        guard let idx = scripts.firstIndex(where: { $0.id == scriptID }) else { return }
-        scripts[idx].isPinned.toggle()
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        guard let idx = allScripts.firstIndex(where: { $0.id == scriptID }) else { return }
+        allScripts[idx].isPinned.toggle()
+        allScripts[idx].updatedAt = Date()
+        refreshVisibleScripts()
         persistLibrary()
     }
 
@@ -247,8 +321,8 @@ final class AppModel {
             targetWPM: existing.targetWPM,
             isPinned: false
         )
-        scripts.insert(copy, at: 0)
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        allScripts.insert(copy, at: 0)
+        refreshVisibleScripts()
         selectScript(copy)
         persistLibrary()
         return copy
@@ -256,7 +330,11 @@ final class AppModel {
 
     func deleteScript(scriptID: UUID) {
         guard scripts.count > 1 else { return }
-        scripts.removeAll { $0.id == scriptID }
+        guard let idx = allScripts.firstIndex(where: { $0.id == scriptID }) else { return }
+        let now = Date()
+        allScripts[idx].deletedAt = now
+        allScripts[idx].updatedAt = now
+        refreshVisibleScripts()
         if selectedScriptID == scriptID, let first = scripts.first {
             selectScript(first)
         }
@@ -264,29 +342,33 @@ final class AppModel {
     }
 
     func setActiveTargetWPM(_ wpm: Int) {
-        guard let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
-        scripts[idx].targetWPM = ScriptMetrics.clampedWPM(wpm)
-        scripts[idx].updatedAt = Date()
+        guard let idx = allScripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
+        allScripts[idx].targetWPM = ScriptMetrics.clampedWPM(wpm)
+        allScripts[idx].updatedAt = Date()
+        refreshVisibleScripts()
         persistLibrary()
     }
 
     private func syncScriptTextToActiveLibraryEntry(_ newText: String) {
-        guard let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
-        guard scripts[idx].pages.first != newText else { return }
-        scripts[idx].pages = [newText]
-        scripts[idx].updatedAt = Date()
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        guard let idx = allScripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
+        guard allScripts[idx].pages.first != newText else { return }
+        allScripts[idx].pages = [newText]
+        allScripts[idx].updatedAt = Date()
+        refreshVisibleScripts()
         persistLibrary()
     }
 
-    private func persistLibrary() {
+    private func persistLibrary(triggerSync: Bool = true) {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
-        if let encoded = try? encoder.encode(scripts) {
+        if let encoded = try? encoder.encode(allScripts) {
             defaults.set(encoded, forKey: Key.scriptLibrary)
         }
         defaults.set(selectedScriptID.uuidString, forKey: Key.selectedScriptID)
-        filePersistence?.save(scripts)
+        filePersistence?.save(allScripts)
+        if triggerSync {
+            scheduleSync()
+        }
     }
 
     private static func loadInitialScripts(

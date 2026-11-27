@@ -542,6 +542,10 @@ class NotchSettings {
         didSet { UserDefaults.standard.set(showPacingCoach, forKey: "dante.mac.showPacingCoach") }
     }
 
+    var iCloudSyncEnabled: Bool {
+        didSet { UserDefaults.standard.set(iCloudSyncEnabled, forKey: "dante.mac.iCloudSyncEnabled") }
+    }
+
     var font: NSFont {
         fontFamilyPreset.font(size: fontSizePreset.pointSize)
     }
@@ -615,5 +619,6 @@ class NotchSettings {
         self.hasCompletedFirstSession = UserDefaults.standard.bool(forKey: "dante.mac.completedFirstSession")
         self.smartRetakeEnabled = UserDefaults.standard.object(forKey: "dante.mac.smartRetakeEnabled") as? Bool ?? true
         self.showPacingCoach = UserDefaults.standard.object(forKey: "dante.mac.showPacingCoach") as? Bool ?? true
+        self.iCloudSyncEnabled = UserDefaults.standard.object(forKey: "dante.mac.iCloudSyncEnabled") as? Bool ?? true
     }
 }

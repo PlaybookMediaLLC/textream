@@ -84,6 +84,24 @@ struct ScriptLibrarySheet: View {
 
                     Spacer()
 
+                    Button {
+                        Task {
+                            await model.syncWithCloud()
+                        }
+                    } label: {
+                        Image(systemName: model.syncStatus.systemImage)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(model.syncStatus == .syncing ? palette.accent : palette.textSecondary)
+                            .frame(width: 32, height: 32)
+                            .background(palette.surface, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("iCloud Sync: \(model.syncStatus.label)")
+
                     Menu {
                         Button {
                             presetFilter = nil

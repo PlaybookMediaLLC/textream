@@ -12,22 +12,39 @@ final class ScriptLibraryStore {
     static let shared = ScriptLibraryStore()
 
     private let persistence: ScriptLibraryPersistence
+    private let syncCoordinator: ScriptSyncCoordinator
+    private var allScripts: [DanteScript] = []
     private(set) var scripts: [DanteScript] = []
+    private(set) var syncStatus: ScriptSyncStatus = .idle(lastSynced: nil)
     var selectedScriptID: UUID
     var searchQuery: String = ""
+    @ObservationIgnored private var syncTask: Task<Void, Never>?
 
-    init(persistence: ScriptLibraryPersistence = ScriptLibraryPersistence()) {
+    init(
+        persistence: ScriptLibraryPersistence = ScriptLibraryPersistence(),
+        syncCoordinator: ScriptSyncCoordinator? = nil
+    ) {
         self.persistence = persistence
+        let coordinator = syncCoordinator ?? ScriptSyncCoordinator.makeDefault()
+        self.syncCoordinator = coordinator
         var loaded = persistence.load()
-        if loaded.isEmpty {
+        let activeLoaded = loaded.filter { !$0.isDeleted }
+        if activeLoaded.isEmpty {
             let welcome = DanteScript.welcomeScript(forMac: true)
-            loaded = [welcome]
+            loaded.append(welcome)
+            loaded = ScriptLibraryPersistence.sorted(loaded)
             persistence.save(loaded)
         }
-        self.scripts = loaded
-        self.selectedScriptID = loaded[0].id
-        TextreamService.shared.activeTargetWPM = loaded[0].targetWPM
-        TextreamService.shared.activeScriptTitle = loaded[0].displayTitle
+        let visible = loaded.filter { !$0.isDeleted }
+        self.allScripts = loaded
+        self.scripts = visible
+        self.selectedScriptID = visible[0].id
+        TextreamService.shared.activeTargetWPM = visible[0].targetWPM
+        TextreamService.shared.activeScriptTitle = visible[0].displayTitle
+
+        coordinator.onStatusChange = { [weak self] status in
+            self?.syncStatus = status
+        }
     }
 
     var filteredScripts: [DanteScript] {
@@ -36,6 +53,42 @@ final class ScriptLibraryStore {
 
     var activeScript: DanteScript? {
         scripts.first { $0.id == selectedScriptID }
+    }
+
+    func syncWithCloud() async {
+        let merged = await syncCoordinator.synchronize(
+            localScripts: allScripts,
+            enabled: NotchSettings.shared.iCloudSyncEnabled
+        )
+        applyMergedScripts(merged)
+    }
+
+    private func scheduleSync() {
+        syncTask?.cancel()
+        syncTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(800))
+            guard !Task.isCancelled, let self else { return }
+            await self.syncWithCloud()
+        }
+    }
+
+    private func applyMergedScripts(_ merged: [DanteScript]) {
+        var nextAll = ScriptLibraryPersistence.sorted(merged)
+        var visible = nextAll.filter { !$0.isDeleted }
+        if visible.isEmpty {
+            let welcome = DanteScript.welcomeScript(forMac: true)
+            nextAll.append(welcome)
+            nextAll = ScriptLibraryPersistence.sorted(nextAll)
+            visible = nextAll.filter { !$0.isDeleted }
+        }
+        allScripts = nextAll
+        scripts = visible
+        if !visible.contains(where: { $0.id == selectedScriptID }), let first = visible.first {
+            selectedScriptID = first.id
+            TextreamService.shared.activeTargetWPM = first.targetWPM
+            TextreamService.shared.activeScriptTitle = first.displayTitle
+        }
+        persistence.save(allScripts)
     }
 
     @discardableResult
@@ -51,12 +104,14 @@ final class ScriptLibraryStore {
             presetID: presetID,
             targetWPM: preset?.targetWPM ?? ScriptMetrics.defaultWPM
         )
-        scripts.insert(script, at: 0)
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        allScripts.insert(script, at: 0)
+        allScripts = ScriptLibraryPersistence.sorted(allScripts)
+        scripts = allScripts.filter { !$0.isDeleted }
         selectedScriptID = script.id
         TextreamService.shared.activeTargetWPM = script.targetWPM
         TextreamService.shared.activeScriptTitle = script.displayTitle
-        persistence.save(scripts)
+        persistence.save(allScripts)
+        scheduleSync()
         return script
     }
 
@@ -67,50 +122,59 @@ final class ScriptLibraryStore {
     }
 
     func updateActivePages(_ pages: [String]) {
-        guard let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
+        guard let idx = allScripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
         let normalized = pages.isEmpty ? [""] : pages
-        guard scripts[idx].pages != normalized else { return }
-        scripts[idx].pages = normalized
-        scripts[idx].updatedAt = Date()
-        scripts = ScriptLibraryPersistence.sorted(scripts)
-        persistence.save(scripts)
+        guard allScripts[idx].pages != normalized else { return }
+        allScripts[idx].pages = normalized
+        allScripts[idx].updatedAt = Date()
+        allScripts = ScriptLibraryPersistence.sorted(allScripts)
+        scripts = allScripts.filter { !$0.isDeleted }
+        persistence.save(allScripts)
+        scheduleSync()
     }
 
     func updateActiveMetadata(title: String? = nil, targetWPM: Int? = nil, presetID: CreatorPresetID?? = nil) {
-        guard let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
+        guard let idx = allScripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
         if let title {
-            scripts[idx].title = title
-            TextreamService.shared.activeScriptTitle = scripts[idx].displayTitle
+            allScripts[idx].title = title
+            TextreamService.shared.activeScriptTitle = allScripts[idx].displayTitle
         }
         if let targetWPM {
             let clamped = ScriptMetrics.clampedWPM(targetWPM)
-            scripts[idx].targetWPM = clamped
+            allScripts[idx].targetWPM = clamped
             TextreamService.shared.activeTargetWPM = clamped
         }
         if let presetID {
-            scripts[idx].presetID = presetID
+            allScripts[idx].presetID = presetID
         }
-        scripts[idx].updatedAt = Date()
-        scripts = ScriptLibraryPersistence.sorted(scripts)
-        persistence.save(scripts)
+        allScripts[idx].updatedAt = Date()
+        allScripts = ScriptLibraryPersistence.sorted(allScripts)
+        scripts = allScripts.filter { !$0.isDeleted }
+        persistence.save(allScripts)
+        scheduleSync()
     }
 
     func renameScript(id: UUID, to newTitle: String) {
-        guard let idx = scripts.firstIndex(where: { $0.id == id }) else { return }
-        scripts[idx].title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let idx = allScripts.firstIndex(where: { $0.id == id }) else { return }
+        allScripts[idx].title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         if id == selectedScriptID {
-            TextreamService.shared.activeScriptTitle = scripts[idx].displayTitle
+            TextreamService.shared.activeScriptTitle = allScripts[idx].displayTitle
         }
-        scripts[idx].updatedAt = Date()
-        scripts = ScriptLibraryPersistence.sorted(scripts)
-        persistence.save(scripts)
+        allScripts[idx].updatedAt = Date()
+        allScripts = ScriptLibraryPersistence.sorted(allScripts)
+        scripts = allScripts.filter { !$0.isDeleted }
+        persistence.save(allScripts)
+        scheduleSync()
     }
 
     func togglePin(id: UUID) {
-        guard let idx = scripts.firstIndex(where: { $0.id == id }) else { return }
-        scripts[idx].isPinned.toggle()
-        scripts = ScriptLibraryPersistence.sorted(scripts)
-        persistence.save(scripts)
+        guard let idx = allScripts.firstIndex(where: { $0.id == id }) else { return }
+        allScripts[idx].isPinned.toggle()
+        allScripts[idx].updatedAt = Date()
+        allScripts = ScriptLibraryPersistence.sorted(allScripts)
+        scripts = allScripts.filter { !$0.isDeleted }
+        persistence.save(allScripts)
+        scheduleSync()
     }
 
     @discardableResult
@@ -123,20 +187,29 @@ final class ScriptLibraryStore {
             targetWPM: existing.targetWPM,
             isPinned: false
         )
-        scripts.insert(copy, at: 0)
-        scripts = ScriptLibraryPersistence.sorted(scripts)
+        allScripts.insert(copy, at: 0)
+        allScripts = ScriptLibraryPersistence.sorted(allScripts)
+        scripts = allScripts.filter { !$0.isDeleted }
         selectedScriptID = copy.id
-        persistence.save(scripts)
+        persistence.save(allScripts)
+        scheduleSync()
         return copy
     }
 
     func deleteScript(id: UUID) {
         guard scripts.count > 1 else { return }
-        scripts.removeAll { $0.id == id }
+        guard let idx = allScripts.firstIndex(where: { $0.id == id }) else { return }
+        let now = Date()
+        allScripts[idx].deletedAt = now
+        allScripts[idx].updatedAt = now
+        scripts = allScripts.filter { !$0.isDeleted }
         if selectedScriptID == id, let first = scripts.first {
             selectedScriptID = first.id
+            TextreamService.shared.activeTargetWPM = first.targetWPM
+            TextreamService.shared.activeScriptTitle = first.displayTitle
         }
-        persistence.save(scripts)
+        persistence.save(allScripts)
+        scheduleSync()
     }
 }
 
