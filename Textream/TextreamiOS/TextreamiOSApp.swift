@@ -7,27 +7,63 @@ struct TextreamiOSApp: App {
     var body: some Scene {
         WindowGroup {
             #if DEBUG
-            if ProcessInfo.processInfo.arguments.contains("-TextreamGalleryPreview") {
-                SavedRecordingsGallery(store: Self.galleryPreviewStore())
-                    .preferredColorScheme(model.appAppearance.colorScheme)
-            } else if ProcessInfo.processInfo.arguments.contains("-TextreamSettingsPreview") {
-                SettingsView(model: model)
-                    .preferredColorScheme(model.appAppearance.colorScheme)
-            } else if ProcessInfo.processInfo.arguments.contains("-TextreamPromptPreview") {
-                PromptSessionView(configuration: Self.promptPreviewConfiguration())
-                    .preferredColorScheme(.dark)
-            } else if ProcessInfo.processInfo.arguments.contains("-TextreamOuterDisplayPreview") {
-                OuterDisplayPromptPreview(configuration: Self.promptPreviewConfiguration())
-            } else {
-                RootView(model: model)
-                    .preferredColorScheme(model.appAppearance.colorScheme)
-            }
+            debugRootView
             #else
             RootView(model: model)
                 .preferredColorScheme(model.appAppearance.colorScheme)
             #endif
         }
     }
+
+    #if DEBUG
+    @ViewBuilder
+    private var debugRootView: some View {
+        let args = ProcessInfo.processInfo.arguments
+        let schemeOverride: ColorScheme? = {
+            if args.contains("-DanteThemeDark") { return .dark }
+            if args.contains("-DanteThemeLight") { return .light }
+            return model.appAppearance.colorScheme
+        }()
+
+        Group {
+            if args.contains("-TextreamGalleryPreview") {
+                SavedRecordingsGallery(store: Self.galleryPreviewStore())
+            } else if args.contains("-TextreamSettingsPreview") {
+                SettingsView(model: model)
+            } else if args.contains("-TextreamPromptPreview") {
+                PromptSessionView(configuration: Self.promptPreviewConfiguration())
+                    .preferredColorScheme(.dark)
+            } else if args.contains("-TextreamOuterDisplayPreview") {
+                OuterDisplayPromptPreview(configuration: Self.promptPreviewConfiguration())
+            } else if args.contains("-DanteLibraryPreview") {
+                ScriptLibrarySheet(model: model)
+            } else if args.contains("-DanteQuickComposerPreview") {
+                QuickComposerSheet(model: model)
+            } else {
+                RootView(model: model)
+            }
+        }
+        .preferredColorScheme(schemeOverride)
+        .onAppear {
+            if args.contains("-DanteThemeDark") {
+                model.appAppearance = .dark
+                model.markOnboardingCompleted()
+            } else if args.contains("-DanteThemeLight") {
+                model.appAppearance = .light
+                model.markOnboardingCompleted()
+            }
+            if args.contains("-DanteSeedDemoScripts") && model.scripts.count < 3 {
+                let yt = model.createScriptFromTemplate(CreatorPreset.preset(for: .youtubeStudio))
+                model.togglePin(scriptID: yt.id)
+                let shorts = model.createScriptFromTemplate(CreatorPreset.preset(for: .shortsReels))
+                model.togglePin(scriptID: shorts.id)
+                _ = model.createScriptFromTemplate(CreatorPreset.preset(for: .podcastInterview))
+                _ = model.createScriptFromTemplate(CreatorPreset.preset(for: .keynoteLive))
+                model.selectScript(shorts)
+            }
+        }
+    }
+    #endif
 
     #if DEBUG
     @MainActor
