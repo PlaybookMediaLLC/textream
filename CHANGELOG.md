@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.5.0...v1.6.0) (2026-11-27)
+
+
+### Bug Fixes
+
+* **ios:** use DantePalette.statusDanger token in StudioRemoteView ([#16](https://github.com/PlaybookMediaLLC/textream/issues/16)) ([b780d58](https://github.com/PlaybookMediaLLC/textream/commit/b780d58461a9dce57eecf8792648824270962d01))
+
+
+### Features
+
+* **studio:** add hands-free hardware controls, OBS WebSocket v5 sync, and native iOS Studio Remote ([#15](https://github.com/PlaybookMediaLLC/textream/issues/15)) ([120dc72](https://github.com/PlaybookMediaLLC/textream/commit/120dc721f8bad3ae9fdfef1e0c954942d6be13bc))
+
 # [1.5.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.4.0...v1.5.0) (2026-11-27)
 
 
