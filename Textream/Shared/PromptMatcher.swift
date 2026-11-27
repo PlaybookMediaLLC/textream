@@ -17,10 +17,23 @@ import Foundation
 /// and off-script speech (ad-libs, fillers, a TV in the room) rarely clears the
 /// commit threshold because common function words carry little weight.
 /// Measured by `benchmarks/speech-tracking` (see its PLAN.md).
+enum PromptMatchEvent: Equatable, Sendable {
+    case unchanged
+    case advanced(from: Int, to: Int)
+    case retake(from: Int, to: Int)
+    case jumped(from: Int, to: Int)
+
+    var isRetake: Bool {
+        if case .retake = self { return true }
+        return false
+    }
+}
+
 struct PromptMatcher {
     private(set) var source: PromptScript
     private(set) var recognizedCharacterCount: Int
     private(set) var matchStartOffset: Int
+    var smartRetakeEnabled: Bool
 
     /// Readable script tokens in reading order. A contraction in the script
     /// ("don't") becomes two tokens that point at the same word.
@@ -63,8 +76,16 @@ struct PromptMatcher {
     private static let spokenGapPenalty = 0.35  // filler / inserted / misheard extra word
     private static let scriptGapPenalty = 0.45  // script word skipped or not recognised
 
-    init(source: PromptScript, startingAt offset: Int = 0) {
+    // Smart retake tuning (opt-in; only active when `smartRetakeEnabled == true`)
+    private static let retakeNearWindow = 24
+    private static let retakeScore = 1.75
+    private static let retakeImmediateScore = 2.6
+    private static let retakeMatches = 2
+    private static let retakeUniqueness = 0.75
+
+    init(source: PromptScript, startingAt offset: Int = 0, smartRetakeEnabled: Bool = false) {
         self.source = source
+        self.smartRetakeEnabled = smartRetakeEnabled
         var vocabularyIDs: [String: Int] = [:]
         var vocabulary: [String] = []
         var tokens: [Token] = []
@@ -100,7 +121,8 @@ struct PromptMatcher {
     }
 
     mutating func reset(source: PromptScript, startingAt offset: Int = 0) {
-        self = PromptMatcher(source: source, startingAt: offset)
+        let keepRetakeSetting = smartRetakeEnabled
+        self = PromptMatcher(source: source, startingAt: offset, smartRetakeEnabled: keepRetakeSetting)
     }
 
     /// Call when the recognizer starts a new session (fresh, empty transcript).
@@ -133,10 +155,24 @@ struct PromptMatcher {
         return target
     }
 
+    /// Rewinds to the start of the current sentence (or previous sentence if already at the start).
+    @discardableResult
+    mutating func rewindSentence() -> Int {
+        let target = source.previousSentenceStartOffset(before: recognizedCharacterCount)
+        return jump(to: target)
+    }
+
     @discardableResult
     mutating func match(transcript: String) -> Int {
+        _ = matchWithEvent(transcript: transcript)
+        return recognizedCharacterCount
+    }
+
+    @discardableResult
+    mutating func matchWithEvent(transcript: String) -> PromptMatchEvent {
         let heard = Self.canonicalTokens(transcript)
-        guard !heard.isEmpty else { return recognizedCharacterCount }
+        guard !heard.isEmpty else { return .unchanged }
+        let previousOffset = recognizedCharacterCount
         // A partial that starts over is a new utterance: carry the words heard just
         // before it, not the context from when the session began.
         if Self.startsOver(heard, after: lastHeard) {
@@ -147,48 +183,88 @@ struct PromptMatcher {
         lastTail = spoken
         guard !tokens.isEmpty,
               let best = bestCandidate(for: Array(spoken.suffix(Self.tailLength))) else {
-            return recognizedCharacterCount
+            return .unchanged
         }
 
         let distance = best.position - position
         if distance <= 0 && distance >= -Self.backwardSlack {
-            return recognizedCharacterCount   // nothing new; a pending far jump stays pending
+            return .unchanged   // nothing new; a pending far jump stays pending
         }
 
         if distance > 0 && distance <= Self.nearWindow {
             guard best.gain >= Self.requiredGain(forStep: distance),
                   // Beyond a few words, the same phrase elsewhere (a refrain) must not tie.
                   distance <= 4 || best.score - best.runnerUp >= Self.nearUniqueness else {
-                return recognizedCharacterCount
+                return .unchanged
             }
             commit(best.position)
+            return recognizedCharacterCount != previousOffset
+                ? .advanced(from: previousOffset, to: recognizedCharacterCount)
+                : .unchanged
+        } else if smartRetakeEnabled && distance < -Self.backwardSlack && distance >= -Self.retakeNearWindow {
+            // Mid-sentence or previous-sentence retake: when the speaker stumbles and restarts
+            // a nearby sentence, allow a responsive backward commit once the newest spoken words
+            // cleanly agree on the restarted position.
+            guard best.score >= Self.retakeScore,
+                  best.matches >= Self.retakeMatches,
+                  best.score - best.runnerUp >= Self.retakeUniqueness,
+                  recentSpeechAgrees(
+                    with: best.position,
+                    heard: heard,
+                    minMatches: Self.retakeMatches,
+                    minUniqueness: Self.retakeUniqueness
+                  ) else {
+                pendingJump = nil
+                return .unchanged
+            }
+            if let pending = pendingJump, abs(pending - best.position) <= 4 {
+                commit(best.position)
+                return .retake(from: previousOffset, to: recognizedCharacterCount)
+            } else if best.score >= Self.retakeImmediateScore {
+                commit(best.position)
+                return .retake(from: previousOffset, to: recognizedCharacterCount)
+            } else {
+                pendingJump = best.position
+                return .unchanged
+            }
         } else {
             let evidence = distance > 0 ? best.gain : best.score
             guard evidence >= Self.farScore, best.matches >= Self.farMatches,
                   best.score - best.runnerUp >= Self.farUniqueness,
                   recentSpeechAgrees(with: best.position, heard: heard) else {
                 pendingJump = nil
-                return recognizedCharacterCount
+                return .unchanged
             }
             if let pending = pendingJump, abs(pending - best.position) <= 4 {
                 commit(best.position)
+                return distance < 0
+                    ? .retake(from: previousOffset, to: recognizedCharacterCount)
+                    : .jumped(from: previousOffset, to: recognizedCharacterCount)
             } else if evidence >= Self.farScore + 1 {   // overwhelming: don't wait a partial
                 commit(best.position)
+                return distance < 0
+                    ? .retake(from: previousOffset, to: recognizedCharacterCount)
+                    : .jumped(from: previousOffset, to: recognizedCharacterCount)
             } else {
                 pendingJump = best.position
+                return .unchanged
             }
         }
-        return recognizedCharacterCount
     }
 
     /// A long tail can stitch together words from several similar sentences (a re-read
     /// in a script with refrains), and carried context is old by definition. Before
     /// jumping far, the newest words of the current transcript alone must point at the
     /// same place, and nowhere else.
-    private mutating func recentSpeechAgrees(with target: Int, heard: [String]) -> Bool {
-        guard heard.count >= Self.farMatches,
+    private mutating func recentSpeechAgrees(
+        with target: Int,
+        heard: [String],
+        minMatches: Int = farMatches,
+        minUniqueness: Double = farUniqueness
+    ) -> Bool {
+        guard heard.count >= minMatches,
               let recent = bestCandidate(for: Array(heard.suffix(Self.recentLength))) else { return false }
-        return abs(recent.position - target) <= 2 && recent.score - recent.runnerUp >= Self.farUniqueness
+        return abs(recent.position - target) <= 2 && recent.score - recent.runnerUp >= minUniqueness
     }
 
     // MARK: - Alignment

@@ -1067,6 +1067,17 @@ struct SettingsView: View {
                 }
                 .toggleStyle(.checkbox)
 
+                Toggle(isOn: $settings.smartRetakeEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Smart Retake Recovery")
+                            .font(.system(size: 13, weight: .medium))
+                        Text("Automatically rewind when you restart a sentence mid-take, or press ← to rewind manually.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.checkbox)
+
                 Toggle(isOn: $settings.keepScreenAwake) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Keep Screen Awake")

@@ -534,6 +534,10 @@ class NotchSettings {
         didSet { UserDefaults.standard.set(hasCompletedFirstSession, forKey: "dante.mac.completedFirstSession") }
     }
 
+    var smartRetakeEnabled: Bool {
+        didSet { UserDefaults.standard.set(smartRetakeEnabled, forKey: "dante.mac.smartRetakeEnabled") }
+    }
+
     var font: NSFont {
         fontFamilyPreset.font(size: fontSizePreset.pointSize)
     }
@@ -605,5 +609,6 @@ class NotchSettings {
         self.appAppearance = AppAppearance(rawValue: UserDefaults.standard.string(forKey: "dante.mac.appAppearance") ?? "") ?? .system
         self.hasDismissedSetupChecklist = UserDefaults.standard.bool(forKey: "dante.mac.dismissedSetupChecklist")
         self.hasCompletedFirstSession = UserDefaults.standard.bool(forKey: "dante.mac.completedFirstSession")
+        self.smartRetakeEnabled = UserDefaults.standard.object(forKey: "dante.mac.smartRetakeEnabled") as? Bool ?? true
     }
 }

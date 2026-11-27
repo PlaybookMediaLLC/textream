@@ -13,9 +13,12 @@ final class SpeechFollower {
     private(set) var audioLevels: [CGFloat] = Array(repeating: 0, count: 30)
     private(set) var lastSpokenText = ""
     private(set) var errorMessage: String?
+    private(set) var lastMatchEvent: PromptMatchEvent = .unchanged
+    private(set) var retakeCount = 0
+    private(set) var retakeBannerRevision = 0
 
     @ObservationIgnored private var source = PromptScript("")
-    @ObservationIgnored private var matcher = PromptMatcher(source: PromptScript(""))
+    @ObservationIgnored private var matcher = PromptMatcher(source: PromptScript(""), smartRetakeEnabled: true)
     @ObservationIgnored private var mode: FollowMode = .classic
     @ObservationIgnored private var localeIdentifier = "en-US"
     @ObservationIgnored private var recognizer: SFSpeechRecognizer?
@@ -36,10 +39,12 @@ final class SpeechFollower {
     func prepare(source: PromptScript, mode: FollowMode, localeIdentifier: String) async -> Bool {
         stop(resetProgress: true)
         self.source = source
-        self.matcher = PromptMatcher(source: source)
+        self.matcher = PromptMatcher(source: source, smartRetakeEnabled: true)
         self.mode = mode
         self.localeIdentifier = localeIdentifier
         recognizedCharacterCount = matcher.recognizedCharacterCount
+        lastMatchEvent = .unchanged
+        retakeCount = 0
         errorMessage = nil
 
         guard mode == .wordTracking else { return true }
@@ -96,6 +101,8 @@ final class SpeechFollower {
         if resetProgress {
             matcher.reset(source: source)
             recognizedCharacterCount = matcher.recognizedCharacterCount
+            lastMatchEvent = .unchanged
+            retakeCount = 0
             lastSpokenText = ""
             audioLevels = Array(repeating: 0, count: 30)
         }
@@ -112,6 +119,21 @@ final class SpeechFollower {
                 spokenAnchorPrefix = lastSpokenText
                 lastJumpAt = Date()
             }
+        }
+    }
+
+    func rewindSentence() {
+        let previous = recognizedCharacterCount
+        let target = matcher.rewindSentence()
+        recognizedCharacterCount = target
+        if target < previous {
+            lastMatchEvent = .retake(from: previous, to: target)
+            retakeCount += 1
+            retakeBannerRevision &+= 1
+        }
+        if mode == .wordTracking, shouldFollow {
+            spokenAnchorPrefix = lastSpokenText
+            lastJumpAt = Date()
         }
     }
 
@@ -225,7 +247,15 @@ final class SpeechFollower {
             transcript = String(fullTranscript.dropFirst(trimLength))
         }
         guard !transcript.isEmpty else { return }
-        recognizedCharacterCount = matcher.match(transcript: transcript)
+        let event = matcher.matchWithEvent(transcript: transcript)
+        recognizedCharacterCount = matcher.recognizedCharacterCount
+        if event != .unchanged {
+            lastMatchEvent = event
+            if event.isRetake {
+                retakeCount += 1
+                retakeBannerRevision &+= 1
+            }
+        }
     }
 
     private func scheduleRestart(message: String) {

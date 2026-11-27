@@ -40,6 +40,7 @@ class NotchFrameTracker {
 @Observable
 class OverlayContent {
     var words: [String] = []
+    var promptScript: PromptScript = PromptScript("")
     var paragraphBreakBeforeWordIndices: Set<Int> = []
     var totalCharCount: Int = 0
     var hasNextPage: Bool = false
@@ -82,6 +83,7 @@ class NotchOverlayController: NSObject {
         // Populate overlay content
         let normalized = splitTextIntoWords(text)
         overlayContent.words = normalized
+        overlayContent.promptScript = PromptScript(text)
         overlayContent.paragraphBreakBeforeWordIndices = paragraphBreakWordIndices(in: text)
         overlayContent.totalCharCount = normalized.joined(separator: " ").count
         overlayContent.hasNextPage = hasNextPage
@@ -148,6 +150,7 @@ class NotchOverlayController: NSObject {
         speechRecognizer.lastSpokenText = ""
 
         overlayContent.words = normalized
+        overlayContent.promptScript = PromptScript(text)
         overlayContent.paragraphBreakBeforeWordIndices = paragraphBreakWordIndices(in: text)
         overlayContent.totalCharCount = normalized.joined(separator: " ").count
         overlayContent.hasNextPage = hasNextPage
@@ -437,6 +440,14 @@ class NotchOverlayController: NSObject {
         }
     }
 
+    func triggerRewindSentence() {
+        if NotchSettings.shared.listeningMode == .wordTracking {
+            speechRecognizer.rewindSentence()
+        } else {
+            speechRecognizer.rewindSentenceRevision &+= 1
+        }
+    }
+
     private func installKeyMonitor() {
         removeEscMonitor()
         escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
@@ -447,6 +458,10 @@ class NotchOverlayController: NSObject {
                     return nil
                 }
                 self.dismiss()
+                return nil
+            }
+            if event.keyCode == 123 { // Left Arrow / ⌘← -> Rewind sentence
+                self.triggerRewindSentence()
                 return nil
             }
             return event
@@ -755,6 +770,7 @@ struct NotchOverlayView: View {
     // Auto next page countdown
     @State private var countdownRemaining: Int = 0
     @State private var countdownTimer: Timer? = nil
+    @State private var showRetakeBadge: Bool = false
 
     private let topInset: CGFloat = 16
     private let collapsedInset: CGFloat = 8
@@ -955,6 +971,33 @@ struct NotchOverlayView: View {
         .onChange(of: content.currentPageIndex) { _, _ in
             timerWordProgress = 0
             isUserScrolling = false
+        }
+        .onChange(of: speechRecognizer.rewindSentenceRevision) { _, _ in
+            performSentenceRewind()
+        }
+        .onChange(of: speechRecognizer.retakeBannerRevision) { _, revision in
+            guard revision > 0 else { return }
+            withAnimation(.easeOut(duration: 0.16)) {
+                showRetakeBadge = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                if speechRecognizer.retakeBannerRevision == revision {
+                    withAnimation(.easeIn(duration: 0.2)) {
+                        showRetakeBadge = false
+                    }
+                }
+            }
+        }
+    }
+
+    private func performSentenceRewind() {
+        if listeningMode == .wordTracking {
+            speechRecognizer.rewindSentence()
+        } else {
+            let targetOffset = content.promptScript.previousSentenceStartOffset(before: effectiveCharCount)
+            timerWordProgress = wordProgressForCharOffset(targetOffset)
+            speechRecognizer.retakeCount += 1
+            speechRecognizer.retakeBannerRevision &+= 1
         }
     }
 
@@ -1157,6 +1200,27 @@ struct NotchOverlayView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        } else if showRetakeBadge {
+            HStack(spacing: 5) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 9, weight: .semibold))
+                Text("Retake · rewound")
+                    .font(.system(size: 10, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(palette.accent)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(palette.accentSubtle)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .strokeBorder(palette.accent.opacity(0.35), lineWidth: 1)
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .transition(.opacity)
         } else if listeningMode == .wordTracking,
                   NotchSettings.shared.showLastSpokenWords {
             Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))
@@ -1172,6 +1236,18 @@ struct NotchOverlayView: View {
 
     @ViewBuilder
     private var notchControlButtons: some View {
+        Button {
+            performSentenceRewind()
+        } label: {
+            StudioOverlayIconButton(
+                systemImage: "arrow.counterclockwise",
+                isActive: false,
+                palette: palette
+            )
+        }
+        .buttonStyle(.plain)
+        .help("Rewind sentence (←)")
+
         if content.pageCount > 1 {
             if hasNextPage {
                 Button {
@@ -1430,6 +1506,7 @@ struct FloatingOverlayView: View {
     @State private var timerWordProgress: Double = 0
     @State private var isPaused: Bool = false
     @State private var isUserScrolling: Bool = false
+    @State private var showRetakeBadge: Bool = false
 
     init(
         content: OverlayContent,
@@ -1603,6 +1680,33 @@ struct FloatingOverlayView: View {
             timerWordProgress = 0
             isUserScrolling = false
         }
+        .onChange(of: speechRecognizer.rewindSentenceRevision) { _, _ in
+            performSentenceRewind()
+        }
+        .onChange(of: speechRecognizer.retakeBannerRevision) { _, revision in
+            guard revision > 0 else { return }
+            withAnimation(.easeOut(duration: 0.16)) {
+                showRetakeBadge = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                if speechRecognizer.retakeBannerRevision == revision {
+                    withAnimation(.easeIn(duration: 0.2)) {
+                        showRetakeBadge = false
+                    }
+                }
+            }
+        }
+    }
+
+    private func performSentenceRewind() {
+        if listeningMode == .wordTracking {
+            speechRecognizer.rewindSentence()
+        } else {
+            let targetOffset = content.promptScript.previousSentenceStartOffset(before: effectiveCharCount)
+            timerWordProgress = wordProgressForCharOffset(targetOffset)
+            speechRecognizer.retakeCount += 1
+            speechRecognizer.retakeBannerRevision &+= 1
+        }
     }
 
     @ViewBuilder
@@ -1759,6 +1863,27 @@ struct FloatingOverlayView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        } else if showRetakeBadge {
+            HStack(spacing: 5) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 9, weight: .semibold))
+                Text("Retake · rewound")
+                    .font(.system(size: 10, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(palette.accent)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(palette.accentSubtle)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .strokeBorder(palette.accent.opacity(0.35), lineWidth: 1)
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .transition(.opacity)
         } else if listeningMode == .wordTracking,
                   NotchSettings.shared.showLastSpokenWords {
             Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))
@@ -1774,6 +1899,21 @@ struct FloatingOverlayView: View {
 
     @ViewBuilder
     private var floatingControlButtons: some View {
+        if !followingCursor {
+            Button {
+                performSentenceRewind()
+            } label: {
+                StudioOverlayIconButton(
+                    systemImage: "arrow.counterclockwise",
+                    isActive: false,
+                    palette: palette,
+                    surfaceOverride: palette.elevatedSurface
+                )
+            }
+            .buttonStyle(.plain)
+            .help("Rewind sentence (←)")
+        }
+
         if !followingCursor && content.pageCount > 1 {
             if hasNextPage {
                 Button {

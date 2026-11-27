@@ -18,6 +18,7 @@ struct PromptSessionView: View {
     @State private var isShowingMirrorSettings = false
     @State private var showsSessionControls = true
     @State private var isOuterDisplayAvailable = false
+    @State private var showsRetakeBadge = false
     @AppStorage("ios.showsScriptOnOuterDisplay") private var showsScriptOnOuterDisplay = true
     private let onScrollSpeedChanged: (Double) -> Void
     private let onDisplaySettingsChanged: (PromptDisplaySettings) -> Void
@@ -329,6 +330,20 @@ struct PromptSessionView: View {
                 }
             }
         }
+        .onChange(of: controller.retakeBannerRevision) { _, revision in
+            guard revision > 0 else { return }
+            withAnimation(.easeOut(duration: 0.16)) {
+                showsRetakeBadge = true
+            }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(1400))
+                if controller.retakeBannerRevision == revision {
+                    withAnimation(.easeIn(duration: 0.2)) {
+                        showsRetakeBadge = false
+                    }
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -469,6 +484,19 @@ struct PromptSessionView: View {
                     .font(.caption2.monospacedDigit().weight(.semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 34, alignment: .trailing)
+
+                Button {
+                    controller.rewindSentence()
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .frame(width: 26, height: 26)
+                        .background(.white.opacity(0.12), in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Rewind sentence")
+                .accessibilityIdentifier("rewindSentenceButton")
             }
             .padding(.horizontal, 15)
             .frame(height: 38)
@@ -476,7 +504,22 @@ struct PromptSessionView: View {
             .frame(maxWidth: isLandscape ? 500 : .infinity)
             .frame(maxWidth: .infinity)
 
-            if controller.configuration.followMode == .wordTracking,
+            if showsRetakeBadge {
+                HStack(spacing: 5) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.caption2.weight(.semibold))
+                    Text("Retake · rewound")
+                        .font(.caption2.weight(.semibold))
+                }
+                .foregroundStyle(DantePalette(colorScheme: .dark).accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(DantePalette(colorScheme: .dark).accentSubtle)
+                )
+                .transition(.opacity)
+            } else if controller.configuration.followMode == .wordTracking,
                !controller.speechFollower.lastSpokenText.isEmpty {
                 Text(controller.speechFollower.lastSpokenText.split(separator: " ").suffix(4).joined(separator: " "))
                     .font(.caption.weight(.medium))
