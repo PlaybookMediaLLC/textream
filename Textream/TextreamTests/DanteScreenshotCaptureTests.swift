@@ -144,6 +144,123 @@ final class DanteScreenshotCaptureTests: XCTestCase {
             try pngData.write(to: dest)
             XCTAssertGreaterThan(pngData.count, 10_000, "Screenshot \(item.filename) unexpectedly small")
         }
+
+        try captureProStudioFeatureScreenshots(outputDir: outputDir)
+    }
+
+    private func captureProStudioFeatureScreenshots(outputDir: URL) throws {
+        let settings = NotchSettings.shared
+        settings.directorModeEnabled = true
+        settings.obsWebSocketEnabled = true
+        settings.obsHost = "127.0.0.1"
+        settings.obsPort = 4455
+        settings.obsAutoStartTeleprompter = true
+        settings.obsAutoStopTeleprompter = true
+        settings.smartRetakeEnabled = true
+        settings.showPacingCoach = true
+        settings.iCloudSyncEnabled = true
+        if !TextreamService.shared.directorServer.isRunning {
+            TextreamService.shared.directorServer.start()
+        }
+
+        defer {
+            TextreamService.shared.directorServer.stop()
+            settings.directorModeEnabled = false
+            settings.obsWebSocketEnabled = false
+        }
+
+        let sampleRecord = TakeTranscriptRecord(
+            id: UUID(),
+            scriptTitle: "How I Shoot 4K Studio Videos in One Take",
+            recordedAt: Date(),
+            durationSeconds: 84,
+            targetWPM: 150,
+            wordTimings: [
+                WordTimingSample(wordIndex: 0, text: "Here", startSeconds: 0.4, endSeconds: 0.8, passIndex: 1),
+                WordTimingSample(wordIndex: 1, text: "is", startSeconds: 0.8, endSeconds: 1.0, passIndex: 1),
+                WordTimingSample(wordIndex: 2, text: "the", startSeconds: 1.0, endSeconds: 1.2, passIndex: 1),
+                WordTimingSample(wordIndex: 3, text: "setup", startSeconds: 1.2, endSeconds: 1.8, passIndex: 1)
+            ],
+            markers: [
+                TakeMarker(kind: .retake, timestampSeconds: 22.5, label: "Smart Retake", wordIndex: 42),
+                TakeMarker(kind: .manual, timestampSeconds: 51.0, label: "Studio Marker", wordIndex: 118)
+            ]
+        )
+        let sampleSummary = TakeSummary(
+            durationSeconds: 84,
+            averageWPM: 152,
+            targetWPM: 150,
+            spokenWordsCompleted: 212,
+            retakeCount: 1,
+            pauseHotspotCount: 0,
+            status: .onPace
+        )
+
+        let schemes: [(suffix: String, appearance: AppAppearance, scheme: ColorScheme)] = [
+            ("dark", .dark, .dark),
+            ("light", .light, .light)
+        ]
+
+        for item in schemes {
+            settings.appAppearance = item.appearance
+            item.appearance.applyToApplication()
+            let palette = DantePalette(colorScheme: item.scheme)
+
+            // 1. Settings -> Director / Studio Integrations (Pairing PIN + OBS WebSocket v5 + Hardware Controls)
+            let settingsShot = SettingsView(settings: settings, initialTab: .director)
+                .preferredColorScheme(item.scheme)
+                .frame(width: 680, height: 640)
+            let settingsPNG = try renderPNG(
+                view: settingsShot,
+                size: NSSize(width: 680, height: 640),
+                appearanceName: item.scheme == .dark ? .darkAqua : .aqua
+            )
+            try settingsPNG.write(to: outputDir.appendingPathComponent("macos-studio-integrations-\(item.suffix).png"))
+
+            // 2. Post-Take Analytics & Instant .SRT / FCPXML Export Card
+            let summaryStage = ZStack {
+                palette.canvasBackground.ignoresSafeArea()
+                VStack(spacing: 14) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(palette.statusSuccess)
+                        Text("Take Complete")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(palette.textPrimary)
+                    }
+
+                    Text("How I Shoot 4K Studio Videos in One Take")
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundStyle(palette.textSecondary)
+
+                    StudioTakeSummaryView(
+                        summary: sampleSummary,
+                        takeRecord: sampleRecord,
+                        palette: palette
+                    )
+                    .padding(.top, 2)
+                }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 24)
+                .frame(width: 440)
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(palette.borderStrong, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(item.scheme == .dark ? 0.55 : 0.14), radius: 24, y: 12)
+            }
+            .preferredColorScheme(item.scheme)
+            .frame(width: 560, height: 300)
+
+            let summaryPNG = try renderPNG(
+                view: summaryStage,
+                size: NSSize(width: 560, height: 300),
+                appearanceName: item.scheme == .dark ? .darkAqua : .aqua
+            )
+            try summaryPNG.write(to: outputDir.appendingPathComponent("macos-take-summary-\(item.suffix).png"))
+        }
     }
 
     @ViewBuilder

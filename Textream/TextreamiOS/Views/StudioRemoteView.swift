@@ -18,8 +18,31 @@ struct StudioRemoteView: View {
     @State private var manualPort: String = "7576"
     @State private var showManualEntry: Bool = false
 
+    let previewHostName: String?
+    let previewState: StudioRemoteState?
+
+    init(previewHostName: String? = nil, previewState: StudioRemoteState? = nil) {
+        self.previewHostName = previewHostName
+        self.previewState = previewState
+    }
+
     private var palette: DantePalette {
         DantePalette(colorScheme: colorScheme)
+    }
+
+    private var effectiveConnected: Bool {
+        previewHostName != nil || client.connectionState.isConnected
+    }
+
+    private var effectiveConnectionLabel: String {
+        if let previewHostName {
+            return "Connected to \(previewHostName)"
+        }
+        return client.connectionState.label
+    }
+
+    private var effectiveRemoteState: StudioRemoteState? {
+        previewState ?? client.remoteState
     }
 
     var body: some View {
@@ -28,7 +51,7 @@ struct StudioRemoteView: View {
                 VStack(spacing: 16) {
                     statusBanner
 
-                    if client.connectionState.isConnected {
+                    if effectiveConnected {
                         telemetryCard
                         transportDeck
                     } else {
@@ -50,7 +73,7 @@ struct StudioRemoteView: View {
                         dismiss()
                     }
                 }
-                if client.connectionState.isConnected {
+                if effectiveConnected {
                     ToolbarItem(placement: .primaryAction) {
                         Button("Disconnect") {
                             client.disconnect()
@@ -61,7 +84,9 @@ struct StudioRemoteView: View {
             }
         }
         .onAppear {
-            client.startDiscovery()
+            if previewHostName == nil {
+                client.startDiscovery()
+            }
         }
         .onDisappear {
             client.disconnect()
@@ -72,13 +97,13 @@ struct StudioRemoteView: View {
     private var statusBanner: some View {
         HStack(spacing: 10) {
             Circle()
-                .fill(client.connectionState.isConnected ? palette.statusSuccess : palette.textTertiary)
+                .fill(effectiveConnected ? palette.statusSuccess : palette.textTertiary)
                 .frame(width: 9, height: 9)
-            Text(client.connectionState.label)
+            Text(effectiveConnectionLabel)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(palette.textPrimary)
             Spacer()
-            if client.isSearching && !client.connectionState.isConnected {
+            if client.isSearching && !effectiveConnected {
                 ProgressView()
                     .controlSize(.small)
             }
@@ -218,7 +243,7 @@ struct StudioRemoteView: View {
     }
 
     private var telemetryCard: some View {
-        let state = client.remoteState
+        let state = effectiveRemoteState
         let progress = state?.progress ?? 0
         let wpm = state?.currentWPM ?? 0
         let elapsed = state?.elapsedSeconds ?? 0
@@ -273,7 +298,7 @@ struct StudioRemoteView: View {
     }
 
     private var transportDeck: some View {
-        let state = client.remoteState
+        let state = effectiveRemoteState
         let isListening = state?.isListening ?? false
         let pageIndex = (state?.pageIndex ?? 0) + 1
         let pageCount = max(1, state?.pageCount ?? 1)

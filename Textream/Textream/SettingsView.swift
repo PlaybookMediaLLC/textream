@@ -429,10 +429,15 @@ struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @State private var previewController = NotchPreviewController()
-    @State private var selectedTab: SettingsTab = .appearance
+    @State private var selectedTab: SettingsTab
     @State private var showResetConfirmation = false
     @State private var showAcknowledgements = false
     @State private var guidanceTestEngine: SpeechEngine?
+
+    init(settings: NotchSettings, initialTab: SettingsTab = .appearance) {
+        self.settings = settings
+        _selectedTab = State(initialValue: initialTab)
+    }
 
     private var palette: DantePalette {
         DantePalette(colorScheme: colorScheme)
