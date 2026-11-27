@@ -16,6 +16,33 @@ DMG_NAME="Dante-for-Creators.dmg"
 DMG_PATH="$BUILD_DIR/$DMG_NAME"
 DEVELOPER_ID_ENTITLEMENTS="$PROJECT_DIR/Textream/Textream-DeveloperID.entitlements"
 
+NOTARY_ARGS=()
+if [ -n "${APPLE_NOTARY_KEY_PATH:-}" ] && [ -n "${APPLE_NOTARY_KEY_ID:-}" ] && [ -n "${APPLE_NOTARY_ISSUER_ID:-}" ]; then
+  NOTARY_ARGS=(--key "$APPLE_NOTARY_KEY_PATH" --key-id "$APPLE_NOTARY_KEY_ID" --issuer "$APPLE_NOTARY_ISSUER_ID")
+elif [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_APP_PASSWORD:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ]; then
+  NOTARY_ARGS=(--apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID")
+fi
+
+if [ "${REQUIRE_NOTARIZATION:-0}" = 1 ]; then
+  if [ -z "${SIGNING_IDENTITY:-}" ] || [ "$SIGNING_IDENTITY" = - ] || [ "${#NOTARY_ARGS[@]}" -eq 0 ]; then
+    echo "Release requires a Developer ID signing identity and complete notarization credentials." >&2
+    exit 1
+  fi
+fi
+
+notarize() {
+  local artifact="$1"
+  local result="$artifact.notary.json"
+  xcrun notarytool submit "$artifact" "${NOTARY_ARGS[@]}" --wait --output-format json > "$result"
+  python3 - "$result" <<'PY'
+import json, sys
+with open(sys.argv[1]) as result:
+    status = json.load(result).get("status")
+if status != "Accepted":
+    sys.exit(f"Notarization was not accepted ({status}); see {sys.argv[1]}")
+PY
+}
+
 echo "🧹 Cleaning previous build…"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR" "$OUTPUT_DIR"
@@ -66,7 +93,7 @@ has_both_architectures() {
 
 # Find all Mach-O binaries and lipo them together
 find "$ARM_APP" -type f | while read -r arm_file; do
-  rel="${arm_file#$ARM_APP}"
+  rel="${arm_file#"$ARM_APP"}"
   x86_file="$X86_APP$rel"
   out_file="$OUTPUT_APP$rel"
 
@@ -118,14 +145,23 @@ else
   codesign --verify --deep --strict --verbose=2 "$OUTPUT_APP"
 fi
 
+# Staple the app before packaging it so both downloads work offline.
+if [ -n "${SIGNING_IDENTITY:-}" ] && [ "${#NOTARY_ARGS[@]}" -gt 0 ]; then
+  echo "🍎 Notarizing and stapling the universal app…"
+  ditto -c -k --sequesterRsrc --keepParent "$OUTPUT_APP" "$BUILD_DIR/Dante-notary.zip"
+  notarize "$BUILD_DIR/Dante-notary.zip"
+  xcrun stapler staple "$OUTPUT_APP"
+  xcrun stapler validate "$OUTPUT_APP"
+  spctl --assess --type execute --verbose=2 "$OUTPUT_APP"
+fi
+
 echo "📦 Creating DMG…"
 rm -f "$DMG_PATH"
 
 DMG_STAGING="$BUILD_DIR/dmg_staging"
 rm -rf "$DMG_STAGING"
 mkdir -p "$DMG_STAGING"
-cp -R "$OUTPUT_APP" "$DMG_STAGING/"
-xattr -cr "$DMG_STAGING/$APP_NAME"
+ditto "$OUTPUT_APP" "$DMG_STAGING/$APP_NAME"
 ln -s /Applications "$DMG_STAGING/Applications"
 
 hdiutil create \
@@ -147,34 +183,12 @@ if [ -n "${SIGNING_IDENTITY:-}" ]; then
 
   codesign --verify --strict --verbose=2 "$DMG_PATH"
 
-  if [ -n "${APPLE_NOTARY_KEY_PATH:-}" ] && [ -n "${APPLE_NOTARY_KEY_ID:-}" ] && [ -n "${APPLE_NOTARY_ISSUER_ID:-}" ]; then
-    echo "🍎 Submitting DMG for Apple notarization (App Store Connect API key)…"
-    xcrun notarytool submit "$DMG_PATH" \
-      --key "$APPLE_NOTARY_KEY_PATH" \
-      --key-id "$APPLE_NOTARY_KEY_ID" \
-      --issuer "$APPLE_NOTARY_ISSUER_ID" \
-      --wait
-    echo "📎 Stapling notarization ticket to DMG and universal app…"
+  if [ "${#NOTARY_ARGS[@]}" -gt 0 ]; then
+    echo "🍎 Notarizing and stapling the DMG…"
+    notarize "$DMG_PATH"
     xcrun stapler staple "$DMG_PATH"
     xcrun stapler validate "$DMG_PATH"
-    xcrun stapler staple "$OUTPUT_APP"
-    xcrun stapler validate "$OUTPUT_APP"
     spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG_PATH"
-    spctl --assess --type execute --verbose=2 "$OUTPUT_APP"
-  elif [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_APP_PASSWORD:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ]; then
-    echo "🍎 Submitting DMG for Apple notarization (Apple ID)…"
-    xcrun notarytool submit "$DMG_PATH" \
-      --apple-id "$APPLE_ID" \
-      --password "$APPLE_APP_PASSWORD" \
-      --team-id "$APPLE_TEAM_ID" \
-      --wait
-    echo "📎 Stapling notarization ticket to DMG and universal app…"
-    xcrun stapler staple "$DMG_PATH"
-    xcrun stapler validate "$DMG_PATH"
-    xcrun stapler staple "$OUTPUT_APP"
-    xcrun stapler validate "$OUTPUT_APP"
-    spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG_PATH"
-    spctl --assess --type execute --verbose=2 "$OUTPUT_APP"
   else
     echo "⚠️  Developer ID signed, but notarization credentials are not set; skipping notarytool."
   fi
