@@ -337,7 +337,8 @@ final class AppModel {
             cueBrightness: cueBrightness,
             overlayOpacity: overlayOpacity,
             speechLocaleIdentifier: speechLocaleIdentifier,
-            targetWPM: activeTargetWPM
+            targetWPM: activeTargetWPM,
+            scriptTitle: activeScript?.displayTitle ?? "Untitled Take"
         )
     }
 

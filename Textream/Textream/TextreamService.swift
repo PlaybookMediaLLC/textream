@@ -24,7 +24,9 @@ class TextreamService: NSObject, ObservableObject {
     @Published var pages: [String] = [""]
     @Published var currentPageIndex: Int = 0
     @Published var readPages: Set<Int> = []
+    @Published var lastTakeRecord: TakeTranscriptRecord? = nil
     var activeTargetWPM: Int = ScriptMetrics.defaultWPM
+    var activeScriptTitle: String = "Untitled Script"
 
     var hasNextPage: Bool {
         for i in (currentPageIndex + 1)..<pages.count {
@@ -519,6 +521,30 @@ class TextreamService: NSObject, ObservableObject {
             return
         }
         readText(text)
+    }
+
+    func recordLastTake(_ record: TakeTranscriptRecord) {
+        DispatchQueue.main.async { [weak self] in
+            self?.lastTakeRecord = record
+        }
+    }
+
+    func exportLastTake(format: TakeExportFormat, record overrideRecord: TakeTranscriptRecord? = nil) {
+        guard let record = overrideRecord ?? lastTakeRecord else { return }
+        let content = format.render(record: record)
+        let panel = NSSavePanel()
+        panel.title = "Export \(format.label)"
+        panel.nameFieldStringValue = format.suggestedFilename(baseTitle: record.scriptTitle)
+        if let utType = UTType(filenameExtension: format.fileExtension) {
+            panel.allowedContentTypes = [utType]
+        } else {
+            panel.allowedContentTypes = [.plainText]
+        }
+        panel.canCreateDirectories = true
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            try? content.write(to: url, atomically: true, encoding: .utf8)
+        }
     }
 
     // URL scheme handler: dante://read?text=Hello%20World

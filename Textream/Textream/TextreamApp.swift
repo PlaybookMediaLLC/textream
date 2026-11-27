@@ -238,6 +238,15 @@ struct TextreamApp: App {
                 }
                 .keyboardShortcut("s", modifiers: [.command, .shift])
 
+                Menu("Export Last Take") {
+                    ForEach(TakeExportFormat.allCases) { format in
+                        Button(format.label) {
+                            TextreamService.shared.exportLastTake(format: format)
+                        }
+                    }
+                }
+                .disabled(TextreamService.shared.lastTakeRecord == nil)
+
                 Divider()
 
                 Button("Start Prompter") {

@@ -291,6 +291,7 @@ struct PromptSessionConfiguration: Equatable {
     let overlayOpacity: Double
     let speechLocaleIdentifier: String
     var targetWPM: Int = ScriptMetrics.defaultWPM
+    var scriptTitle: String = "Untitled Take"
 
     var usesCamera: Bool { cameraEnabled || sessionMode == .record }
     var requiresAudioCapture: Bool { followMode.requiresMicrophone || sessionMode == .record }

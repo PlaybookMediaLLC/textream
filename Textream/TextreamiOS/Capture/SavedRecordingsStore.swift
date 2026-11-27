@@ -353,6 +353,24 @@ final class SavedRecordingsStore {
         recordedAssetIdentifiers.removeAll { assetIdentifiers.contains($0) }
         recordings.removeAll { assetIdentifiers.contains($0.assetIdentifier) }
         defaults.set(recordedAssetIdentifiers, forKey: defaultsKey)
+        let persistence = TakeSidecarPersistence()
+        for identifier in assetIdentifiers {
+            persistence.delete(for: identifier)
+        }
+    }
+
+    func saveTakeRecord(_ record: TakeTranscriptRecord, for assetIdentifier: String) {
+        _ = TakeSidecarPersistence().save(record, for: assetIdentifier)
+    }
+
+    func takeRecord(for assetIdentifier: String) -> TakeTranscriptRecord? {
+        TakeSidecarPersistence().load(for: assetIdentifier)
+    }
+
+    func exportURL(for assetIdentifier: String, format: TakeExportFormat) -> URL? {
+        let persistence = TakeSidecarPersistence()
+        guard let record = persistence.load(for: assetIdentifier) else { return nil }
+        return persistence.writeTemporaryExport(record: record, format: format)
     }
 
     static func normalizedIdentifiers(_ identifiers: [String], limit: Int) -> [String] {
