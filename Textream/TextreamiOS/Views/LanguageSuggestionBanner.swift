@@ -1,11 +1,16 @@
 import SwiftUI
 
 struct LanguageSuggestionBanner: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let suggestion: SpeechLanguageSuggestion
     let currentLocaleIdentifier: String
     let onUse: () -> Void
     let onDismiss: () -> Void
+
+    private var palette: DantePalette {
+        DantePalette(colorScheme: colorScheme)
+    }
 
     private var currentLocaleName: String {
         Locale.current.localizedString(forIdentifier: currentLocaleIdentifier)
@@ -34,21 +39,22 @@ struct LanguageSuggestionBanner: View {
 
             Button("Use \(suggestion.languageName)", action: onUse)
                 .buttonStyle(.glassProminent)
+                .tint(palette.accent)
                 .controlSize(.small)
                 .accessibilityHint("Changes Word Tracking to \(suggestion.localeName)")
         }
         .padding(12)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(palette.elevatedSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(.indigo.opacity(0.35), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(palette.accent.opacity(0.4), lineWidth: 1)
         }
         .accessibilityIdentifier("languageSuggestionBanner")
     }
 
     private var suggestionIcon: some View {
         Image(systemName: "character.bubble.fill")
-            .foregroundStyle(.indigo)
+            .foregroundStyle(palette.accent)
             .accessibilityHidden(true)
     }
 

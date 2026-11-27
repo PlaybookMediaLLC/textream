@@ -391,6 +391,7 @@ struct SettingsView: View {
     }
 
     @Bindable var settings: NotchSettings
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @State private var previewController = NotchPreviewController()
     @State private var selectedTab: SettingsTab = .appearance
@@ -398,34 +399,48 @@ struct SettingsView: View {
     @State private var showAcknowledgements = false
     @State private var guidanceTestEngine: SpeechEngine?
 
+    private var palette: DantePalette {
+        DantePalette(colorScheme: colorScheme)
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Sidebar
             VStack(alignment: .leading, spacing: 2) {
                 Text("Settings")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(palette.textTertiary)
                     .textCase(.uppercase)
                     .padding(.horizontal, 10)
                     .padding(.bottom, 6)
 
                 ForEach(SettingsTab.allCases) { tab in
+                    let isSelected = selectedTab == tab
                     Button {
                         selectedTab = tab
                     } label: {
                         HStack(spacing: 7) {
                             Image(systemName: tab.icon)
                                 .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(isSelected ? palette.accent : palette.textTertiary)
                                 .frame(width: 16)
                             Text(tab.label)
-                                .font(.system(size: 13, weight: .regular))
+                                .font(.system(size: 13, weight: isSelected ? .medium : .regular))
+                                .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
+                            Spacer(minLength: 4)
+                            if isSelected {
+                                Circle()
+                                    .fill(palette.accent)
+                                    .frame(width: 5, height: 5)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 7)
-                        .background(selectedTab == tab ? Color.accentColor.opacity(0.15) : Color.clear)
-                        .foregroundStyle(selectedTab == tab ? Color.accentColor : .primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .background(
+                            isSelected ? palette.surfaceHover : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        )
                     }
                     .buttonStyle(.plain)
                 }
@@ -433,11 +448,11 @@ struct SettingsView: View {
                 Spacer()
             }
             .padding(12)
-            .frame(width: 155)
+            .frame(width: 162)
             .frame(maxHeight: .infinity)
-            .background(Color.primary.opacity(0.04))
+            .background(palette.sidebarBackground)
 
-            Divider()
+            Rectangle().fill(palette.borderSubtle).frame(width: 1)
 
             // Content
             VStack(spacing: 0) {
@@ -458,21 +473,21 @@ struct SettingsView: View {
                     directorTab
                 }
 
-                Divider()
+                Rectangle().fill(palette.borderSubtle).frame(height: 1)
 
                 HStack(spacing: 12) {
                     Button("Reset All") {
                         showResetConfirmation = true
                     }
                     .buttonStyle(.borderless)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.textSecondary)
                     .controlSize(.regular)
 
                     Button("Acknowledgements") {
                         showAcknowledgements = true
                     }
                     .buttonStyle(.borderless)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.textSecondary)
                     .controlSize(.regular)
 
                     Spacer()
@@ -485,11 +500,13 @@ struct SettingsView: View {
                     .controlSize(.regular)
                 }
                 .padding(12)
+                .background(palette.surface)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(palette.canvasBackground)
         }
-        .frame(width: Self.sheetWidth, height: 500)
-        .background(.ultraThinMaterial)
+        .frame(width: Self.sheetWidth, height: 520)
+        .background(palette.canvasBackground)
         .sheet(item: $guidanceTestEngine) { engine in
             GuidanceTestSheet(engine: engine)
         }
@@ -558,6 +575,43 @@ struct SettingsView: View {
     private var appearanceTab: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 14) {
+                // App Theme (System / Light / Dark)
+                Text("App Theme")
+                    .font(.system(size: 13, weight: .medium))
+
+                HStack(spacing: 8) {
+                    ForEach(AppAppearance.allCases) { appearance in
+                        let isSelected = settings.appAppearance == appearance
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                settings.appAppearance = appearance
+                            }
+                        } label: {
+                            VStack(spacing: 6) {
+                                Image(systemName: appearance.systemImage)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(isSelected ? palette.accent : palette.textPrimary)
+                                Text(appearance.label)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(isSelected ? palette.accent : palette.textSecondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .background(
+                                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                    .fill(isSelected ? palette.accentSubtle : palette.surface)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                    .strokeBorder(isSelected ? palette.accent.opacity(0.6) : palette.borderSubtle, lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Divider()
+
                 // Font Family
                 Text("Font")
                     .font(.system(size: 13, weight: .medium))

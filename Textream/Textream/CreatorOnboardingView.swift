@@ -10,6 +10,7 @@ import Speech
 import SwiftUI
 
 struct CreatorOnboardingView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     let onApplyPreset: (CreatorPreset) -> Void
 
@@ -20,6 +21,10 @@ struct CreatorOnboardingView: View {
 
     static let completedDefaultsKey = "dante.mac.hasCompletedOnboarding"
 
+    private var palette: DantePalette {
+        DantePalette(colorScheme: colorScheme)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if step == 0 {
@@ -28,7 +33,7 @@ struct CreatorOnboardingView: View {
                 permissionsStep
             }
 
-            Divider()
+            Rectangle().fill(palette.borderSubtle).frame(height: 1)
 
             HStack {
                 if step > 0 {
@@ -40,7 +45,7 @@ struct CreatorOnboardingView: View {
                         completeOnboarding(applySelectedPreset: false)
                     }
                     .buttonStyle(.borderless)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.textSecondary)
                 }
 
                 Spacer()
@@ -60,9 +65,10 @@ struct CreatorOnboardingView: View {
                 }
             }
             .padding(16)
+            .background(palette.surface)
         }
         .frame(width: 560, height: 500)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(palette.canvasBackground)
         .onAppear {
             refreshPermissions()
         }
@@ -75,71 +81,78 @@ struct CreatorOnboardingView: View {
                     if let icon = NSImage(named: "AppIcon") {
                         Image(nsImage: icon)
                             .resizable()
-                            .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: 13))
+                            .frame(width: 52, height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Welcome to Dante for Creators")
                             .font(.title2.weight(.bold))
+                            .foregroundStyle(palette.textPrimary)
                         Text("Smart voice-following teleprompter built for camera-ready delivery.")
                             .font(.callout)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(palette.textSecondary)
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
                     Label("Smart Follow stays locked to your voice", systemImage: "waveform.path.ecg")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(palette.accent)
                     Text("Pause naturally, ad-lib a thought, skip a paragraph, or re-read a line—Dante aligns to your speech automatically, with optional 100% offline AI speech models on Apple Silicon.")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                )
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Choose a Creator Format Preset")
-                        .font(.headline)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(palette.textPrimary)
 
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                         ForEach(CreatorPreset.all) { preset in
+                            let isSelected = selectedPresetID == preset.id
                             Button {
                                 selectedPresetID = preset.id
                             } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     HStack {
                                         Image(systemName: preset.systemImage)
-                                            .foregroundStyle(selectedPresetID == preset.id ? Color.accentColor : .secondary)
+                                            .foregroundStyle(isSelected ? palette.accent : palette.textSecondary)
                                         Text(preset.name)
                                             .font(.system(size: 12, weight: .semibold))
-                                            .foregroundStyle(.primary)
+                                            .foregroundStyle(palette.textPrimary)
                                         Spacer()
-                                        if selectedPresetID == preset.id {
+                                        if isSelected {
                                             Image(systemName: "checkmark.circle.fill")
-                                                .foregroundStyle(Color.accentColor)
+                                                .foregroundStyle(palette.accent)
                                         }
                                     }
                                     Text(preset.tagline)
                                         .font(.system(size: 11))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(palette.textSecondary)
                                         .multilineTextAlignment(.leading)
                                         .fixedSize(horizontal: false, vertical: true)
-                                    Text("Target pace: \(preset.targetWPM) WPM")
+                                    Text(preset.badgeLabel)
                                         .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                        .foregroundStyle(.tertiary)
+                                        .foregroundStyle(palette.textTertiary)
                                 }
-                                .padding(10)
+                                .padding(11)
                                 .frame(maxWidth: .infinity, minHeight: 96, alignment: .topLeading)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(selectedPresetID == preset.id ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.04))
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .fill(isSelected ? palette.accentSubtle : palette.surface)
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .strokeBorder(selectedPresetID == preset.id ? Color.accentColor.opacity(0.55) : Color.primary.opacity(0.08), lineWidth: 1.5)
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .strokeBorder(isSelected ? palette.accent.opacity(0.6) : palette.borderSubtle, lineWidth: 1)
                                 )
                             }
                             .buttonStyle(.plain)

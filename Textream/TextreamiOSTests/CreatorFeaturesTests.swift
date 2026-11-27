@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import TextreamiOS
 
@@ -98,5 +99,35 @@ struct CreatorFeaturesTests {
         #expect(entries[0].fullText.contains("MIT License"))
         #expect(entries[1].id == "opendyslexic")
         #expect(entries[1].licenseType.contains("SIL Open Font License"))
+    }
+
+    @MainActor
+    @Test
+    func appModelPersistsAppearanceAndCreatesTemplateScripts() {
+        let suiteName = "CreatorFeaturesTests.Appearance.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let model = AppModel(defaults: defaults)
+        #expect(model.appAppearance == .system)
+        #expect(model.appAppearance.colorScheme == nil)
+
+        model.appAppearance = model.appAppearance.next()
+        #expect(model.appAppearance == .dark)
+        #expect(model.appAppearance.colorScheme == .dark)
+
+        model.appAppearance = model.appAppearance.next()
+        #expect(model.appAppearance == .light)
+        #expect(model.appAppearance.colorScheme == .light)
+
+        let reloaded = AppModel(defaults: defaults)
+        #expect(reloaded.appAppearance == .light)
+
+        let preset = CreatorPreset.preset(for: .youtubeStudio)
+        let templated = reloaded.createScriptFromTemplate(preset)
+        #expect(templated.presetID == .youtubeStudio)
+        #expect(reloaded.selectedScriptID == templated.id)
+        #expect(!reloaded.script.isEmpty)
+        #expect(reloaded.activeTargetWPM == preset.targetWPM)
     }
 }

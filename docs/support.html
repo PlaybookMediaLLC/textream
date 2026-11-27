@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
   <title>Support — Dante for Creators</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta name="description" content="Setup guide, troubleshooting, and support for Dante for Creators on macOS, iPhone, and iPad.">
@@ -11,15 +11,29 @@
     *, *::before, *::after { box-sizing: border-box; }
 
     :root {
-      --bg: #0b0a09;
-      --surface: #1b1917;
-      --surface2: #24211e;
-      --text: #f7f5f2;
-      --muted: #aca59e;
-      --quiet: #746d66;
+      --bg: #121213;
+      --surface: #1a1a1b;
+      --surface2: #222223;
+      --text: #f4f4f5;
+      --muted: #9a9aa0;
+      --quiet: #64646a;
       --line: rgba(255, 255, 255, 0.08);
-      --accent1: #e85d2a;
-      --accent2: #f59e0b;
+      --accent1: #456af6;
+      --accent2: #6d8cff;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #ffffff;
+        --surface: #f7f7f9;
+        --surface2: #efeff2;
+        --text: #111113;
+        --muted: #5c5c64;
+        --quiet: #8e8e96;
+        --line: rgba(0, 0, 0, 0.08);
+        --accent1: #3b5fef;
+        --accent2: #3b5fef;
+      }
     }
 
     html { scroll-behavior: smooth; }
@@ -29,15 +43,13 @@
       min-height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at 50% -15%, rgba(245, 158, 11, 0.14), transparent 42rem),
-        var(--bg);
+      background: var(--bg);
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
     }
 
-    a { color: #f6a96b; }
-    a:hover { color: #ffd1a6; }
+    a { color: var(--accent2); }
+    a:hover { color: var(--accent1); }
 
     .shell {
       width: min(100% - 40px, 920px);

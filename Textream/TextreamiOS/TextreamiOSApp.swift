@@ -9,10 +9,10 @@ struct TextreamiOSApp: App {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("-TextreamGalleryPreview") {
                 SavedRecordingsGallery(store: Self.galleryPreviewStore())
-                    .preferredColorScheme(.dark)
+                    .preferredColorScheme(model.appAppearance.colorScheme)
             } else if ProcessInfo.processInfo.arguments.contains("-TextreamSettingsPreview") {
                 SettingsView(model: model)
-                    .preferredColorScheme(.dark)
+                    .preferredColorScheme(model.appAppearance.colorScheme)
             } else if ProcessInfo.processInfo.arguments.contains("-TextreamPromptPreview") {
                 PromptSessionView(configuration: Self.promptPreviewConfiguration())
                     .preferredColorScheme(.dark)
@@ -20,11 +20,11 @@ struct TextreamiOSApp: App {
                 OuterDisplayPromptPreview(configuration: Self.promptPreviewConfiguration())
             } else {
                 RootView(model: model)
-                    .preferredColorScheme(.dark)
+                    .preferredColorScheme(model.appAppearance.colorScheme)
             }
             #else
             RootView(model: model)
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(model.appAppearance.colorScheme)
             #endif
         }
     }

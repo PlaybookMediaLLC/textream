@@ -24,6 +24,7 @@ final class AppModel {
         static let cueBrightness = "ios.cueBrightness"
         static let overlayOpacity = "ios.overlayOpacity"
         static let speechLocale = "ios.speechLocale"
+        static let appAppearance = "ios.appAppearance"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -57,6 +58,9 @@ final class AppModel {
     var cueBrightness: CueBrightness { didSet { defaults.set(cueBrightness.rawValue, forKey: Key.cueBrightness) } }
     var overlayOpacity: Double { didSet { defaults.set(overlayOpacity, forKey: Key.overlayOpacity) } }
     var speechLocaleIdentifier: String { didSet { defaults.set(speechLocaleIdentifier, forKey: Key.speechLocale) } }
+    var appAppearance: AppAppearance {
+        didSet { defaults.set(appAppearance.rawValue, forKey: Key.appAppearance) }
+    }
     var hasCompletedOnboarding: Bool {
         didSet { defaults.set(hasCompletedOnboarding, forKey: Key.hasCompletedOnboarding) }
     }
@@ -64,6 +68,7 @@ final class AppModel {
     var isShowingSettings = false
     var isShowingLibrary = false
     var isShowingOnboarding = false
+    var isShowingQuickComposer = false
 
     init(
         defaults: UserDefaults = .standard,
@@ -113,6 +118,7 @@ final class AppModel {
         cueBrightness = CueBrightness(rawValue: defaults.string(forKey: Key.cueBrightness) ?? "") ?? .dim
         let savedOpacity = defaults.double(forKey: Key.overlayOpacity)
         overlayOpacity = savedOpacity > 0 ? savedOpacity : 0.52
+        appAppearance = AppAppearance(rawValue: defaults.string(forKey: Key.appAppearance) ?? "") ?? .system
         hasCompletedOnboarding = defaults.bool(forKey: Key.hasCompletedOnboarding)
         if let savedLocale = defaults.string(forKey: Key.speechLocale), !savedLocale.isEmpty {
             speechLocaleIdentifier = savedLocale
@@ -187,6 +193,23 @@ final class AppModel {
         scripts.insert(newEntry, at: 0)
         scripts = ScriptLibraryPersistence.sorted(scripts)
         selectScript(newEntry)
+        persistLibrary()
+        return newEntry
+    }
+
+    @discardableResult
+    func createScriptFromTemplate(_ preset: CreatorPreset) -> DanteScript {
+        let combinedText = preset.starterPages.joined(separator: "\n\n")
+        let newEntry = DanteScript(
+            title: "\(preset.name) Script",
+            pages: [combinedText],
+            presetID: preset.id,
+            targetWPM: preset.targetWPM
+        )
+        scripts.insert(newEntry, at: 0)
+        scripts = ScriptLibraryPersistence.sorted(scripts)
+        selectScript(newEntry)
+        apply(preset: preset)
         persistLibrary()
         return newEntry
     }

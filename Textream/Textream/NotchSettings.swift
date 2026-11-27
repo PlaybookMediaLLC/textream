@@ -517,6 +517,23 @@ class NotchSettings {
         didSet { UserDefaults.standard.set(Int(directorServerPort), forKey: "directorServerPort") }
     }
 
+    var appAppearance: AppAppearance {
+        didSet {
+            UserDefaults.standard.set(appAppearance.rawValue, forKey: "dante.mac.appAppearance")
+            Task { @MainActor in
+                appAppearance.applyToApplication()
+            }
+        }
+    }
+
+    var hasDismissedSetupChecklist: Bool {
+        didSet { UserDefaults.standard.set(hasDismissedSetupChecklist, forKey: "dante.mac.dismissedSetupChecklist") }
+    }
+
+    var hasCompletedFirstSession: Bool {
+        didSet { UserDefaults.standard.set(hasCompletedFirstSession, forKey: "dante.mac.completedFirstSession") }
+    }
+
     var font: NSFont {
         fontFamilyPreset.font(size: fontSizePreset.pointSize)
     }
@@ -585,5 +602,8 @@ class NotchSettings {
         self.directorModeEnabled = UserDefaults.standard.object(forKey: "directorModeEnabled") as? Bool ?? false
         let savedDirectorPort = UserDefaults.standard.integer(forKey: "directorServerPort")
         self.directorServerPort = (1024..<Int(UInt16.max)).contains(savedDirectorPort) ? UInt16(savedDirectorPort) : 7575
+        self.appAppearance = AppAppearance(rawValue: UserDefaults.standard.string(forKey: "dante.mac.appAppearance") ?? "") ?? .system
+        self.hasDismissedSetupChecklist = UserDefaults.standard.bool(forKey: "dante.mac.dismissedSetupChecklist")
+        self.hasCompletedFirstSession = UserDefaults.standard.bool(forKey: "dante.mac.completedFirstSession")
     }
 }
