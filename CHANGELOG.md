@@ -1,3 +1,11 @@
+## [1.6.1](https://github.com/PlaybookMediaLLC/textream/compare/v1.6.0...v1.6.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* **release:** deep-sign universal frameworks and add Developer ID notarization pipeline ([#18](https://github.com/PlaybookMediaLLC/textream/issues/18)) ([a383bbb](https://github.com/PlaybookMediaLLC/textream/commit/a383bbba2ae7b213d1377520d9e26cec85222134))
+* **release:** require notarized macOS downloads ([ddbf8e4](https://github.com/PlaybookMediaLLC/textream/commit/ddbf8e46f6eae497a97c71eb876ad96c9f05dc41))
+
 # [1.6.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.5.0...v1.6.0) (2026-11-27)
 
 
