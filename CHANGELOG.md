@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.2.0...v1.3.0) (2026-11-27)
+
+
+### Features
+
+* **retake:** add smart retake recovery and sentence rewind ([#11](https://github.com/PlaybookMediaLLC/textream/issues/11)) ([bdd59da](https://github.com/PlaybookMediaLLC/textream/commit/bdd59da7f3b9ef95929787a27aaf438371061178))
+
 # [1.2.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.1.0...v1.2.0) (2026-11-27)
 
 
