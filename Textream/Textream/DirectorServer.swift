@@ -8,29 +8,10 @@
 import Foundation
 import Network
 
-// MARK: - Director State (App → Web)
+// MARK: - Director State & Command Aliases
 
-/// Broadcast every 100 ms. The director page already has the script (it sent it), so
-/// the words are not repeated here: at 50k words they made each tick a 450 KB encode.
-struct DirectorState: Codable {
-    let highlightedCharCount: Int
-    let totalCharCount: Int
-    let isActive: Bool
-    let isDone: Bool
-    let isListening: Bool
-    let fontColor: String
-    let cueColor: String
-    let lastSpokenText: String
-    let audioLevels: [Double]
-}
-
-// MARK: - Director Command (Web → App)
-
-struct DirectorCommand: Codable {
-    let type: String          // "setText", "updateText", "stop"
-    let text: String?
-    let readCharCount: Int?
-}
+typealias DirectorState = StudioRemoteState
+typealias DirectorCommand = StudioRemoteCommand
 
 // MARK: - Director Server
 
@@ -46,13 +27,15 @@ class DirectorServer {
 
     // Dedicated queue for broadcasting to avoid blocking the main/UI thread
     private let broadcastQueue = DispatchQueue(label: "com.playbookinteractivemediallc.app.director.broadcast")
-    // Security: shared secret token for WebSocket authentication
+    // Security: shared secret token for WebSocket authentication + 6-digit pairing PIN for iOS Studio Remote
     private var authToken: String = ""
+    private(set) var pairingCode: String = ""
 
     // Content state
     private var words: [String] = []
     private var totalCharCount: Int = 0
     private weak var speechRecognizer: SpeechRecognizer?
+    private weak var overlayContent: OverlayContent?
     private var contentActive: Bool = false
     private var lastBroadcastState: Data?
 
@@ -60,6 +43,14 @@ class DirectorServer {
     var onSetText: ((String) -> Void)?
     var onUpdateText: ((String, Int) -> Void)?
     var onStop: (() -> Void)?
+    var onToggleListening: (() -> Void)?
+    var onPause: (() -> Void)?
+    var onResume: (() -> Void)?
+    var onRewindSentence: (() -> Void)?
+    var onNextPage: (() -> Void)?
+    var onPreviousPage: (() -> Void)?
+    var onAdjustSpeed: ((Double) -> Void)?
+    var onDropMarker: ((String?) -> Void)?
 
     var httpPort: UInt16 { NotchSettings.shared.directorServerPort }
     var wsPort: UInt16 { httpPort + 1 }
@@ -71,6 +62,7 @@ class DirectorServer {
     func start() {
         stop()
         authToken = Self.generateToken()
+        pairingCode = Self.generatePairingCode()
         startHTTPListener()
         startWSListener()
     }
@@ -92,23 +84,32 @@ class DirectorServer {
 
     // MARK: - Content Management
 
-    func showContent(speechRecognizer: SpeechRecognizer, words: [String], totalCharCount: Int) {
+    func showContent(
+        speechRecognizer: SpeechRecognizer,
+        words: [String],
+        totalCharCount: Int,
+        overlayContent: OverlayContent? = nil
+    ) {
         self.speechRecognizer = speechRecognizer
+        self.overlayContent = overlayContent
         self.words = words
         self.totalCharCount = totalCharCount
         self.contentActive = true
+        lastBroadcastState = nil
         startBroadcasting()
     }
 
     func updateContent(words: [String], totalCharCount: Int) {
         self.words = words
         self.totalCharCount = totalCharCount
+        lastBroadcastState = nil
     }
 
     func hideContent() {
         contentActive = false
         broadcastTimer?.invalidate()
         broadcastTimer = nil
+        lastBroadcastState = nil
         broadcastInactive()
     }
 
@@ -149,7 +150,7 @@ class DirectorServer {
         return Data(header.utf8) + body
     }
 
-    // MARK: - WebSocket Server
+    // MARK: - WebSocket Server (with Bonjour Discovery)
 
     private func startWSListener() {
         guard let port = NWEndpoint.Port(rawValue: wsPort) else { return }
@@ -160,6 +161,12 @@ class DirectorServer {
         do {
             wsListener = try NWListener(using: params, on: port)
         } catch { return }
+
+        let serviceName = Host.current().localizedName ?? "Dante Mac"
+        wsListener?.service = NWListener.Service(
+            name: serviceName,
+            type: StudioBonjour.serviceType
+        )
 
         wsListener?.stateUpdateHandler = { [weak self] state in
             if case .failed = state { self?.wsListener = nil }
@@ -215,28 +222,55 @@ class DirectorServer {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
 
-            // First message must be authentication
+            // First message must be authentication (full token or 6-digit Studio pairing PIN)
             if !self.authenticatedConnections.contains(connId) {
-                if command.type == "auth", command.text == self.authToken {
+                let candidate = command.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if command.action == .auth,
+                   !candidate.isEmpty,
+                   (candidate == self.authToken || candidate == self.pairingCode) {
                     self.authenticatedConnections.insert(connId)
+                    self.lastBroadcastState = nil
+                    if self.contentActive {
+                        self.broadcastCurrentState()
+                    } else {
+                        self.broadcastInactive()
+                    }
                 } else {
                     conn.cancel()
                 }
                 return
             }
 
-            switch command.type {
-            case "setText":
+            switch command.action {
+            case .setText:
                 if let text = command.text {
                     self.onSetText?(text)
                 }
-            case "updateText":
+            case .updateText:
                 if let text = command.text, let readCharCount = command.readCharCount {
                     self.onUpdateText?(text, readCharCount)
                 }
-            case "stop":
+            case .stop:
                 self.onStop?()
-            default:
+            case .toggleListening:
+                self.onToggleListening?()
+            case .pause:
+                self.onPause?()
+            case .resume:
+                self.onResume?()
+            case .rewindSentence:
+                self.onRewindSentence?()
+            case .nextPage:
+                self.onNextPage?()
+            case .previousPage:
+                self.onPreviousPage?()
+            case .adjustSpeed:
+                if let delta = command.delta {
+                    self.onAdjustSpeed?(delta)
+                }
+            case .dropMarker:
+                self.onDropMarker?(command.label)
+            case .auth, .none:
                 break
             }
         }
@@ -248,6 +282,13 @@ class DirectorServer {
         var bytes = [UInt8](repeating: 0, count: 32)
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         return bytes.map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func generatePairingCode() -> String {
+        var bytes = [UInt8](repeating: 0, count: 4)
+        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        let raw = bytes.reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
+        return String(format: "%06u", raw % 1_000_000)
     }
 
     // MARK: - Broadcasting
@@ -275,7 +316,15 @@ class DirectorServer {
             fontColor: NotchSettings.shared.fontColorPreset.cssColor,
             cueColor: NotchSettings.shared.cueColorPreset.cssColor,
             lastSpokenText: speechRecognizer?.lastSpokenText ?? "",
-            audioLevels: (speechRecognizer?.audioLevels ?? []).map { Double($0) }
+            audioLevels: (speechRecognizer?.audioLevels ?? []).map { Double($0) },
+            pageIndex: overlayContent?.currentPageIndex,
+            pageCount: overlayContent?.pageCount,
+            currentWPM: overlayContent?.livePaceWPM,
+            paceDeltaSeconds: overlayContent?.livePaceDeltaSeconds,
+            elapsedSeconds: overlayContent?.liveElapsedSeconds,
+            retakeCount: speechRecognizer?.retakeCount,
+            scriptTitle: TextreamService.shared.activeScriptTitle,
+            scrollSpeed: NotchSettings.shared.scrollSpeed
         )
         broadcast(state)
     }
@@ -285,7 +334,11 @@ class DirectorServer {
             highlightedCharCount: 0, totalCharCount: 0,
             isActive: false, isDone: false, isListening: false,
             fontColor: "#ffffff", cueColor: "#ffffff", lastSpokenText: "",
-            audioLevels: []
+            audioLevels: [],
+            pageIndex: TextreamService.shared.currentPageIndex,
+            pageCount: TextreamService.shared.pages.count,
+            scriptTitle: TextreamService.shared.activeScriptTitle,
+            scrollSpeed: NotchSettings.shared.scrollSpeed
         )
         broadcast(state)
     }

@@ -546,6 +546,33 @@ class NotchSettings {
         didSet { UserDefaults.standard.set(iCloudSyncEnabled, forKey: "dante.mac.iCloudSyncEnabled") }
     }
 
+    var obsWebSocketEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(obsWebSocketEnabled, forKey: "dante.mac.obsWebSocketEnabled")
+            TextreamService.shared.updateOBSConnection()
+        }
+    }
+
+    var obsHost: String {
+        didSet { UserDefaults.standard.set(obsHost, forKey: "dante.mac.obsHost") }
+    }
+
+    var obsPort: UInt16 {
+        didSet { UserDefaults.standard.set(Int(obsPort), forKey: "dante.mac.obsPort") }
+    }
+
+    var obsPassword: String {
+        didSet { UserDefaults.standard.set(obsPassword, forKey: "dante.mac.obsPassword") }
+    }
+
+    var obsAutoStartTeleprompter: Bool {
+        didSet { UserDefaults.standard.set(obsAutoStartTeleprompter, forKey: "dante.mac.obsAutoStartTeleprompter") }
+    }
+
+    var obsAutoStopTeleprompter: Bool {
+        didSet { UserDefaults.standard.set(obsAutoStopTeleprompter, forKey: "dante.mac.obsAutoStopTeleprompter") }
+    }
+
     var font: NSFont {
         fontFamilyPreset.font(size: fontSizePreset.pointSize)
     }
@@ -620,5 +647,12 @@ class NotchSettings {
         self.smartRetakeEnabled = UserDefaults.standard.object(forKey: "dante.mac.smartRetakeEnabled") as? Bool ?? true
         self.showPacingCoach = UserDefaults.standard.object(forKey: "dante.mac.showPacingCoach") as? Bool ?? true
         self.iCloudSyncEnabled = UserDefaults.standard.object(forKey: "dante.mac.iCloudSyncEnabled") as? Bool ?? true
+        self.obsWebSocketEnabled = UserDefaults.standard.bool(forKey: "dante.mac.obsWebSocketEnabled")
+        self.obsHost = UserDefaults.standard.string(forKey: "dante.mac.obsHost") ?? "127.0.0.1"
+        let savedOBSPort = UserDefaults.standard.integer(forKey: "dante.mac.obsPort")
+        self.obsPort = (1..<Int(UInt16.max)).contains(savedOBSPort) ? UInt16(savedOBSPort) : 4455
+        self.obsPassword = UserDefaults.standard.string(forKey: "dante.mac.obsPassword") ?? ""
+        self.obsAutoStartTeleprompter = UserDefaults.standard.object(forKey: "dante.mac.obsAutoStartTeleprompter") as? Bool ?? true
+        self.obsAutoStopTeleprompter = UserDefaults.standard.object(forKey: "dante.mac.obsAutoStopTeleprompter") as? Bool ?? true
     }
 }

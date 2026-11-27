@@ -52,6 +52,14 @@ class OverlayContent {
     var pagePreviews: [String] = []
     var showPagePicker: Bool = false
     var jumpToPageIndex: Int? = nil
+
+    // Live studio remote telemetry & triggers
+    var livePaceWPM: Int = 0
+    var livePaceDeltaSeconds: Int = 0
+    var liveElapsedSeconds: Int = 0
+    var manualMarkerRevision: Int = 0
+    var lastMarkerLabel: String = "Studio Marker"
+    var externalPauseToggleRevision: Int = 0
 }
 
 class NotchOverlayController: NSObject {
@@ -60,6 +68,7 @@ class NotchOverlayController: NSObject {
     private var panel: NSPanel?
     let speechRecognizer = SpeechRecognizer()
     let overlayContent = OverlayContent()
+    private let hardwareBridge = HardwareControlBridge()
     var onComplete: (() -> Void)?
     var onNextPage: (() -> Void)?
     private var cancellables = Set<AnyCancellable>()
@@ -455,20 +464,79 @@ class NotchOverlayController: NSObject {
         }
     }
 
+    func triggerTogglePause() {
+        if NotchSettings.shared.listeningMode == .classic {
+            overlayContent.externalPauseToggleRevision &+= 1
+        } else if speechRecognizer.isListening {
+            speechRecognizer.stop()
+        } else {
+            speechRecognizer.resume()
+        }
+    }
+
+    func triggerPause() {
+        if NotchSettings.shared.listeningMode == .classic {
+            overlayContent.externalPauseToggleRevision &+= 1
+        } else if speechRecognizer.isListening {
+            speechRecognizer.stop()
+        }
+    }
+
+    func triggerResume() {
+        if NotchSettings.shared.listeningMode == .classic {
+            overlayContent.externalPauseToggleRevision &+= 1
+        } else if !speechRecognizer.isListening && !speechRecognizer.isStarting {
+            speechRecognizer.resume()
+        }
+    }
+
+    func triggerAdjustSpeed(delta: Double) {
+        let next = min(8.0, max(0.5, (NotchSettings.shared.scrollSpeed + delta) * 2.0) / 2.0)
+        NotchSettings.shared.scrollSpeed = (next * 2).rounded() / 2
+    }
+
+    func triggerDropMarker(label: String = "Studio Marker") {
+        overlayContent.lastMarkerLabel = label
+        overlayContent.manualMarkerRevision &+= 1
+    }
+
+    private func handleStudioAction(_ action: StudioKeyAction) {
+        switch action {
+        case .togglePause:
+            triggerTogglePause()
+        case .rewindSentence:
+            triggerRewindSentence()
+        case .nextPage:
+            TextreamService.shared.advanceToNextPage()
+        case .previousPage:
+            TextreamService.shared.goToPreviousPage()
+        case .speedUp:
+            triggerAdjustSpeed(delta: 0.5)
+        case .speedDown:
+            triggerAdjustSpeed(delta: -0.5)
+        case .dropMarker:
+            triggerDropMarker()
+        case .stop:
+            if overlayContent.showPagePicker {
+                overlayContent.showPagePicker = false
+            } else {
+                dismiss()
+            }
+        }
+    }
+
     private func installKeyMonitor() {
         removeEscMonitor()
+        hardwareBridge.onAction = { [weak self] action in
+            self?.handleStudioAction(action)
+        }
+        hardwareBridge.start()
+
         escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
-            if event.keyCode == 53 { // ESC
-                if self.overlayContent.showPagePicker {
-                    self.overlayContent.showPagePicker = false
-                    return nil
-                }
-                self.dismiss()
-                return nil
-            }
-            if event.keyCode == 123 { // Left Arrow / ⌘← -> Rewind sentence
-                self.triggerRewindSentence()
+            let bindings = StudioControlBindings.load()
+            if let action = bindings.action(forKeyCode: event.keyCode) {
+                self.handleStudioAction(action)
                 return nil
             }
             return event
@@ -603,6 +671,7 @@ class NotchOverlayController: NSObject {
     }
 
     private func removeEscMonitor() {
+        hardwareBridge.stop()
         if let escMonitor {
             NSEvent.removeMonitor(escMonitor)
         }
@@ -1101,11 +1170,15 @@ struct NotchOverlayView: View {
         .onChange(of: effectiveCharCount) { oldOffset, newOffset in
             let now = ProcessInfo.processInfo.systemUptime
             let isRetake = newOffset < oldOffset
-            paceSnapshot = pacingEngine.recordProgress(
+            let snapshot = pacingEngine.recordProgress(
                 characterOffset: newOffset,
                 at: now,
                 isRetake: isRetake
             )
+            paceSnapshot = snapshot
+            content.livePaceWPM = snapshot.rollingWPM
+            content.livePaceDeltaSeconds = snapshot.deltaSeconds
+            content.liveElapsedSeconds = Int(snapshot.elapsedSeconds)
             timelineRecorder.recordProgress(
                 characterOffset: newOffset,
                 at: now,
@@ -1114,6 +1187,15 @@ struct NotchOverlayView: View {
             if isDone {
                 publishLastTakeRecord(at: now)
             }
+        }
+        .onChange(of: content.manualMarkerRevision) { _, _ in
+            timelineRecorder.addManualMarker(
+                label: content.lastMarkerLabel,
+                at: ProcessInfo.processInfo.systemUptime
+            )
+        }
+        .onChange(of: content.externalPauseToggleRevision) { _, _ in
+            isPaused.toggle()
         }
         .onDisappear {
             if timelineRecorder.hasRecordedContent {
@@ -1873,11 +1955,15 @@ struct FloatingOverlayView: View {
         .onChange(of: effectiveCharCount) { oldOffset, newOffset in
             let now = ProcessInfo.processInfo.systemUptime
             let isRetake = newOffset < oldOffset
-            paceSnapshot = pacingEngine.recordProgress(
+            let snapshot = pacingEngine.recordProgress(
                 characterOffset: newOffset,
                 at: now,
                 isRetake: isRetake
             )
+            paceSnapshot = snapshot
+            content.livePaceWPM = snapshot.rollingWPM
+            content.livePaceDeltaSeconds = snapshot.deltaSeconds
+            content.liveElapsedSeconds = Int(snapshot.elapsedSeconds)
             timelineRecorder.recordProgress(
                 characterOffset: newOffset,
                 at: now,
@@ -1886,6 +1972,15 @@ struct FloatingOverlayView: View {
             if isDone {
                 publishLastTakeRecord(at: now)
             }
+        }
+        .onChange(of: content.manualMarkerRevision) { _, _ in
+            timelineRecorder.addManualMarker(
+                label: content.lastMarkerLabel,
+                at: ProcessInfo.processInfo.systemUptime
+            )
+        }
+        .onChange(of: content.externalPauseToggleRevision) { _, _ in
+            isPaused.toggle()
         }
         .onDisappear {
             if timelineRecorder.hasRecordedContent {

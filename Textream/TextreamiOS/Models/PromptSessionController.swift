@@ -58,6 +58,7 @@ final class PromptSessionController {
 
     @ObservationIgnored private var pacingEngine: PacingCoachEngine
     @ObservationIgnored private var timelineRecorder: TakeTimelineRecorder
+    @ObservationIgnored private let hardwareBridge = HardwareControlBridge()
     @ObservationIgnored private var lastPacedCharacterOffset = 0
     @ObservationIgnored private var progressTimer: Timer?
     @ObservationIgnored private var lastTickTime: TimeInterval?
@@ -206,6 +207,10 @@ final class PromptSessionController {
         guard !Task.isCancelled else { return }
         isSpeechReady = speechReady
         isPrepared = true
+        hardwareBridge.onAction = { [weak self] action in
+            self?.handleHardwareAction(action)
+        }
+        hardwareBridge.start()
         startProgressTimer()
 
         guard configuration.sessionMode == .read else {
@@ -358,10 +363,35 @@ final class PromptSessionController {
     func shutdown() {
         progressTimer?.invalidate()
         progressTimer = nil
+        hardwareBridge.stop()
         speechFollower.stop()
         captureController.stopSession()
         isAdjustingScrollSpeed = false
         isPromptRunning = false
+    }
+
+    private func handleHardwareAction(_ action: StudioKeyAction) {
+        switch action {
+        case .togglePause:
+            toggleReadPause()
+        case .rewindSentence:
+            rewindSentence()
+        case .speedUp:
+            if canAdjustScrollSpeed {
+                scrollSpeed = min(PromptScrollSpeedAdjustment.maximumSpeed, scrollSpeed + PromptScrollSpeedAdjustment.speedStep)
+            }
+        case .speedDown:
+            if canAdjustScrollSpeed {
+                scrollSpeed = max(PromptScrollSpeedAdjustment.minimumSpeed, scrollSpeed - PromptScrollSpeedAdjustment.speedStep)
+            }
+        case .dropMarker:
+            timelineRecorder.addManualMarker(
+                label: "Hardware Marker",
+                at: ProcessInfo.processInfo.systemUptime
+            )
+        case .nextPage, .previousPage, .stop:
+            break
+        }
     }
 
     private func startPrompt() {

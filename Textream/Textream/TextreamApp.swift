@@ -74,6 +74,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         TextreamService.shared.updateDirectorServer()
         benchLog("launch.step", ["name": "directorServer"])
 
+        // Connect to OBS Studio WebSocket if enabled
+        TextreamService.shared.updateOBSConnection()
+        benchLog("launch.step", ["name": "obsWebSocket"])
+
         // Set window delegate to intercept close, disable tabs, and make titlebar seamless
         DispatchQueue.main.async {
             for window in NSApp.windows where !(window is NSPanel) {
