@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.3.0...v1.4.0) (2026-11-27)
+
+
+### Features
+
+* **export:** add instant SRT/VTT captions and Final Cut/Resolve/Premiere NLE marker export ([#13](https://github.com/PlaybookMediaLLC/textream/issues/13)) ([120e988](https://github.com/PlaybookMediaLLC/textream/commit/120e988f88026dd77c1eb9115c0367ca3b2fa99f))
+* **pacing:** add live pacing coach WPM gauge and post-take summary analytics ([#12](https://github.com/PlaybookMediaLLC/textream/issues/12)) ([2b10644](https://github.com/PlaybookMediaLLC/textream/commit/2b10644dc82cb93c3080ad514795089a6b7243c0))
+
 # [1.3.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.2.0...v1.3.0) (2026-11-27)
 
 
