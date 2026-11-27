@@ -214,6 +214,10 @@ final class DanteComplianceTests: XCTestCase {
         XCTAssertEqual(AppAppearance.dark.next(), .light)
         XCTAssertEqual(AppAppearance.light.next(), .system)
 
+        XCTAssertNil(AppAppearance.system.nsAppearance)
+        XCTAssertEqual(AppAppearance.light.nsAppearance?.name, .aqua)
+        XCTAssertEqual(AppAppearance.dark.nsAppearance?.name, .darkAqua)
+
         let dark = DantePalette(colorScheme: .dark)
         let light = DantePalette(colorScheme: .light)
         XCTAssertTrue(dark.isDark)

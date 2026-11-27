@@ -311,7 +311,9 @@ class NotchOverlayController: NSObject {
             baseHeight: panelHeight,
             followingCursor: true
         )
+        .preferredColorScheme(settings.appAppearance.colorScheme)
         let contentView = NSHostingView(rootView: floatingView)
+        contentView.appearance = settings.appAppearance.nsAppearance
 
         let panel = PrompterPanel(
             contentRect: initialFrame,
@@ -319,6 +321,7 @@ class NotchOverlayController: NSObject {
             backing: .buffered,
             defer: false
         )
+        panel.appearance = settings.appAppearance.nsAppearance
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
@@ -379,7 +382,9 @@ class NotchOverlayController: NSObject {
             speechRecognizer: speechRecognizer,
             baseHeight: panelHeight
         )
+        .preferredColorScheme(settings.appAppearance.colorScheme)
         let contentView = NSHostingView(rootView: floatingView)
+        contentView.appearance = settings.appAppearance.nsAppearance
 
         let panel = PrompterPanel(
             contentRect: NSRect(x: xPosition, y: yPosition, width: panelWidth, height: panelHeight),
@@ -387,6 +392,7 @@ class NotchOverlayController: NSObject {
             backing: .buffered,
             defer: false
         )
+        panel.appearance = settings.appAppearance.nsAppearance
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
@@ -587,16 +593,58 @@ class NotchOverlayController: NSObject {
 struct StopButtonView: View {
     let onStop: () -> Void
 
+    private let palette = DantePalette(colorScheme: .dark)
+
     var body: some View {
         Button(action: onStop) {
             Image(systemName: "stop.fill")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 36, height: 36)
-                .background(.red.opacity(0.85))
-                .clipShape(Circle())
+                .frame(width: 34, height: 34)
+                .background(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(palette.statusDanger)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct StudioOverlayIconButton: View {
+    let systemImage: String
+    let isActive: Bool
+    var isLoading: Bool = false
+    let palette: DantePalette
+    var surfaceOverride: Color? = nil
+
+    var body: some View {
+        Group {
+            if isLoading {
+                ProgressView()
+                    .controlSize(.mini)
+                    .tint(isActive ? .white : palette.textSecondary)
+            } else {
+                Image(systemName: systemImage)
+                    .font(.system(size: 10, weight: .semibold))
+            }
+        }
+        .foregroundStyle(isActive ? Color.white : palette.textSecondary)
+        .frame(width: 24, height: 24)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(isActive ? palette.accent : (surfaceOverride ?? palette.surface))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .strokeBorder(
+                    isActive ? palette.accent.opacity(0.6) : palette.borderStrong,
+                    lineWidth: 1
+                )
+        )
     }
 }
 
@@ -686,14 +734,17 @@ struct NotchOverlayView: View {
     @Bindable var speechRecognizer: SpeechRecognizer
     let menuBarHeight: CGFloat
     var frameTracker: NotchFrameTracker
+    let startExpanded: Bool
+
+    private let palette = DantePalette(colorScheme: .dark)
 
     private var words: [String] { content.words }
     private var totalCharCount: Int { content.totalCharCount }
     private var hasNextPage: Bool { content.hasNextPage }
 
     // Animation state - 0.0 = notch size, 1.0 = full size
-    @State private var expansion: CGFloat = 0
-    @State private var contentVisible = false
+    @State private var expansion: CGFloat
+    @State private var contentVisible: Bool
     @State private var dragStartHeight: CGFloat = -1
 
     // Timer-based scroll for classic & silence-paused modes
@@ -713,6 +764,22 @@ struct NotchOverlayView: View {
     // macOS notch dimensions (approximate)
     private let notchHeight: CGFloat = 37
     private let notchWidth: CGFloat = 200  // Hardware notch is ~200px wide
+
+    init(
+        content: OverlayContent,
+        speechRecognizer: SpeechRecognizer,
+        menuBarHeight: CGFloat,
+        frameTracker: NotchFrameTracker,
+        startExpanded: Bool = false
+    ) {
+        self.content = content
+        self.speechRecognizer = speechRecognizer
+        self.menuBarHeight = menuBarHeight
+        self.frameTracker = frameTracker
+        self.startExpanded = startExpanded
+        _expansion = State(initialValue: startExpanded ? 1 : 0)
+        _contentVisible = State(initialValue: startExpanded)
+    }
 
     private var listeningMode: ListeningMode {
         NotchSettings.shared.listeningMode
@@ -775,46 +842,12 @@ struct NotchOverlayView: View {
             let currentWidth = notchWidth + (geo.size.width - notchWidth) * expansion
 
             ZStack(alignment: .top) {
-                // Container shape — solid black or transparent with blur
-                let isTransparent = NotchSettings.shared.overlayTransparency
-                let transparencyOpacity = NotchSettings.shared.overlayTransparencyOpacity
-
-                if isTransparent {
-                    // Blurred background layer clipped to the Dynamic Island shape
-                    NotchBlurView()
-                        .clipShape(DynamicIslandShape(
-                            topInset: currentTopInset,
-                            bottomRadius: currentBottomRadius
-                        ))
-                        .frame(width: currentWidth, height: currentHeight)
-
-                    // Dark tint overlay so text remains readable
-                    DynamicIslandShape(
-                        topInset: currentTopInset,
-                        bottomRadius: currentBottomRadius
-                    )
-                    .fill(.black.opacity(1.0 - transparencyOpacity))
-                    .frame(width: currentWidth, height: currentHeight)
-                } else {
-                    DynamicIslandShape(
-                        topInset: currentTopInset,
-                        bottomRadius: currentBottomRadius
-                    )
-                    .fill(.black)
-                    .frame(width: currentWidth, height: currentHeight)
-                }
+                notchShellBackground(width: currentWidth, height: currentHeight)
 
                 // Content - appears after container expands
                 if contentVisible {
                     VStack(spacing: 0) {
-                        HStack {
-                            Spacer()
-                            if NotchSettings.shared.showElapsedTime {
-                                ElapsedTimeView(fontSize: 11)
-                                    .padding(.trailing, 12)
-                            }
-                        }
-                        .frame(height: menuBarHeight)
+                        notchTopEarBar
 
                         if content.showPagePicker {
                             pagePickerView
@@ -840,6 +873,7 @@ struct NotchOverlayView: View {
             frameTracker.visibleWidth = newWidth
         }
         .onAppear {
+            guard !startExpanded else { return }
             // Phase 1: Expand container with smooth easing
             withAnimation(.easeOut(duration: 0.4)) {
                 expansion = 1
@@ -924,6 +958,56 @@ struct NotchOverlayView: View {
         }
     }
 
+    @ViewBuilder
+    private func notchShellBackground(width: CGFloat, height: CGFloat) -> some View {
+        let isTransparent = NotchSettings.shared.overlayTransparency
+        let transparencyOpacity = NotchSettings.shared.overlayTransparencyOpacity
+        let shape = DynamicIslandShape(
+            topInset: currentTopInset,
+            bottomRadius: currentBottomRadius
+        )
+
+        ZStack {
+            if isTransparent {
+                NotchBlurView()
+                    .clipShape(shape)
+                shape
+                    .fill(palette.sidebarBackground.opacity(1.0 - transparencyOpacity))
+            } else {
+                shape
+                    .fill(palette.sidebarBackground)
+            }
+
+            // Crisp 1px studio contour so the docked notch reads cleanly on both Light & Dark desktops.
+            shape
+                .stroke(Color.white.opacity(0.11), lineWidth: 1)
+        }
+        .frame(width: width, height: height)
+    }
+
+    private var notchTopEarBar: some View {
+        HStack(spacing: 6) {
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(isEffectivelyListening ? palette.accent : palette.textTertiary)
+                    .frame(width: 6, height: 6)
+                Text(isEffectivelyListening ? "LIVE" : "PAUSED")
+                    .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(isEffectivelyListening ? palette.textSecondary : palette.textTertiary)
+                    .tracking(0.6)
+            }
+            .padding(.leading, 10)
+
+            Spacer()
+
+            if NotchSettings.shared.showElapsedTime {
+                ElapsedTimeView(fontSize: 11, color: palette.textSecondary)
+                    .padding(.trailing, 10)
+            }
+        }
+        .frame(height: menuBarHeight)
+    }
+
     private var isEffectivelyListening: Bool {
         switch listeningMode {
         case .wordTracking, .silencePaused:
@@ -980,153 +1064,46 @@ struct NotchOverlayView: View {
             }
             .transition(.move(edge: .top).combined(with: .opacity))
 
-            Group {
+            notchBottomControlDock
+                .transition(.opacity)
+        }
+    }
+
+    private var notchBottomControlDock: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(palette.borderSubtle)
+                .frame(height: 1)
+                .padding(.horizontal, 12)
+
             HStack(alignment: .center, spacing: 8) {
                 AudioWaveformProgressView(
                     levels: speechRecognizer.audioLevels,
                     progress: totalCharCount > 0
                         ? Double(effectiveCharCount) / Double(totalCharCount)
-                        : 0
+                        : 0,
+                    activeColor: palette.accent,
+                    inactiveColor: Color.white.opacity(0.16),
+                    maxBars: 18
                 )
-                .frame(width: 80, height: 24)
-                .clipped()
+                .frame(width: 88, height: 24, alignment: .leading)
 
-                if let error = speechRecognizer.error {
-                    HStack(spacing: 6) {
-                        Label(error, systemImage: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.red.opacity(0.9))
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .help(error)
-                        if speechRecognizer.permissionSettingsURL != nil {
-                            Button("Settings") {
-                                speechRecognizer.openPermissionSettings()
-                            }
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.white.opacity(0.2), in: Capsule())
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                } else if listeningMode == .wordTracking,
-                          NotchSettings.shared.showLastSpokenWords {
-                    Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.5))
-                        .lineLimit(1)
-                        .truncationMode(.head)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } else {
-                    Spacer(minLength: 0)
-                }
+                notchStatusReadout
 
-                if content.pageCount > 1 {
-                    if hasNextPage {
-                        Button {
-                            speechRecognizer.shouldAdvancePage = true
-                        } label: {
-                            Image(systemName: "forward.fill")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.6))
-                                .frame(width: 24, height: 24)
-                                .background(.white.opacity(0.15))
-                                .clipShape(Circle())
-                        }
-                        .buttonStyle(.plain)
-                        .simultaneousGesture(
-                            LongPressGesture(minimumDuration: 0.5)
-                                .onEnded { _ in
-                                    content.showPagePicker = true
-                                }
-                        )
-                    } else {
-                        Button {
-                            content.jumpToPageIndex = 0
-                        } label: {
-                            Image(systemName: "backward.end.fill")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.6))
-                                .frame(width: 24, height: 24)
-                                .background(.white.opacity(0.15))
-                                .clipShape(Circle())
-                        }
-                        .buttonStyle(.plain)
-                        .simultaneousGesture(
-                            LongPressGesture(minimumDuration: 0.5)
-                                .onEnded { _ in
-                                    content.showPagePicker = true
-                                }
-                        )
-                    }
-                }
-
-                if listeningMode == .classic {
-                    Button {
-                        isPaused.toggle()
-                    } label: {
-                        Image(systemName: isPaused ? "play.fill" : "pause.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(isPaused ? .white.opacity(0.6) : .yellow.opacity(0.8))
-                            .frame(width: 24, height: 24)
-                            .background(.white.opacity(0.15))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                } else {
-                    Button {
-                        if speechRecognizer.isListening || speechRecognizer.isStarting {
-                            speechRecognizer.stop()
-                        } else {
-                            speechRecognizer.resume()
-                        }
-                    } label: {
-                        Group {
-                            if speechRecognizer.isStarting {
-                                ProgressView()
-                                    .controlSize(.mini)
-                                    .tint(.white.opacity(0.8))
-                            } else {
-                                Image(systemName: speechRecognizer.isListening ? "mic.fill" : "mic.slash.fill")
-                                    .font(.system(size: 10, weight: .bold))
-                            }
-                        }
-                        .foregroundStyle(speechRecognizer.isListening ? .yellow.opacity(0.8) : .white.opacity(0.6))
-                        .frame(width: 24, height: 24)
-                        .background(.white.opacity(0.15))
-                        .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Button {
-                    speechRecognizer.forceStop()
-                    speechRecognizer.shouldDismiss = true
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.6))
-                        .frame(width: 24, height: 24)
-                        .background(.white.opacity(0.15))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
+                notchControlButtons
             }
             .frame(height: 24)
             .padding(.horizontal, 12)
-            .padding(.top, compactControlTopSpacing)
+            .padding(.top, compactControlTopSpacing - 1)
             .padding(.bottom, 2)
 
             // Keep the resize handle in the layout at all times to avoid hover-driven shifts.
             VStack(spacing: 0) {
                 Spacer().frame(height: 2)
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.white.opacity(0.25))
-                    .frame(width: 36, height: 4)
-                Spacer().frame(height: 4)
+                Capsule()
+                    .fill(Color.white.opacity(0.22))
+                    .frame(width: 32, height: 3)
+                Spacer().frame(height: 5)
             }
             .frame(height: 10)
             .frame(maxWidth: .infinity)
@@ -1154,21 +1131,139 @@ struct NotchOverlayView: View {
                     NSCursor.pop()
                 }
             }
-            }
-            .transition(.opacity)
         }
+    }
+
+    @ViewBuilder
+    private var notchStatusReadout: some View {
+        if let error = speechRecognizer.error {
+            HStack(spacing: 6) {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(palette.statusDanger)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .help(error)
+                if speechRecognizer.permissionSettingsURL != nil {
+                    Button("Settings") {
+                        speechRecognizer.openPermissionSettings()
+                    }
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(palette.accent, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if listeningMode == .wordTracking,
+                  NotchSettings.shared.showLastSpokenWords {
+            Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(1)
+                .truncationMode(.head)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Spacer(minLength: 0)
+        }
+    }
+
+    @ViewBuilder
+    private var notchControlButtons: some View {
+        if content.pageCount > 1 {
+            if hasNextPage {
+                Button {
+                    speechRecognizer.shouldAdvancePage = true
+                } label: {
+                    StudioOverlayIconButton(
+                        systemImage: "forward.fill",
+                        isActive: false,
+                        palette: palette
+                    )
+                }
+                .buttonStyle(.plain)
+                .simultaneousGesture(
+                    LongPressGesture(minimumDuration: 0.5)
+                        .onEnded { _ in
+                            content.showPagePicker = true
+                        }
+                )
+            } else {
+                Button {
+                    content.jumpToPageIndex = 0
+                } label: {
+                    StudioOverlayIconButton(
+                        systemImage: "backward.end.fill",
+                        isActive: false,
+                        palette: palette
+                    )
+                }
+                .buttonStyle(.plain)
+                .simultaneousGesture(
+                    LongPressGesture(minimumDuration: 0.5)
+                        .onEnded { _ in
+                            content.showPagePicker = true
+                        }
+                )
+            }
+        }
+
+        if listeningMode == .classic {
+            Button {
+                isPaused.toggle()
+            } label: {
+                StudioOverlayIconButton(
+                    systemImage: isPaused ? "play.fill" : "pause.fill",
+                    isActive: !isPaused,
+                    palette: palette
+                )
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button {
+                if speechRecognizer.isListening || speechRecognizer.isStarting {
+                    speechRecognizer.stop()
+                } else {
+                    speechRecognizer.resume()
+                }
+            } label: {
+                StudioOverlayIconButton(
+                    systemImage: speechRecognizer.isListening ? "mic.fill" : "mic.slash.fill",
+                    isActive: speechRecognizer.isListening,
+                    isLoading: speechRecognizer.isStarting,
+                    palette: palette
+                )
+            }
+            .buttonStyle(.plain)
+        }
+
+        Button {
+            speechRecognizer.forceStop()
+            speechRecognizer.shouldDismiss = true
+        } label: {
+            StudioOverlayIconButton(
+                systemImage: "xmark",
+                isActive: false,
+                palette: palette
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var pagePickerView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Jump to page")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.5))
+                Text("JUMP TO PAGE")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(palette.textTertiary)
+                    .tracking(0.6)
                     .padding(.bottom, 2)
 
                 ForEach(0..<content.pageCount, id: \.self) { i in
                     let preview = i < content.pagePreviews.count ? content.pagePreviews[i] : ""
+                    let isCurrent = i == content.currentPageIndex
                     if !preview.isEmpty {
                         Button {
                             content.jumpToPageIndex = i
@@ -1176,21 +1271,28 @@ struct NotchOverlayView: View {
                         } label: {
                             HStack(spacing: 8) {
                                 Text("\(i + 1)")
-                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(i == content.currentPageIndex ? .yellow : .white.opacity(0.8))
+                                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(isCurrent ? palette.accent : palette.textPrimary)
                                     .frame(width: 20)
                                 Text(preview)
-                                    .font(.system(size: 12, weight: .regular))
-                                    .foregroundStyle(i == content.currentPageIndex ? .yellow.opacity(0.7) : .white.opacity(0.5))
+                                    .font(.system(size: 12, weight: isCurrent ? .medium : .regular))
+                                    .foregroundStyle(isCurrent ? palette.textPrimary : palette.textSecondary)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                                 Spacer()
                             }
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 5)
                             .padding(.horizontal, 8)
                             .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(i == content.currentPageIndex ? Color.yellow.opacity(0.1) : Color.white.opacity(0.05))
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(isCurrent ? palette.accentSubtle : palette.surface)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .strokeBorder(
+                                        isCurrent ? palette.accent.opacity(0.4) : palette.borderSubtle,
+                                        lineWidth: 1
+                                    )
                             )
                         }
                         .buttonStyle(.plain)
@@ -1199,7 +1301,7 @@ struct NotchOverlayView: View {
 
                 Text("Tap a page to jump")
                     .font(.system(size: 10))
-                    .foregroundStyle(.white.opacity(0.3))
+                    .foregroundStyle(palette.textTertiary)
                     .padding(.top, 4)
             }
             .padding(.horizontal, 12)
@@ -1240,11 +1342,11 @@ struct NotchOverlayView: View {
         VStack {
             Spacer()
             if hasNextPage {
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     if countdownRemaining > 0 {
                         Text("\(countdownRemaining)")
-                            .font(.system(size: 22, weight: .heavy, design: .rounded))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .foregroundStyle(palette.textPrimary)
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: countdownRemaining)
                     }
@@ -1252,24 +1354,29 @@ struct NotchOverlayView: View {
                         cancelCountdown()
                         speechRecognizer.shouldAdvancePage = true
                     } label: {
-                        VStack(spacing: 4) {
-                            Text("Next Page")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.5))
+                        HStack(spacing: 6) {
                             Image(systemName: "forward.fill")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundStyle(.white)
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("Next Page")
+                                .font(.system(size: 12, weight: .semibold))
                         }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .fill(palette.accent)
+                        )
                     }
                     .buttonStyle(.plain)
                 }
             } else {
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Done!")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(palette.statusSuccess)
+                    Text("Done")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(palette.textPrimary)
                 }
             }
             Spacer()
@@ -1304,12 +1411,16 @@ struct FloatingOverlayView: View {
     @Bindable var speechRecognizer: SpeechRecognizer
     let baseHeight: CGFloat
     var followingCursor: Bool = false
+    let startExpanded: Bool
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var palette: DantePalette { DantePalette(colorScheme: colorScheme) }
 
     private var words: [String] { content.words }
     private var totalCharCount: Int { content.totalCharCount }
     private var hasNextPage: Bool { content.hasNextPage }
 
-    @State private var appeared = false
+    @State private var appeared: Bool
 
     // Auto-advance countdown for follow-cursor mode (where buttons can't be clicked)
     @State private var countdownRemaining: Int = 0
@@ -1320,8 +1431,39 @@ struct FloatingOverlayView: View {
     @State private var isPaused: Bool = false
     @State private var isUserScrolling: Bool = false
 
+    init(
+        content: OverlayContent,
+        speechRecognizer: SpeechRecognizer,
+        baseHeight: CGFloat,
+        followingCursor: Bool = false,
+        startExpanded: Bool = false
+    ) {
+        self.content = content
+        self.speechRecognizer = speechRecognizer
+        self.baseHeight = baseHeight
+        self.followingCursor = followingCursor
+        self.startExpanded = startExpanded
+        _appeared = State(initialValue: startExpanded)
+    }
+
     private var listeningMode: ListeningMode {
         NotchSettings.shared.listeningMode
+    }
+
+    private var adaptiveHighlightColor: Color {
+        let preset = NotchSettings.shared.fontColorPreset
+        if colorScheme == .light && preset == .white {
+            return palette.textPrimary
+        }
+        return preset.color
+    }
+
+    private var adaptiveCueColor: Color {
+        let preset = NotchSettings.shared.cueColorPreset
+        if colorScheme == .light && preset == .white {
+            return palette.accent
+        }
+        return preset.color
     }
 
     /// Convert fractional word index to char offset using actual word lengths
@@ -1376,6 +1518,8 @@ struct FloatingOverlayView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            floatingHeaderBar
+
             if content.showPagePicker {
                 floatingPagePickerView
             } else if isDone && (listeningMode == .wordTracking || hasNextPage) {
@@ -1385,32 +1529,16 @@ struct FloatingOverlayView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .overlay(alignment: .topTrailing) {
-            if NotchSettings.shared.showElapsedTime {
-                ElapsedTimeView(fontSize: 11)
-                    .padding(.top, 6)
-                    .padding(.trailing, 10)
-            }
-        }
-        .background(
-            Group {
-                if NotchSettings.shared.floatingGlassEffect {
-                    ZStack {
-                        GlassEffectView()
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(.black.opacity(NotchSettings.shared.glassOpacity))
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                } else {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.black)
-                }
-            }
+        .background(floatingShellBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(palette.borderStrong, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         .opacity(appeared ? 1 : 0)
-        .scaleEffect(appeared ? 1 : 0.9)
+        .scaleEffect(appeared ? 1 : 0.94)
         .onAppear {
+            guard !startExpanded else { return }
             withAnimation(.easeOut(duration: 0.3)) {
                 appeared = true
             }
@@ -1477,14 +1605,77 @@ struct FloatingOverlayView: View {
         }
     }
 
+    @ViewBuilder
+    private var floatingShellBackground: some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        if NotchSettings.shared.floatingGlassEffect {
+            ZStack {
+                GlassEffectView()
+                shape
+                    .fill(
+                        (palette.isDark ? palette.canvasBackground : Color.white)
+                            .opacity(NotchSettings.shared.glassOpacity)
+                    )
+            }
+        } else {
+            shape
+                .fill(palette.canvasBackground)
+        }
+    }
+
+    private var floatingHeaderBar: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(isEffectivelyListening ? palette.accent : palette.textTertiary)
+                        .frame(width: 6, height: 6)
+                    Text(isEffectivelyListening ? "LIVE" : "PAUSED")
+                        .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(isEffectivelyListening ? palette.textSecondary : palette.textTertiary)
+                        .tracking(0.6)
+                }
+
+                if content.pageCount > 1 {
+                    Text("Page \(content.currentPageIndex + 1) / \(content.pageCount)")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundStyle(palette.textTertiary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(palette.surface)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                        )
+                }
+
+                Spacer()
+
+                if NotchSettings.shared.showElapsedTime {
+                    ElapsedTimeView(fontSize: 11, color: palette.textSecondary)
+                }
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 28)
+            .background(palette.sidebarBackground.opacity(NotchSettings.shared.floatingGlassEffect ? 0.55 : 1.0))
+
+            Rectangle()
+                .fill(palette.borderSubtle)
+                .frame(height: 1)
+        }
+    }
+
     private var floatingPrompterView: some View {
         VStack(spacing: 0) {
             SpeechScrollView(
                 words: words,
                 highlightedCharCount: effectiveCharCount,
                 font: NotchSettings.shared.font,
-                highlightColor: NotchSettings.shared.fontColorPreset.color,
-                cueColor: NotchSettings.shared.cueColorPreset.color,
+                highlightColor: adaptiveHighlightColor,
+                cueColor: adaptiveCueColor,
                 cueUnreadOpacity: NotchSettings.shared.cueBrightness.unreadOpacity,
                 cueReadOpacity: NotchSettings.shared.cueBrightness.readOpacity,
                 onWordTap: { charOffset in
@@ -1510,146 +1701,163 @@ struct FloatingOverlayView: View {
             )
             .id(content.currentPageIndex)
             .padding(.horizontal, 16)
-            .padding(.top, 12)
+            .padding(.top, 10)
+
+            floatingBottomControlDock
+        }
+    }
+
+    private var floatingBottomControlDock: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(palette.borderSubtle)
+                .frame(height: 1)
 
             HStack(alignment: .center, spacing: 8) {
                 AudioWaveformProgressView(
                     levels: speechRecognizer.audioLevels,
                     progress: totalCharCount > 0
                         ? Double(effectiveCharCount) / Double(totalCharCount)
-                        : 0
+                        : 0,
+                    activeColor: palette.accent,
+                    inactiveColor: palette.borderStrong,
+                    maxBars: 26
                 )
-                .frame(width: 160, height: 24)
+                .frame(width: 128, height: 24, alignment: .leading)
 
-                if let error = speechRecognizer.error {
-                    HStack(spacing: 6) {
-                        Label(error, systemImage: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.red.opacity(0.9))
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .help(error)
-                        if speechRecognizer.permissionSettingsURL != nil {
-                            Button("Settings") {
-                                speechRecognizer.openPermissionSettings()
-                            }
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.white.opacity(0.2), in: Capsule())
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                } else if listeningMode == .wordTracking,
-                          NotchSettings.shared.showLastSpokenWords {
-                    Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.5))
-                        .lineLimit(1)
-                        .truncationMode(.head)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } else {
-                    Spacer()
-                }
+                floatingStatusReadout
 
-                if !followingCursor && content.pageCount > 1 {
-                    if hasNextPage {
-                        Button {
-                            speechRecognizer.shouldAdvancePage = true
-                        } label: {
-                            Image(systemName: "forward.fill")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.6))
-                                .frame(width: 24, height: 24)
-                                .background(.white.opacity(0.15))
-                                .clipShape(Circle())
-                        }
-                        .buttonStyle(.plain)
-                        .simultaneousGesture(
-                            LongPressGesture(minimumDuration: 0.5)
-                                .onEnded { _ in
-                                    content.showPagePicker = true
-                                }
-                        )
-                    } else {
-                        Button {
-                            content.jumpToPageIndex = 0
-                        } label: {
-                            Image(systemName: "backward.end.fill")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.6))
-                                .frame(width: 24, height: 24)
-                                .background(.white.opacity(0.15))
-                                .clipShape(Circle())
-                        }
-                        .buttonStyle(.plain)
-                        .simultaneousGesture(
-                            LongPressGesture(minimumDuration: 0.5)
-                                .onEnded { _ in
-                                    content.showPagePicker = true
-                                }
-                        )
-                    }
-                }
+                floatingControlButtons
+            }
+            .frame(height: 28)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(palette.surface.opacity(NotchSettings.shared.floatingGlassEffect ? 0.65 : 1.0))
+        }
+    }
 
-                if !followingCursor {
-                    if listeningMode == .classic {
-                        Button {
-                            isPaused.toggle()
-                        } label: {
-                            Image(systemName: isPaused ? "play.fill" : "pause.fill")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(isPaused ? .white.opacity(0.6) : .yellow.opacity(0.8))
-                                .frame(width: 24, height: 24)
-                                .background(.white.opacity(0.15))
-                                .clipShape(Circle())
-                        }
-                        .buttonStyle(.plain)
-                    } else {
-                        Button {
-                            if speechRecognizer.isListening || speechRecognizer.isStarting {
-                                speechRecognizer.stop()
-                            } else {
-                                speechRecognizer.resume()
-                            }
-                        } label: {
-                            Group {
-                                if speechRecognizer.isStarting {
-                                    ProgressView()
-                                        .controlSize(.mini)
-                                        .tint(.white.opacity(0.8))
-                                } else {
-                                    Image(systemName: speechRecognizer.isListening ? "mic.fill" : "mic.slash.fill")
-                                        .font(.system(size: 10, weight: .bold))
-                                }
-                            }
-                            .foregroundStyle(speechRecognizer.isListening ? .yellow.opacity(0.8) : .white.opacity(0.6))
-                            .frame(width: 24, height: 24)
-                            .background(.white.opacity(0.15))
-                            .clipShape(Circle())
-                        }
-                        .buttonStyle(.plain)
+    @ViewBuilder
+    private var floatingStatusReadout: some View {
+        if let error = speechRecognizer.error {
+            HStack(spacing: 6) {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(palette.statusDanger)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .help(error)
+                if speechRecognizer.permissionSettingsURL != nil {
+                    Button("Settings") {
+                        speechRecognizer.openPermissionSettings()
                     }
-
-                    Button {
-                        speechRecognizer.forceStop()
-                        speechRecognizer.shouldDismiss = true
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.6))
-                            .frame(width: 24, height: 24)
-                            .background(.white.opacity(0.15))
-                            .clipShape(Circle())
-                    }
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(palette.accent, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
                     .buttonStyle(.plain)
                 }
             }
-            .frame(height: 24)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if listeningMode == .wordTracking,
+                  NotchSettings.shared.showLastSpokenWords {
+            Text(speechRecognizer.lastSpokenText.split(separator: " ").suffix(3).joined(separator: " "))
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(1)
+                .truncationMode(.head)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Spacer(minLength: 0)
+        }
+    }
+
+    @ViewBuilder
+    private var floatingControlButtons: some View {
+        if !followingCursor && content.pageCount > 1 {
+            if hasNextPage {
+                Button {
+                    speechRecognizer.shouldAdvancePage = true
+                } label: {
+                    StudioOverlayIconButton(
+                        systemImage: "forward.fill",
+                        isActive: false,
+                        palette: palette,
+                        surfaceOverride: palette.elevatedSurface
+                    )
+                }
+                .buttonStyle(.plain)
+                .simultaneousGesture(
+                    LongPressGesture(minimumDuration: 0.5)
+                        .onEnded { _ in
+                            content.showPagePicker = true
+                        }
+                )
+            } else {
+                Button {
+                    content.jumpToPageIndex = 0
+                } label: {
+                    StudioOverlayIconButton(
+                        systemImage: "backward.end.fill",
+                        isActive: false,
+                        palette: palette,
+                        surfaceOverride: palette.elevatedSurface
+                    )
+                }
+                .buttonStyle(.plain)
+                .simultaneousGesture(
+                    LongPressGesture(minimumDuration: 0.5)
+                        .onEnded { _ in
+                            content.showPagePicker = true
+                        }
+                )
+            }
+        }
+
+        if !followingCursor {
+            if listeningMode == .classic {
+                Button {
+                    isPaused.toggle()
+                } label: {
+                    StudioOverlayIconButton(
+                        systemImage: isPaused ? "play.fill" : "pause.fill",
+                        isActive: !isPaused,
+                        palette: palette,
+                        surfaceOverride: palette.elevatedSurface
+                    )
+                }
+                .buttonStyle(.plain)
+            } else {
+                Button {
+                    if speechRecognizer.isListening || speechRecognizer.isStarting {
+                        speechRecognizer.stop()
+                    } else {
+                        speechRecognizer.resume()
+                    }
+                } label: {
+                    StudioOverlayIconButton(
+                        systemImage: speechRecognizer.isListening ? "mic.fill" : "mic.slash.fill",
+                        isActive: speechRecognizer.isListening,
+                        isLoading: speechRecognizer.isStarting,
+                        palette: palette,
+                        surfaceOverride: palette.elevatedSurface
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            Button {
+                speechRecognizer.forceStop()
+                speechRecognizer.shouldDismiss = true
+            } label: {
+                StudioOverlayIconButton(
+                    systemImage: "xmark",
+                    isActive: false,
+                    palette: palette,
+                    surfaceOverride: palette.elevatedSurface
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -1684,13 +1892,15 @@ struct FloatingOverlayView: View {
     private var floatingPagePickerView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Jump to page")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.5))
-                    .padding(.bottom, 4)
+                Text("JUMP TO PAGE")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(palette.textTertiary)
+                    .tracking(0.6)
+                    .padding(.bottom, 2)
 
                 ForEach(0..<content.pageCount, id: \.self) { i in
                     let preview = i < content.pagePreviews.count ? content.pagePreviews[i] : ""
+                    let isCurrent = i == content.currentPageIndex
                     if !preview.isEmpty {
                         Button {
                             content.jumpToPageIndex = i
@@ -1698,12 +1908,12 @@ struct FloatingOverlayView: View {
                         } label: {
                             HStack(spacing: 10) {
                                 Text("\(i + 1)")
-                                    .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(i == content.currentPageIndex ? .yellow : .white.opacity(0.8))
+                                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(isCurrent ? palette.accent : palette.textPrimary)
                                     .frame(width: 24)
                                 Text(preview)
-                                    .font(.system(size: 13, weight: .regular))
-                                    .foregroundStyle(i == content.currentPageIndex ? .yellow.opacity(0.7) : .white.opacity(0.5))
+                                    .font(.system(size: 13, weight: isCurrent ? .medium : .regular))
+                                    .foregroundStyle(isCurrent ? palette.textPrimary : palette.textSecondary)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                                 Spacer()
@@ -1711,8 +1921,15 @@ struct FloatingOverlayView: View {
                             .padding(.vertical, 6)
                             .padding(.horizontal, 10)
                             .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(i == content.currentPageIndex ? Color.yellow.opacity(0.1) : Color.white.opacity(0.05))
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .fill(isCurrent ? palette.accentSubtle : palette.surface)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .strokeBorder(
+                                        isCurrent ? palette.accent.opacity(0.4) : palette.borderSubtle,
+                                        lineWidth: 1
+                                    )
                             )
                         }
                         .buttonStyle(.plain)
@@ -1721,7 +1938,7 @@ struct FloatingOverlayView: View {
 
                 Text("Tap a page to jump")
                     .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.3))
+                    .foregroundStyle(palette.textTertiary)
                     .padding(.top, 4)
             }
             .padding(.horizontal, 16)
@@ -1734,34 +1951,36 @@ struct FloatingOverlayView: View {
         VStack {
             Spacer()
             if hasNextPage {
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     if countdownRemaining > 0 {
                         Text("\(countdownRemaining)")
-                            .font(.system(size: 28, weight: .heavy, design: .rounded))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 26, weight: .bold, design: .monospaced))
+                            .foregroundStyle(palette.textPrimary)
                             .contentTransition(.numericText())
                             .animation(.easeInOut(duration: 0.3), value: countdownRemaining)
                     }
                     if followingCursor {
                         Text("Next Page")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(palette.textPrimary)
                     } else {
                         Button {
                             cancelCountdown()
                             speechRecognizer.shouldAdvancePage = true
                         } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: 7) {
                                 Image(systemName: "play.fill")
-                                    .font(.system(size: 14, weight: .bold))
+                                    .font(.system(size: 12, weight: .semibold))
                                 Text("Next Page")
-                                    .font(.system(size: 14, weight: .bold))
+                                    .font(.system(size: 13, weight: .semibold))
                             }
                             .foregroundStyle(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(Color.accentColor)
-                            .clipShape(Capsule())
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 9)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(palette.accent)
+                            )
                         }
                         .buttonStyle(.plain)
                     }
@@ -1769,10 +1988,10 @@ struct FloatingOverlayView: View {
             } else {
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Done!")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(palette.statusSuccess)
+                    Text("Done")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(palette.textPrimary)
                 }
             }
             Spacer()

@@ -40,6 +40,7 @@ class NotchPreviewController {
 
         let content = NotchPreviewContent(settings: settings, menuBarHeight: menuBarHeight)
         let hostingView = NSHostingView(rootView: content)
+        hostingView.appearance = settings.appAppearance.nsAppearance
         self.hostingView = hostingView
 
         let panel = NSPanel(
@@ -48,6 +49,7 @@ class NotchPreviewController {
             backing: .buffered,
             defer: false
         )
+        panel.appearance = settings.appAppearance.nsAppearance
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
@@ -159,7 +161,11 @@ class NotchPreviewController {
 struct NotchPreviewContent: View {
     @Bindable var settings: NotchSettings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     let menuBarHeight: CGFloat
+
+    private var darkPalette: DantePalette { DantePalette(colorScheme: .dark) }
+    private var floatingPalette: DantePalette { DantePalette(colorScheme: colorScheme) }
 
     private static let previewText = """
     Good morning, and thank you for being here. [smile]
@@ -195,70 +201,98 @@ struct NotchPreviewContent: View {
         ].joined(separator: "|")
     }
 
+    private var previewHighlightColor: Color {
+        if settings.overlayMode == .floating && colorScheme == .light && settings.fontColorPreset == .white {
+            return floatingPalette.textPrimary
+        }
+        return settings.fontColorPreset.color
+    }
+
+    private var previewCueColor: Color {
+        if settings.overlayMode == .floating && colorScheme == .light && settings.cueColorPreset == .white {
+            return floatingPalette.accent
+        }
+        return settings.cueColorPreset.color
+    }
+
     var body: some View {
         GeometryReader { geo in
-            let topPadding = menuBarHeight * (1 - offsetPhase) + 14 * offsetPhase
+            let topPadding = menuBarHeight * (1 - offsetPhase) + 28 * offsetPhase
             let contentHeight = topPadding + settings.textAreaHeight
             let currentWidth = settings.notchWidth
             let yOffset = 60 * offsetPhase
             let isPinned = settings.overlayMode == .pinned
+            let activePalette = isPinned ? darkPalette : floatingPalette
             // Match the compact live notch's text viewport. Its bottom controls
             // and resize handle consume 24 + 8 + 2 + 10 points even though the
             // settings preview deliberately leaves that chrome invisible.
             let pinnedBottomChromeHeight: CGFloat = isPinned ? 44 : 0
-            let outerHorizontalPadding: CGFloat = isPinned ? 16 : 20
+            let outerHorizontalPadding: CGFloat = isPinned ? 16 : 0
             let textHorizontalPadding: CGFloat = isPinned ? 12 : 16
             let textTopPadding: CGFloat = isPinned ? 6 : 10
 
             ZStack(alignment: .top) {
                 // Shape: concave corners flatten via cornerPhase, then cross-fade to rounded via offsetPhase
                 let isTransparent = settings.overlayTransparency && settings.overlayMode == .pinned
-                Group {
+                let islandShape = DynamicIslandShape(
+                    topInset: 16 * (1 - cornerPhase),
+                    bottomRadius: 18
+                )
+                ZStack {
                     if isTransparent {
-                        ZStack {
-                            NotchBlurView()
-                            DynamicIslandShape(
-                                topInset: 16 * (1 - cornerPhase),
-                                bottomRadius: 18
-                            )
-                            .fill(.black.opacity(1.0 - settings.overlayTransparencyOpacity))
-                        }
-                        .clipShape(DynamicIslandShape(
-                            topInset: 16 * (1 - cornerPhase),
-                            bottomRadius: 18
-                        ))
+                        NotchBlurView()
+                            .clipShape(islandShape)
+                        islandShape
+                            .fill(darkPalette.sidebarBackground.opacity(1.0 - settings.overlayTransparencyOpacity))
                     } else {
-                        DynamicIslandShape(
-                            topInset: 16 * (1 - cornerPhase),
-                            bottomRadius: 18
-                        )
-                        .fill(.black)
+                        islandShape
+                            .fill(darkPalette.sidebarBackground)
                     }
+                    islandShape
+                        .stroke(Color.white.opacity(0.11), lineWidth: 1)
                 }
                 .opacity(Double(1 - offsetPhase))
                 .frame(width: currentWidth, height: contentHeight)
 
-                Group {
+                let floatingShape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+                ZStack {
                     if settings.floatingGlassEffect {
-                        ZStack {
-                            GlassEffectView()
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(.black.opacity(settings.glassOpacity))
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        GlassEffectView()
+                        floatingShape
+                            .fill(
+                                (floatingPalette.isDark ? floatingPalette.canvasBackground : Color.white)
+                                    .opacity(settings.glassOpacity)
+                            )
                     } else {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(.black)
+                        floatingShape
+                            .fill(floatingPalette.canvasBackground)
                     }
                 }
+                .clipShape(floatingShape)
+                .overlay(
+                    floatingShape
+                        .strokeBorder(floatingPalette.borderStrong, lineWidth: 1)
+                )
                 .opacity(Double(offsetPhase))
                 .frame(width: currentWidth, height: contentHeight)
 
                 VStack(spacing: 0) {
                     HStack {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(activePalette.accent)
+                                .frame(width: 6, height: 6)
+                            Text("LIVE")
+                                .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(activePalette.textSecondary)
+                                .tracking(0.6)
+                        }
+                        .padding(.leading, 12)
+
                         Spacer()
+
                         if settings.showElapsedTime {
-                            ElapsedTimeView(fontSize: 11)
+                            ElapsedTimeView(fontSize: 11, color: activePalette.textSecondary)
                                 .padding(.trailing, 12)
                         }
                     }
@@ -270,8 +304,8 @@ struct NotchPreviewContent: View {
                             ? Self.highlightedCount
                             : Self.previewWords.count * 5,
                         font: settings.font,
-                        highlightColor: settings.fontColorPreset.color,
-                        cueColor: settings.cueColorPreset.color,
+                        highlightColor: previewHighlightColor,
+                        cueColor: previewCueColor,
                         cueUnreadOpacity: settings.cueBrightness.unreadOpacity,
                         cueReadOpacity: settings.cueBrightness.readOpacity,
                         smoothScroll: settings.listeningMode != .wordTracking,
@@ -299,6 +333,7 @@ struct NotchPreviewContent: View {
             .animation(.easeInOut(duration: 0.15), value: settings.notchWidth)
             .animation(.easeInOut(duration: 0.15), value: settings.textAreaHeight)
         }
+        .preferredColorScheme(settings.appAppearance.colorScheme)
         .onChange(of: settings.overlayMode) { _, mode in
             if mode == .floating {
                 // Phase 1: flatten corners while at top
