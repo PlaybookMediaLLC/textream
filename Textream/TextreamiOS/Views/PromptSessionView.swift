@@ -216,6 +216,21 @@ struct PromptSessionView: View {
                     HStack {
                         closeButton
                         Spacer(minLength: 0)
+                        if let snapshot = controller.paceSnapshot, snapshot.rollingWPM > 0 {
+                            HStack(spacing: 5) {
+                                Circle()
+                                    .fill(iosPaceIndicatorColor(for: snapshot.status))
+                                    .frame(width: 6, height: 6)
+                                Text(snapshot.compactReadout)
+                                    .font(.caption2.monospacedDigit().weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.9))
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .glassEffect(.regular.tint(.black.opacity(0.28)), in: .capsule)
+                        }
+                        Spacer(minLength: 0)
                         if controller.configuration.sessionMode == .read {
                             mirrorSettingsButton(isMirrorActive: isMirrorActive)
                         } else if isOuterDisplayAvailable {
@@ -398,6 +413,15 @@ struct PromptSessionView: View {
         .accessibilityLabel("Close")
         .accessibilityIdentifier("closeSessionButton")
         .accessibilityHidden(isShowingMirrorSettings)
+    }
+
+    private func iosPaceIndicatorColor(for status: PaceStatus) -> Color {
+        let palette = DantePalette(colorScheme: .dark)
+        switch status {
+        case .onPace: return palette.statusSuccess
+        case .slow:   return palette.statusWarning
+        case .fast:   return palette.accent
+        }
     }
 
     private func mirrorSettingsButton(isMirrorActive: Bool) -> some View {

@@ -54,7 +54,10 @@ final class PromptSessionController {
     private(set) var isSpeechReady = false
     private(set) var scrollSpeed: Double
     private(set) var isAdjustingScrollSpeed = false
+    private(set) var paceSnapshot: PaceSnapshot?
 
+    @ObservationIgnored private var pacingEngine: PacingCoachEngine
+    @ObservationIgnored private var lastPacedCharacterOffset = 0
     @ObservationIgnored private var progressTimer: Timer?
     @ObservationIgnored private var lastTickTime: TimeInterval?
     @ObservationIgnored private var wasRunningBeforeManualScroll = false
@@ -62,7 +65,12 @@ final class PromptSessionController {
 
     init(configuration: PromptSessionConfiguration) {
         self.configuration = configuration
-        prompt = PromptScript(configuration.script)
+        let builtPrompt = PromptScript(configuration.script)
+        prompt = builtPrompt
+        pacingEngine = PacingCoachEngine(
+            script: builtPrompt,
+            targetWPM: configuration.targetWPM
+        )
         showsCamera = configuration.usesCamera
         let initialScrollSpeed = min(
             PromptScrollSpeedAdjustment.maximumSpeed,
@@ -73,6 +81,10 @@ final class PromptSessionController {
         speechFollower = SpeechFollower()
         captureController = CaptureController()
         captureController.connectSpeechFollower(speechFollower)
+    }
+
+    var takeSummary: TakeSummary {
+        pacingEngine.makeSummary(at: ProcessInfo.processInfo.systemUptime)
     }
 
     var effectiveCharacterCount: Int {
@@ -389,6 +401,16 @@ final class PromptSessionController {
             }
         case .wordTracking:
             break
+        }
+        let currentOffset = effectiveCharacterCount
+        if currentOffset != lastPacedCharacterOffset {
+            let isRetake = currentOffset < lastPacedCharacterOffset
+            lastPacedCharacterOffset = currentOffset
+            paceSnapshot = pacingEngine.recordProgress(
+                characterOffset: currentOffset,
+                at: now,
+                isRetake: isRetake
+            )
         }
     }
 
