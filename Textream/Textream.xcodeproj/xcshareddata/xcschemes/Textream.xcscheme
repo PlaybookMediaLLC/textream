@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "446966B32F37E47300AF141F"
-               BuildableName = "Textream.app"
+               BuildableName = "Dante.app"
                BlueprintName = "Textream"
                ReferencedContainer = "container:Textream.xcodeproj">
             </BuildableReference>
@@ -33,7 +33,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "446966B32F37E47300AF141F"
-            BuildableName = "Textream.app"
+            BuildableName = "Dante.app"
             BlueprintName = "Textream"
             ReferencedContainer = "container:Textream.xcodeproj">
          </BuildableReference>
@@ -78,7 +78,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "446966B32F37E47300AF141F"
-            BuildableName = "Textream.app"
+            BuildableName = "Dante.app"
             BlueprintName = "Textream"
             ReferencedContainer = "container:Textream.xcodeproj">
          </BuildableReference>
@@ -95,7 +95,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "446966B32F37E47300AF141F"
-            BuildableName = "Textream.app"
+            BuildableName = "Dante.app"
             BlueprintName = "Textream"
             ReferencedContainer = "container:Textream.xcodeproj">
          </BuildableReference>
@@ -105,7 +105,7 @@
       buildConfiguration = "Debug">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Release"
+      buildConfiguration = "AppStore"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

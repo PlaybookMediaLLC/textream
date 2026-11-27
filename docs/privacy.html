@@ -4,21 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
-  <title>Privacy Policy — Textream</title>
-  <meta name="description" content="How Textream handles scripts, camera recordings, microphone audio, speech recognition, Photos saving, local-network features, and app settings.">
+  <title>Privacy Policy — Dante for Creators</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta name="description" content="How Dante for Creators by Playbook Interactive Media LLC handles scripts, camera recordings, microphone audio, Apple Speech, local Hugging Face speech models, Photos saving, and local-network modes.">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
 
     :root {
-      --bg: #0a0a0c;
-      --surface: #1c1c1e;
-      --surface2: #242428;
-      --text: #f5f5f7;
-      --muted: #a1a1a8;
-      --quiet: #6e6e76;
+      --bg: #0b0a09;
+      --surface: #1b1917;
+      --surface2: #24211e;
+      --text: #f7f5f2;
+      --muted: #aca59e;
+      --quiet: #746d66;
       --line: rgba(255, 255, 255, 0.08);
-      --accent1: #7c6aff;
-      --accent2: #4f8bff;
+      --accent1: #e85d2a;
+      --accent2: #f59e0b;
     }
 
     html { scroll-behavior: smooth; }
@@ -29,14 +30,14 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at 50% -15%, rgba(124, 106, 255, 0.15), transparent 42rem),
+        radial-gradient(circle at 50% -15%, rgba(232, 93, 42, 0.16), transparent 42rem),
         var(--bg);
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
     }
 
-    a { color: #8eb4ff; }
-    a:hover { color: #b9ceff; }
+    a { color: #f6a96b; }
+    a:hover { color: #ffd1a6; }
 
     .shell {
       width: min(100% - 40px, 880px);
@@ -66,31 +67,28 @@
       place-items: center;
       width: 34px;
       height: 34px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 10px;
-      background: linear-gradient(145deg, #29292d, #111114);
+      background: #0a0a0a;
+      overflow: hidden;
       box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
     }
 
-    .brand-mark span {
-      font-size: 21px;
-      font-weight: 850;
-      line-height: 1;
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
+    .brand-mark svg {
+      width: 24px;
+      height: 24px;
+      display: block;
     }
 
     .nav-links { display: flex; gap: 18px; }
     .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; }
     .nav-links a:hover { color: var(--text); }
 
-    header { padding: 92px 0 56px; }
+    header { padding: 84px 0 52px; }
 
     .eyebrow {
       margin: 0 0 14px;
-      color: #9dbbff;
+      color: #f6a96b;
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -98,18 +96,18 @@
     }
 
     h1 {
-      max-width: 700px;
+      max-width: 720px;
       margin: 0 0 22px;
-      font-size: clamp(42px, 8vw, 72px);
-      line-height: 1.02;
-      letter-spacing: -0.05em;
+      font-size: clamp(40px, 7.5vw, 68px);
+      line-height: 1.03;
+      letter-spacing: -0.045em;
     }
 
     .lede {
       max-width: 700px;
       margin: 0;
       color: var(--muted);
-      font-size: clamp(18px, 3vw, 22px);
+      font-size: clamp(18px, 3vw, 21px);
       line-height: 1.55;
     }
 
@@ -117,7 +115,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
-      margin: 10px 0 72px;
+      margin: 10px 0 68px;
     }
 
     .summary article {
@@ -125,7 +123,7 @@
       padding: 22px;
       border: 1px solid var(--line);
       border-radius: 18px;
-      background: linear-gradient(155deg, rgba(42, 42, 47, 0.94), rgba(23, 23, 26, 0.94));
+      background: linear-gradient(155deg, rgba(44, 39, 35, 0.94), rgba(22, 20, 18, 0.94));
     }
 
     .summary strong { display: block; margin-bottom: 8px; font-size: 15px; }
@@ -135,7 +133,7 @@
 
     section {
       display: grid;
-      grid-template-columns: 190px minmax(0, 1fr);
+      grid-template-columns: 200px minmax(0, 1fr);
       gap: 42px;
       padding: 34px 0;
       border-top: 1px solid var(--line);
@@ -148,18 +146,28 @@
       letter-spacing: -0.015em;
     }
 
-    .copy p { margin: 0 0 16px; color: #c8c8ce; }
+    .copy p { margin: 0 0 16px; color: #cfcac4; }
     .copy p:last-child { margin-bottom: 0; }
-    .copy ul { margin: 0; padding-left: 20px; color: #c8c8ce; }
+    .copy ul { margin: 0; padding-left: 20px; color: #cfcac4; }
     .copy li + li { margin-top: 9px; }
     .copy strong { color: var(--text); }
 
+    code {
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: #e4dfd9;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.88em;
+    }
+
     .note {
       padding: 18px 20px;
-      border: 1px solid rgba(124, 106, 255, 0.22);
+      border: 1px solid rgba(232, 93, 42, 0.28);
       border-radius: 14px;
-      background: rgba(124, 106, 255, 0.07);
-      color: #d8d4ff;
+      background: rgba(232, 93, 42, 0.08);
+      color: #f8d8c8;
     }
 
     footer {
@@ -180,7 +188,6 @@
       .summary article { min-height: 0; }
       section { grid-template-columns: 1fr; gap: 14px; }
       header { padding-top: 64px; }
-      .nav-links a:first-child { display: none; }
       footer { flex-direction: column; }
     }
   </style>
@@ -188,124 +195,118 @@
 <body>
   <div class="shell">
     <nav aria-label="Primary navigation">
-      <a class="brand" href="./" aria-label="Textream home">
-        <span class="brand-mark" aria-hidden="true"><span>T</span></span>
-        Textream
+      <a class="brand" href="./" aria-label="Dante for Creators home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="100 100 440 440" fill="none" xmlns="http://www.w3.org/2000/svg"><g fill="#FFFFFF"><path d="M266 140H440V312H266A86 86 0 0 1 266 140Z"/><path d="M200 328H374A86 86 0 0 1 374 500H200Z"/></g></svg></span>
+        Dante for Creators
       </a>
       <div class="nav-links">
-        <a href="https://github.com/f/textream">GitHub</a>
-        <a href="/docs/">Docs</a>
+        <a href="./docs/">Docs</a>
         <a href="support.html">Support</a>
       </div>
     </nav>
 
     <header>
-      <p class="eyebrow">Privacy policy · Updated August 12, 2026</p>
+      <p class="eyebrow">Privacy Policy · Updated November 26, 2026</p>
       <h1>Privacy, without fine print.</h1>
-      <p class="lede">Textream does not require an account and its developer does not operate a service that receives your scripts, recordings, or settings. A few macOS, iOS, and optional network features deserve a clear explanation.</p>
+      <p class="lede">Dante for Creators is published by Playbook Interactive Media LLC. The app requires no account, contains no ads or analytics SDKs, and does not send your scripts, recordings, or settings to Playbook Interactive Media LLC servers.</p>
     </header>
 
     <section class="summary" aria-label="Privacy summary">
       <article>
-        <strong>Your scripts are yours</strong>
-        <p>Textream keeps working text and preferences on your device. On Mac, you choose where saved script files live.</p>
+        <strong>Your scripts stay on your device</strong>
+        <p>Your Creator Script Library, presets, and preferences remain in local storage on your Mac, iPhone, or iPad.</p>
       </article>
       <article>
-        <strong>No ads or analytics</strong>
-        <p>The app has no advertising, behavioral tracking, analytics SDK, or Textream account.</p>
+        <strong>No ads, accounts, or telemetry</strong>
+        <p>Dante for Creators includes zero advertising, behavioral tracking, analytics SDKs, or developer-hosted user accounts.</p>
       </article>
       <article>
-        <strong>You control the microphone</strong>
-        <p>Voice-guided modes and iPhone video recording run only after you grant permission. You can revoke access in system privacy settings.</p>
+        <strong>100% offline option on Mac</strong>
+        <p>Choose Apple Speech or download optional on-device AI speech models on macOS so your voice audio never leaves your Mac.</p>
       </article>
     </section>
 
     <main>
       <section>
-        <h2>Information Textream collects</h2>
+        <h2>Data collected by Playbook Interactive Media LLC</h2>
         <div class="copy">
-          <p>The Textream developer does not collect personal data through the app. Textream has no developer-operated account system, analytics service, advertising system, or cloud storage service.</p>
-          <p>This describes collection by Textream and its developer. Apple, GitHub, your network provider, or another service you choose to use may process connection or device information under their own policies.</p>
+          <p>Playbook Interactive Media LLC does not collect, sell, or share personal data through Dante for Creators. The app operates without a developer-operated account system, analytics service, advertising network, or cloud script backend.</p>
+          <p>When you opt into system services or third-party downloads—such as Apple Speech Recognition or optional Hugging Face model downloads—those providers process standard network connection data under their own privacy policies.</p>
         </div>
       </section>
 
       <section>
-        <h2>Microphone and speech recognition</h2>
+        <h2>Microphone and Apple Speech Recognition</h2>
         <div class="copy">
-          <p>Word Tracking and Voice-Activated modes use microphone access when you start them. Word Tracking uses Apple’s speech-recognition framework to match spoken words to your script. On iPhone and iPad, Record mode also includes microphone audio in the saved camera video.</p>
-          <p><strong>Speech recognition is not guaranteed to stay on-device.</strong> Depending on your device, language, operating-system version, and service availability, Apple’s operating system may process speech locally or send microphone audio to Apple for recognition. Textream’s developer does not receive that audio or the recognition result.</p>
-          <p>You can use Classic mode in a Read session without microphone or speech-recognition access. Record mode still needs microphone access for the video’s audio. You can change permissions at any time in the device’s Privacy &amp; Security settings.</p>
-          <p>Apple describes its handling of data in the <a href="https://www.apple.com/legal/privacy/">Apple Privacy Policy</a>.</p>
+          <p>Smart Follow (Word Tracking) and Voice-Activated scrolling request microphone access when enabled. On iPhone and iPad, Record mode also captures microphone audio for your saved camera video.</p>
+          <p>When you choose the <strong>Apple Speech</strong> engine, Dante uses Apple’s Speech framework to match spoken words to your script. Depending on your device, language, and OS version, Apple may process audio on-device or on Apple servers under the <a href="https://www.apple.com/legal/privacy/">Apple Privacy Policy</a>. Playbook Interactive Media LLC never receives your audio or transcripts.</p>
+          <p>Classic Read mode runs without microphone or speech-recognition permissions. You can change permissions at any time in macOS System Settings or iOS Settings.</p>
         </div>
       </section>
 
       <section>
-        <h2>iPhone and iPad camera recordings</h2>
+        <h2>Local Speech Models &amp; Hugging Face Downloads (macOS)</h2>
         <div class="copy">
-          <p>The iOS companion requests camera access only when you choose to show the camera or use Record mode. Read mode can run with the camera off. Record mode captures the selected front or back camera together with microphone audio.</p>
-          <p>The translucent teleprompter is a presenter-only overlay. It appears on your screen while recording but is not composited into the saved video.</p>
-          <p>When you stop recording, Textream uses Photos <strong>add-only</strong> access to create a video in your Photos library. Add-only access lets Textream save the new recording without browsing, importing, or reading your existing photo library.</p>
-          <p>Textream remembers the Photos asset identifiers of recordings it creates. If you tap the saved-recording thumbnail, Textream separately requests Photos read and write access and uses those identifiers to show only recordings saved by Textream. This access also lets you select and delete those recordings from Photos inside Textream. It does not request library access merely to record or save a video, and it does not add unrelated library items to this gallery.</p>
-          <p>The recording is first kept in Textream’s local app storage and excluded from device backups. After a successful Photos save, Textream removes that pending copy. If saving fails, Textream keeps the pending copy locally and offers <strong>Retry Save</strong> or <strong>Discard Recording</strong> in the current or next Record session.</p>
-        </div>
-      </section>
-
-      <section>
-        <h2>Scripts, files, and settings</h2>
-        <div class="copy">
-          <p>Textream stores editor content and preferences locally on your device. On Mac, when you save a <code>.textream</code> file, import PowerPoint notes, or open another document, the file is handled locally and remains in a location you control.</p>
-          <p>Textream does not upload those files to a Textream server. You can remove saved Mac scripts using Finder. Removing the app does not necessarily remove preferences that the operating system keeps for it.</p>
-        </div>
-      </section>
-
-      <section>
-        <h2>Remote and Director modes</h2>
-        <div class="copy">
-          <p>Remote Connection and Director Mode are off until you enable them. When enabled, Textream starts a server on your Mac so another device on the local network can view teleprompter state or control the script.</p>
+          <p>On macOS, you can optionally switch the speech engine to <strong>Local Model</strong> to run speech recognition entirely on your Mac so microphone audio never leaves your device.</p>
           <ul>
-            <li>Connected devices may receive script text, reading position, and display state.</li>
-            <li>Director Mode lets a connected device send or edit script text.</li>
-            <li>These features use local HTTP and WebSocket connections that are not end-to-end encrypted.</li>
+            <li>Dante for Creators does not bundle model weights inside the app download.</li>
+            <li>When you choose to download a catalog model or resolve a public user-specified Hugging Face repository, Dante connects over HTTPS to <code>huggingface.co</code> to query repository metadata and download non-executable <code>.gguf</code> / <code>.bin</code> model weight files.</li>
+            <li>Every download is verified against its pinned SHA-256 checksum before activation, stored locally in Application Support, and automatically excluded from Time Machine and iCloud backups.</li>
+            <li>Hugging Face receives standard HTTPS connection metadata (such as your IP address and requested model file) subject to the <a href="https://huggingface.co/privacy">Hugging Face Privacy Policy</a>. No scripts, recordings, or personal identifiers are ever sent to Hugging Face.</li>
           </ul>
-          <p class="note">Use these modes only on a network and with devices you trust. Turn them off when you are finished, and do not share the connection address or QR code publicly.</p>
+          <p>You can delete downloaded models at any time in <strong>Settings → Guidance → Manage Models</strong>.</p>
         </div>
       </section>
 
       <section>
-        <h2>Other network connections</h2>
+        <h2>iPhone and iPad camera recordings &amp; Photos</h2>
         <div class="copy">
-          <p>In a Mac App Store build, updates are delivered by Apple. A version installed directly from GitHub or Homebrew may contact GitHub to check whether a newer release exists. GitHub may receive standard connection information such as an IP address; see the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</p>
-          <p>If you follow a link from Textream to a website, that site handles the resulting connection under its own policy.</p>
+          <p>Dante requests camera access only when you enable the camera preview or start Record mode. Read mode can run with the camera turned off.</p>
+          <p>The translucent teleprompter overlay is presenter-only: it appears on your screen while recording and is never burned into the exported video.</p>
+          <p>When you stop recording, Dante uses Photos <strong>add-only</strong> access to save your video without reading your existing library. If you open the saved-recordings gallery thumbnail, Dante separately requests Photos read/write access and filters the view strictly to asset identifiers created by Dante so you can preview, trim, or delete your takes.</p>
+          <p>While saving, a temporary copy is kept in local app storage excluded from device backups and automatically deleted once saved to Photos. If saving fails, Dante offers <strong>Retry Save</strong> or <strong>Discard Recording</strong>.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Scripts, library, and files</h2>
+        <div class="copy">
+          <p>Your Creator Script Library and settings are stored locally on your device. On macOS, when you save a <code>.dante</code> script or import speaker notes from a PowerPoint <code>.pptx</code> file, all parsing happens strictly in-process on your Mac without uploading documents anywhere.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Remote Connection and Director Mode (macOS)</h2>
+        <div class="copy">
+          <p>Remote Connection and Director Mode are disabled by default. When you turn either mode on in Settings, Dante starts a local-network HTTP and WebSocket server on your Mac so a tablet, phone, or producer’s browser on the same Wi-Fi network can view or control your teleprompter.</p>
+          <ul>
+            <li>Connected devices on your LAN receive the active script text, reading progress, and display settings.</li>
+            <li>Director Mode allows an authorized browser session on your LAN to send or live-edit script text.</li>
+            <li>Local-network traffic is not end-to-end encrypted across the Wi-Fi segment.</li>
+          </ul>
+          <p class="note">Enable Remote Connection or Director Mode only on trusted networks with trusted devices, and turn them off when finished.</p>
         </div>
       </section>
 
       <section>
         <h2>Screen sharing</h2>
         <div class="copy">
-          <p>The “Hide from Screen Sharing” setting asks macOS to exclude Textream’s teleprompter overlay from screen captures. It does not control other apps, cameras, external capture hardware, or content outside Textream. Confirm your recording or meeting setup before relying on it.</p>
+          <p>Enabling <strong>Hide from Screen Sharing</strong> instructs macOS to exclude Dante’s teleprompter overlay from standard screen capture APIs. Because third-party capture drivers and external HDMI capture hardware vary, always verify your recording or broadcast setup before going live.</p>
         </div>
       </section>
 
       <section>
-        <h2>Retention and deletion</h2>
+        <h2>Retention, deletion &amp; contact</h2>
         <div class="copy">
-          <p>Because the developer does not receive your scripts or recordings and does not maintain a Textream account, there is no Textream server copy to retain or delete. You control saved scripts on your Mac and saved videos in Photos and can delete Textream recordings either in Photos or from Textream’s recordings gallery.</p>
-          <p>An iOS recording that could not be added to Photos remains in Textream’s local app storage for retry until you save it, explicitly discard it, or delete Textream. A successful retry removes the pending app copy. Deleting Textream removes its app storage, but does not delete videos already saved to Photos.</p>
-        </div>
-      </section>
-
-      <section>
-        <h2>Changes and contact</h2>
-        <div class="copy">
-          <p>If Textream’s data practices change, this page will be updated along with its effective date.</p>
-          <p>For a privacy question or support request, visit <a href="support.html">Textream Support</a> or <a href="https://github.com/f/textream/issues/new">open a GitHub issue</a>. Do not include private scripts, credentials, or other sensitive information in a public issue.</p>
+          <p>Because Playbook Interactive Media LLC does not store your scripts, audio, or videos on external servers, you retain full local control. You can delete scripts from the Script Library, remove downloaded speech models in Settings, and delete recordings in Photos or the in-app gallery.</p>
+          <p>If this policy changes, we will update this page and its effective date. For privacy questions or support requests, visit <a href="support.html">Dante for Creators Support</a>.</p>
         </div>
       </section>
     </main>
 
     <footer>
-      <p>© 2026 Fatih Kadir Akin</p>
-      <p><a href="./">Textream</a> · <a href="/docs/">Docs</a> · <a href="support.html">Support</a> · <a href="https://github.com/f/textream">Source</a></p>
+      <p>© 2026 Playbook Interactive Media LLC</p>
+      <p><a href="./">Dante for Creators</a> · <a href="./docs/">Docs</a> · <a href="support.html">Support</a></p>
     </footer>
   </div>
 </body>

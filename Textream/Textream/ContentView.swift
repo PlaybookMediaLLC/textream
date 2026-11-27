@@ -1,16 +1,18 @@
 //
 //  ContentView.swift
-//  Textream
-//
-//  Created by Fatih Kadir Akın on 8.02.2026.
+//  Dante for Creators
 //
 
+import AppKit
+import CoreImage
+import CoreImage.CIFilterBuiltins
+import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import CoreImage.CIFilterBuiltins
 
 struct ContentView: View {
     @ObservedObject private var service = TextreamService.shared
+    @State private var library = ScriptLibraryStore.shared
     @State private var isRunning = false
     @State private var dictation = DictationManager()
     @State private var dictationHighlightRange: NSRange? = nil
@@ -21,27 +23,32 @@ struct ContentView: View {
     @State private var dropAlertTitle: String = "Import Error"
     @State private var showSettings = false
     @State private var showAbout = false
+    @State private var showOnboarding = false
+    @State private var showWPMPopover = false
+    @State private var renamingScriptID: UUID?
+    @State private var renameDraft: String = ""
     @State private var languageSuggestion: SpeechLanguageSuggestion?
     @State private var ignoredLanguageIdentifier: String?
     @State private var languageDetectionTask: Task<Void, Never>?
     @FocusState private var isTextFocused: Bool
 
-    private let defaultText = """
-Welcome to Textream! This is your personal teleprompter that sits right below your MacBook's notch. [smile]
-
-As you read aloud, the text will highlight in real-time, following your voice. The speech recognition matches your words and keeps track of your progress. [pause]
-
-You can pause at any time, go back and re-read sections, and the highlighting will follow along. When you finish reading all the text, the overlay will automatically close with a smooth animation. [nod]
-
-Try reading this passage out loud to see how the highlighting works. The waveform at the bottom shows your voice activity, and you'll see the last few words you spoke displayed next to it.
-
-Happy presenting! [wave]
-"""
-
     private var languageLabel: String {
         let locale = NotchSettings.shared.speechLocale
         return Locale.current.localizedString(forIdentifier: locale)
             ?? locale
+    }
+
+    private var activeScript: DanteScript? {
+        library.activeScript
+    }
+
+    private var activeMetrics: ScriptMetrics {
+        let wpm = activeScript?.targetWPM ?? ScriptMetrics.defaultWPM
+        return ScriptMetrics.measure(pages: service.pages, wordsPerMinute: wpm)
+    }
+
+    private var activePreset: CreatorPreset? {
+        activeScript?.presetID.map { CreatorPreset.preset(for: $0) }
     }
 
     private var currentText: Binding<String> {
@@ -53,6 +60,7 @@ Happy presenting! [wave]
             set: { newValue in
                 guard service.currentPageIndex < service.pages.count else { return }
                 service.pages[service.currentPageIndex] = newValue
+                library.updateActivePages(service.pages)
             }
         )
     }
@@ -237,6 +245,7 @@ Happy presenting! [wave]
             let prevLen = segmentLength
             segmentLength = newSegment.count
             service.pages[pageIndex] = text
+            library.updateActivePages(service.pages)
 
             // Highlight only the newly added characters
             let newChars = segmentLength - prevLen
@@ -268,8 +277,109 @@ Happy presenting! [wave]
         dictation.onNewSegment = nil
     }
 
+    private var creatorMetricsBar: some View {
+        HStack(spacing: 10) {
+            Menu {
+                ForEach(CreatorPreset.all) { preset in
+                    Button {
+                        applyPreset(preset)
+                    } label: {
+                        Label(
+                            "\(preset.name) (\(preset.targetWPM) WPM)",
+                            systemImage: preset.systemImage
+                        )
+                    }
+                }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: activePreset?.systemImage ?? "sparkles")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                    Text(activePreset?.name ?? "Creator Preset")
+                        .font(.system(size: 11, weight: .semibold))
+                        .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
+                .background(Color.accentColor.opacity(0.12), in: Capsule())
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("Apply a Creator Format Preset")
+
+            Spacer(minLength: 8)
+
+            if let targetSeconds = activePreset?.targetDurationSeconds,
+               activeMetrics.spokenWordCount > 0 {
+                let isWithinTarget = activeMetrics.estimatedSeconds <= targetSeconds
+                Label(
+                    isWithinTarget
+                        ? "Fits \(targetSeconds)s"
+                        : "+\(activeMetrics.estimatedSeconds - targetSeconds)s over \(targetSeconds)s",
+                    systemImage: isWithinTarget ? "checkmark.circle.fill" : "clock.badge.exclamationmark"
+                )
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .foregroundStyle(isWithinTarget ? .green : .orange)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background((isWithinTarget ? Color.green : Color.orange).opacity(0.12), in: Capsule())
+            }
+
+            Button {
+                showWPMPopover.toggle()
+            } label: {
+                HStack(spacing: 4) {
+                    Text(activeMetrics.summaryLabel)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    Text("· \(activeMetrics.targetWPM) WPM")
+                        .font(.system(size: 10, weight: .regular, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.05), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showWPMPopover, arrowEdge: .bottom) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("Speaking Pace")
+                            .font(.system(size: 12, weight: .semibold))
+                        Spacer()
+                        Text("\(activeMetrics.targetWPM) WPM")
+                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    Slider(
+                        value: Binding(
+                            get: { Double(activeMetrics.targetWPM) },
+                            set: { library.updateActiveMetadata(targetWPM: Int($0.rounded())) }
+                        ),
+                        in: Double(ScriptMetrics.minWPM)...Double(ScriptMetrics.maxWPM),
+                        step: 5
+                    )
+                    Text("Estimated read time: \(activeMetrics.formattedDuration) for \(activeMetrics.spokenWordCount) spoken words.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(14)
+                .frame(width: 240)
+            }
+            .help("Adjust target speaking pace (WPM) for read-time estimates")
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+    }
+
     private var mainContent: some View {
         VStack(spacing: 0) {
+            creatorMetricsBar
+
             if let languageSuggestion {
                 languageSuggestionBanner(languageSuggestion)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -292,7 +402,7 @@ Happy presenting! [wave]
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 8)
+                .padding(.top, 4)
                 .padding(.bottom, 8)
                 .mask(
                     LinearGradient(
@@ -374,56 +484,56 @@ Happy presenting! [wave]
 
                 // Drop zone overlay — sits on top so TextEditor doesn't steal the drop
                 if isDroppingPresentation {
-                VStack(spacing: 8) {
-                    Image(systemName: "doc.text")
-                        .font(.system(size: 28, weight: .light))
-                        .foregroundStyle(Color.accentColor)
-                    Text("Drop PowerPoint (.pptx) file")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.primary)
-                    Text("For Keynote or Google Slides,\nexport as PPTX first.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [8]))
-                        .background(Color.accentColor.opacity(0.08).clipShape(RoundedRectangle(cornerRadius: 12)))
-                )
-                .padding(8)
-            }
-
-            // Invisible drop target covering entire window
-            Color.clear
-                .contentShape(Rectangle())
-                .onDrop(of: [.fileURL], isTargeted: $isDroppingPresentation) { providers in
-                    guard let provider = providers.first else { return false }
-                    _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                        guard let url else { return }
-                        let ext = url.pathExtension.lowercased()
-                        if ext == "key" {
-                            DispatchQueue.main.async {
-                                dropAlertTitle = "Conversion Required"
-                                dropError = "Keynote files can't be imported directly. Please export your Keynote presentation as PowerPoint (.pptx) first, then drop the exported file here."
-                            }
-                            return
-                        }
-                        guard ext == "pptx" else {
-                            DispatchQueue.main.async {
-                                dropAlertTitle = "Import Error"
-                                dropError = "Unsupported file. Drop a PowerPoint (.pptx) file."
-                            }
-                            return
-                        }
-                        DispatchQueue.main.async {
-                            handlePresentationDrop(url: url)
-                        }
+                    VStack(spacing: 8) {
+                        Image(systemName: "doc.text")
+                            .font(.system(size: 28, weight: .light))
+                            .foregroundStyle(Color.accentColor)
+                        Text("Drop PowerPoint (.pptx) file")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.primary)
+                        Text("For Keynote or Google Slides,\nexport as PPTX first.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                     }
-                    return true
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [8]))
+                            .background(Color.accentColor.opacity(0.08).clipShape(RoundedRectangle(cornerRadius: 12)))
+                    )
+                    .padding(8)
                 }
-                .allowsHitTesting(isDroppingPresentation)
+
+                // Invisible drop target covering entire window
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onDrop(of: [.fileURL], isTargeted: $isDroppingPresentation) { providers in
+                        guard let provider = providers.first else { return false }
+                        _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                            guard let url else { return }
+                            let ext = url.pathExtension.lowercased()
+                            if ext == "key" {
+                                DispatchQueue.main.async {
+                                    dropAlertTitle = "Conversion Required"
+                                    dropError = "Keynote files can't be imported directly. Please export your Keynote presentation as PowerPoint (.pptx) first, then drop the exported file here."
+                                }
+                                return
+                            }
+                            guard ext == "pptx" else {
+                                DispatchQueue.main.async {
+                                    dropAlertTitle = "Import Error"
+                                    dropError = "Unsupported file. Drop a PowerPoint (.pptx) file."
+                                }
+                                return
+                            }
+                            DispatchQueue.main.async {
+                                handlePresentationDrop(url: url)
+                            }
+                        }
+                        return true
+                    }
+                    .allowsHitTesting(isDroppingPresentation)
             }
         }
     }
@@ -506,11 +616,11 @@ Happy presenting! [wave]
                 directorOverlay
             } else {
                 NavigationSplitView {
-                    pageSidebar
+                    creatorSidebar
                 } detail: {
                     mainContent
                 }
-                .navigationSplitViewColumnWidth(min: 160, ideal: 200, max: 260)
+                .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 300)
             }
         }
         .alert(dropAlertTitle, isPresented: Binding(get: { dropError != nil }, set: { if !$0 { dropError = nil } })) {
@@ -518,15 +628,34 @@ Happy presenting! [wave]
         } message: {
             Text(dropError ?? "")
         }
-        .alert("Microphone Unavailable", isPresented: Binding(
+        .alert("Microphone or Speech Unavailable", isPresented: Binding(
             get: { dictation.error != nil },
             set: { if !$0 { dictation.error = nil } }
         )) {
-            Button("OK") { dictation.error = nil }
+            if dictation.permissionSettingsURL != nil {
+                Button("Open System Settings") {
+                    dictation.openPermissionSettings()
+                    dictation.error = nil
+                }
+            }
+            Button("OK", role: .cancel) { dictation.error = nil }
         } message: {
             Text(dictation.error ?? "")
         }
-        .frame(minWidth: 360, minHeight: 240)
+        .alert("Rename Script", isPresented: Binding(
+            get: { renamingScriptID != nil },
+            set: { if !$0 { renamingScriptID = nil } }
+        )) {
+            TextField("Script title", text: $renameDraft)
+            Button("Cancel", role: .cancel) { renamingScriptID = nil }
+            Button("Rename") {
+                if let id = renamingScriptID {
+                    library.renameScript(id: id, to: renameDraft)
+                }
+                renamingScriptID = nil
+            }
+        }
+        .frame(minWidth: 520, minHeight: 340)
         .background(.ultraThinMaterial)
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -543,7 +672,9 @@ Happy presenting! [wave]
                                     .fill(.orange)
                                     .frame(width: 6, height: 6)
                             }
-                            Text(service.currentFileURL?.deletingPathExtension().lastPathComponent ?? "Untitled")
+                            Text(service.currentFileURL?.deletingPathExtension().lastPathComponent
+                                 ?? activeScript?.displayTitle
+                                 ?? "Untitled")
                                 .font(.system(size: 11, weight: .medium))
                                 .lineLimit(1)
                         }
@@ -559,6 +690,7 @@ Happy presenting! [wave]
                         withAnimation(.easeInOut(duration: 0.2)) {
                             service.pages.append("")
                             service.currentPageIndex = service.pages.count - 1
+                            library.updateActivePages(service.pages)
                         }
                     } label: {
                         HStack(spacing: 3) {
@@ -596,6 +728,11 @@ Happy presenting! [wave]
         .sheet(isPresented: $showAbout) {
             AboutView()
         }
+        .sheet(isPresented: $showOnboarding) {
+            CreatorOnboardingView { preset in
+                applyPreset(preset)
+            }
+        }
         .onChange(of: showSettings) { _, isShowing in
             if isShowing && isRecording {
                 stopRecording()
@@ -604,7 +741,7 @@ Happy presenting! [wave]
         .onReceive(NotificationCenter.default.publisher(for: .startPrompter)) { _ in
             // ⌘↩ from the editor. The main window hides while the prompter runs,
             // so this only ever starts; Esc stops from the overlay.
-            guard !showSettings, !isRunning, !isRecording, hasAnyContent else { return }
+            guard !showSettings, !showOnboarding, !isRunning, !isRecording, hasAnyContent else { return }
             isTextFocused = false
             run()
         }
@@ -613,6 +750,12 @@ Happy presenting! [wave]
         }
         .onReceive(NotificationCenter.default.publisher(for: .openAbout)) { _ in
             showAbout = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openOnboarding)) { _ in
+            showOnboarding = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .newScript)) { _ in
+            createNewScript()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             // Sync button state when app is re-activated (e.g. dock click)
@@ -642,9 +785,13 @@ Happy presenting! [wave]
             }
         }
         .onAppear {
-            // Set default text for the first page if empty
-            if service.pages.count == 1 && service.pages[0].isEmpty {
-                service.pages[0] = defaultText
+            // Load active library script into the editor when starting fresh
+            if service.currentFileURL == nil,
+               service.pages.count == 1 && service.pages[0].isEmpty,
+               let active = library.activeScript {
+                service.pages = active.pages
+                service.savedPages = active.pages
+                service.currentPageIndex = 0
             }
             // Sync button state with overlay
             if service.overlayController.isShowing {
@@ -658,87 +805,265 @@ Happy presenting! [wave]
                 }
             } else {
                 isTextFocused = true
+                #if !BENCHMARK
+                let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+                if !isRunningTests && !UserDefaults.standard.bool(forKey: CreatorOnboardingView.completedDefaultsKey) {
+                    showOnboarding = true
+                }
+                #endif
             }
         }
     }
 
-    // MARK: - Page Sidebar
+    // MARK: - Creator Script Library & Page Sidebar
 
     private func pagePreview(_ page: String) -> String {
         let trimmed = page.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return "Empty" }
         let words = trimmed.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
         let preview = words.prefix(5).joined(separator: " ")
-        return preview.count > 30 ? String(preview.prefix(30)) + "…" : preview
+        return preview.count > 26 ? String(preview.prefix(26)) + "…" : preview
     }
 
-    private var sidebarSelection: Binding<Int?> {
-        Binding<Int?>(
-            get: { service.currentPageIndex },
-            set: { newValue in
-                if let index = newValue {
-                    if isRecording {
-                        stopRecording()
+    private var creatorSidebar: some View {
+        VStack(spacing: 0) {
+            // Search scripts field
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                TextField("Search scripts…", text: $library.searchQuery)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                if !library.searchQuery.isEmpty {
+                    Button {
+                        library.searchQuery = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
                     }
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        service.currentPageIndex = index
-                    }
+                    .buttonStyle(.plain)
                 }
             }
-        )
-    }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 7))
+            .padding(.horizontal, 10)
+            .padding(.top, 10)
+            .padding(.bottom, 6)
 
-    private var pageSidebar: some View {
-        List(selection: sidebarSelection) {
-            ForEach(Array(service.pages.enumerated()), id: \.offset) { index, page in
-                Label {
-                    Text(pagePreview(page))
-                        .font(.system(size: 12))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                } icon: {
-                    Text("\(index + 1)")
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.primary)
-                        .frame(width: 20, height: 20)
-                        .background(service.readPages.contains(index) ? Color.green.opacity(0.3) : Color.primary.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 5))
-                }
-                .tag(index)
-                .contextMenu {
-                    if service.pages.count > 1 {
-                        Button(role: .destructive) {
-                            removePage(at: index)
+            List {
+                Section {
+                    ForEach(library.filteredScripts) { script in
+                        let isSelected = script.id == library.selectedScriptID
+                        Button {
+                            selectScript(script)
                         } label: {
-                            Label("Delete Page", systemImage: "trash")
+                            VStack(alignment: .leading, spacing: 3) {
+                                HStack(spacing: 5) {
+                                    if script.isPinned {
+                                        Image(systemName: "pin.fill")
+                                            .font(.system(size: 9))
+                                            .foregroundStyle(Color.accentColor)
+                                    }
+                                    Text(script.displayTitle)
+                                        .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
+                                        .foregroundStyle(isSelected ? Color.accentColor : .primary)
+                                        .lineLimit(1)
+                                    Spacer(minLength: 4)
+                                }
+                                Text(script.metrics.summaryLabel)
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 6)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                isSelected
+                                    ? Color.accentColor.opacity(0.14)
+                                    : Color.clear,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button {
+                                library.togglePin(id: script.id)
+                            } label: {
+                                Label(script.isPinned ? "Unpin" : "Pin Script", systemImage: script.isPinned ? "pin.slash" : "pin")
+                            }
+                            Button {
+                                renameDraft = script.displayTitle
+                                renamingScriptID = script.id
+                            } label: {
+                                Label("Rename…", systemImage: "pencil")
+                            }
+                            Button {
+                                if let copy = library.duplicateScript(id: script.id) {
+                                    loadScriptIntoEditor(copy)
+                                }
+                            } label: {
+                                Label("Duplicate", systemImage: "plus.square.on.square")
+                            }
+                            if library.scripts.count > 1 {
+                                Divider()
+                                Button(role: .destructive) {
+                                    deleteScript(script)
+                                } label: {
+                                    Label("Delete Script", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text("Scripts")
+                        Spacer()
+                        Button {
+                            createNewScript()
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .buttonStyle(.plain)
+                        .help("New Script (⌘N)")
+                    }
+                }
+
+                Section("Pages (\(service.pages.count))") {
+                    ForEach(Array(service.pages.enumerated()), id: \.offset) { index, page in
+                        let isCurrent = service.currentPageIndex == index
+                        Button {
+                            if isRecording {
+                                stopRecording()
+                            }
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                service.currentPageIndex = index
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Text("\(index + 1)")
+                                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(isCurrent ? .white : .primary)
+                                    .frame(width: 20, height: 20)
+                                    .background(
+                                        service.readPages.contains(index)
+                                            ? Color.green.opacity(0.35)
+                                            : (isCurrent ? Color.accentColor : Color.primary.opacity(0.1))
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+
+                                Text(pagePreview(page))
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(isCurrent ? .primary : .secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 4)
+                            .background(
+                                isCurrent ? Color.primary.opacity(0.06) : Color.clear,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            if service.pages.count > 1 {
+                                Button(role: .destructive) {
+                                    removePage(at: index)
+                                } label: {
+                                    Label("Delete Page", systemImage: "trash")
+                                }
+                            }
                         }
                     }
                 }
             }
+            .listStyle(.sidebar)
         }
-        .listStyle(.sidebar)
         .safeAreaInset(edge: .bottom) {
-            Button {
-                if isRecording {
-                    stopRecording()
+            HStack(spacing: 8) {
+                Button {
+                    createNewScript()
+                } label: {
+                    Label("New Script", systemImage: "plus")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
                 }
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    service.pages.append("")
-                    service.currentPageIndex = service.pages.count - 1
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                Button {
+                    if isRecording {
+                        stopRecording()
+                    }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        service.pages.append("")
+                        service.currentPageIndex = service.pages.count - 1
+                        library.updateActivePages(service.pages)
+                    }
+                } label: {
+                    Label("Page", systemImage: "doc.badge.plus")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
                 }
-            } label: {
-                Label("Add Page", systemImage: "plus")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
         }
     }
 
     // MARK: - Actions
+
+    private func applyPreset(_ preset: CreatorPreset) {
+        NotchSettings.shared.apply(preset: preset)
+        library.updateActiveMetadata(targetWPM: preset.targetWPM, presetID: .some(preset.id))
+    }
+
+    private func createNewScript() {
+        if isRecording {
+            stopRecording()
+        }
+        let created = library.createScript(
+            title: "Untitled Script",
+            pages: [""],
+            presetID: activePreset?.id
+        )
+        loadScriptIntoEditor(created)
+    }
+
+    private func selectScript(_ script: DanteScript) {
+        guard script.id != library.selectedScriptID else { return }
+        if isRecording {
+            stopRecording()
+        }
+        library.selectScript(script)
+        loadScriptIntoEditor(script)
+    }
+
+    private func loadScriptIntoEditor(_ script: DanteScript) {
+        service.pages = script.pages
+        service.savedPages = script.pages
+        service.currentPageIndex = 0
+        service.readPages.removeAll()
+        service.currentFileURL = nil
+    }
+
+    private func deleteScript(_ script: DanteScript) {
+        if isRecording {
+            stopRecording()
+        }
+        library.deleteScript(id: script.id)
+        if let active = library.activeScript {
+            loadScriptIntoEditor(active)
+        }
+    }
 
     private func removePage(at index: Int) {
         guard service.pages.count > 1 else { return }
@@ -752,6 +1077,7 @@ Happy presenting! [wave]
             } else if service.currentPageIndex > index {
                 service.currentPageIndex -= 1
             }
+            library.updateActivePages(service.pages)
         }
     }
 
@@ -789,12 +1115,10 @@ Happy presenting! [wave]
         DispatchQueue.global(qos: .userInitiated).async {
             do {
                 let notes = try PresentationNotesExtractor.extractNotes(from: url)
+                let title = url.deletingPathExtension().lastPathComponent
                 DispatchQueue.main.async {
-                    service.pages = notes
-                    service.savedPages = notes
-                    service.currentPageIndex = 0
-                    service.readPages.removeAll()
-                    service.currentFileURL = nil
+                    let imported = library.createScript(title: title, pages: notes, presetID: .keynoteLive)
+                    loadScriptIntoEditor(imported)
                     service.rememberDocumentURL(url)
                     isImporting = false
                 }
@@ -818,9 +1142,14 @@ Happy presenting! [wave]
 
 struct AboutView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var showAcknowledgements = false
 
     private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        if let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String, !build.isEmpty {
+            return "\(short) (\(build))"
+        }
+        return short
     }
 
     var body: some View {
@@ -835,7 +1164,7 @@ struct AboutView: View {
 
             // App name & version
             VStack(spacing: 4) {
-                Text("Textream")
+                Text(DanteAppLinks.appName)
                     .font(.system(size: 20, weight: .bold))
                 Text("Version \(appVersion)")
                     .font(.system(size: 12))
@@ -843,29 +1172,15 @@ struct AboutView: View {
             }
 
             // Description
-            Text("A free, open-source teleprompter that highlights your script in real-time as you speak.")
+            Text("A studio-grade teleprompter with Smart Follow speech tracking, on-device AI models, and creator workflow presets.")
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
 
             // Links
-            HStack(spacing: 12) {
-                Link(destination: URL(string: "https://github.com/f/textream")!) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "chevron.left.forwardslash.chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text("GitHub")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(Color.primary.opacity(0.08))
-                    .clipShape(Capsule())
-                }
-
-                Link(destination: URL(string: "https://textream.net/privacy.html")!) {
+            HStack(spacing: 10) {
+                Link(destination: DanteAppLinks.privacyURL) {
                     HStack(spacing: 5) {
                         Image(systemName: "hand.raised.fill")
                             .font(.system(size: 11, weight: .semibold))
@@ -873,38 +1188,52 @@ struct AboutView: View {
                             .font(.system(size: 12, weight: .medium))
                     }
                     .foregroundStyle(.primary)
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 7)
                     .background(Color.primary.opacity(0.08))
                     .clipShape(Capsule())
                 }
 
-                #if !APP_STORE
-                Link(destination: URL(string: "https://donate.stripe.com/aFa8wO4NF2S96jDfn4dMI09")!) {
+                Link(destination: DanteAppLinks.supportURL) {
                     HStack(spacing: 5) {
-                        Image(systemName: "heart.fill")
+                        Image(systemName: "questionmark.circle.fill")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.pink)
-                        Text("Donate")
+                        Text("Support")
                             .font(.system(size: 12, weight: .medium))
                     }
                     .foregroundStyle(.primary)
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 7)
-                    .background(Color.pink.opacity(0.1))
+                    .background(Color.primary.opacity(0.08))
                     .clipShape(Capsule())
                 }
-                #endif
+
+                Button {
+                    showAcknowledgements = true
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text("Licenses")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Color.primary.opacity(0.08))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
             }
 
             Divider().padding(.horizontal, 20)
 
             VStack(spacing: 4) {
-                Text("Made by Fatih Kadir Akin")
+                Text(DanteAppLinks.companyName)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
-                Text("Original idea by Semih Kışlar")
-                    .font(.system(size: 11))
+                Text(DanteAppLinks.copyrightNotice)
+                    .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
             }
 
@@ -916,8 +1245,11 @@ struct AboutView: View {
             .padding(.top, 4)
         }
         .padding(24)
-        .frame(width: 320)
+        .frame(width: 360)
         .background(.ultraThinMaterial)
+        .sheet(isPresented: $showAcknowledgements) {
+            OpenSourceLicensesView()
+        }
     }
 }
 

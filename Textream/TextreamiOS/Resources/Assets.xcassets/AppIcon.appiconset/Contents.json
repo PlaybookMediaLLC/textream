@@ -1,7 +1,31 @@
 {
   "images" : [
     {
-      "filename" : "Textream-iOS-1024.png",
+      "filename" : "Dante-iOS-1024.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "Dante-iOS-Dark-1024.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "tinted"
+        }
+      ],
+      "filename" : "Dante-iOS-Tinted-1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

@@ -7,6 +7,9 @@ import Speech
 final class AppModel {
     private enum Key {
         static let script = "ios.script"
+        static let scriptLibrary = "ios.scriptLibrary"
+        static let selectedScriptID = "ios.selectedScriptID"
+        static let hasCompletedOnboarding = "ios.hasCompletedOnboarding"
         static let sessionMode = "ios.sessionMode"
         static let cameraEnabled = "ios.cameraEnabled"
         static let followMode = "ios.followMode"
@@ -24,8 +27,20 @@ final class AppModel {
     }
 
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let filePersistence: ScriptLibraryPersistence?
+    @ObservationIgnored private var isSynchronizingLibrary = false
 
-    var script: String { didSet { defaults.set(script, forKey: Key.script) } }
+    private(set) var scripts: [DanteScript]
+    var selectedScriptID: UUID
+
+    var script: String {
+        didSet {
+            defaults.set(script, forKey: Key.script)
+            if !isSynchronizingLibrary {
+                syncScriptTextToActiveLibraryEntry(script)
+            }
+        }
+    }
     var sessionMode: SessionMode { didSet { defaults.set(sessionMode.rawValue, forKey: Key.sessionMode) } }
     var cameraEnabled: Bool { didSet { defaults.set(cameraEnabled, forKey: Key.cameraEnabled) } }
     var followMode: FollowMode { didSet { defaults.set(followMode.rawValue, forKey: Key.followMode) } }
@@ -42,12 +57,39 @@ final class AppModel {
     var cueBrightness: CueBrightness { didSet { defaults.set(cueBrightness.rawValue, forKey: Key.cueBrightness) } }
     var overlayOpacity: Double { didSet { defaults.set(overlayOpacity, forKey: Key.overlayOpacity) } }
     var speechLocaleIdentifier: String { didSet { defaults.set(speechLocaleIdentifier, forKey: Key.speechLocale) } }
+    var hasCompletedOnboarding: Bool {
+        didSet { defaults.set(hasCompletedOnboarding, forKey: Key.hasCompletedOnboarding) }
+    }
     var isShowingSession = false
     var isShowingSettings = false
+    var isShowingLibrary = false
+    var isShowingOnboarding = false
 
-    init(defaults: UserDefaults = .standard) {
+    init(
+        defaults: UserDefaults = .standard,
+        filePersistence: ScriptLibraryPersistence? = nil
+    ) {
         self.defaults = defaults
-        script = defaults.string(forKey: Key.script) ?? Self.sampleScript
+        let resolvedPersistence: ScriptLibraryPersistence? =
+            filePersistence ?? (defaults === UserDefaults.standard ? ScriptLibraryPersistence() : nil)
+        self.filePersistence = resolvedPersistence
+
+        let loadedScripts = Self.loadInitialScripts(
+            defaults: defaults,
+            filePersistence: resolvedPersistence
+        )
+        self.scripts = loadedScripts
+
+        let savedSelection = defaults.string(forKey: Key.selectedScriptID).flatMap(UUID.init(uuidString:))
+        let initialSelected = loadedScripts.first(where: { $0.id == savedSelection }) ?? loadedScripts[0]
+        self.selectedScriptID = initialSelected.id
+
+        if let explicitSavedScript = defaults.string(forKey: Key.script) {
+            script = explicitSavedScript
+        } else {
+            script = initialSelected.pages.first ?? Self.sampleScript
+        }
+
         let restoredSessionMode = SessionMode(
             rawValue: defaults.string(forKey: Key.sessionMode) ?? ""
         ) ?? .read
@@ -71,6 +113,7 @@ final class AppModel {
         cueBrightness = CueBrightness(rawValue: defaults.string(forKey: Key.cueBrightness) ?? "") ?? .dim
         let savedOpacity = defaults.double(forKey: Key.overlayOpacity)
         overlayOpacity = savedOpacity > 0 ? savedOpacity : 0.52
+        hasCompletedOnboarding = defaults.bool(forKey: Key.hasCompletedOnboarding)
         if let savedLocale = defaults.string(forKey: Key.speechLocale), !savedLocale.isEmpty {
             speechLocaleIdentifier = savedLocale
         } else {
@@ -82,15 +125,176 @@ final class AppModel {
             speechLocaleIdentifier = "en-US"
             defaults.set(speechLocaleIdentifier, forKey: Key.speechLocale)
         }
-
     }
 
     var normalizedScript: PromptScript { PromptScript(script) }
     var canStart: Bool { !normalizedScript.text.isEmpty }
 
+    var activeScript: DanteScript? {
+        scripts.first { $0.id == selectedScriptID }
+    }
+
+    var activeTargetWPM: Int {
+        activeScript?.targetWPM ?? ScriptMetrics.defaultWPM
+    }
+
+    var activePreset: CreatorPreset? {
+        activeScript?.presetID.map { CreatorPreset.preset(for: $0) }
+    }
+
+    var scriptMetrics: ScriptMetrics {
+        ScriptMetrics.measure(text: script, wordsPerMinute: activeTargetWPM)
+    }
+
     func startSession() {
         guard canStart else { return }
         isShowingSession = true
+    }
+
+    func markOnboardingCompleted() {
+        hasCompletedOnboarding = true
+    }
+
+    func apply(preset: CreatorPreset) {
+        sessionMode = preset.prefersRecordModeOnIOS ? .record : .read
+        if sessionMode == .record {
+            cameraEnabled = true
+        }
+        followMode = preset.prefersWordTracking ? .wordTracking : .classic
+        readingPosition = preset.prefersNearCamera ? .nearCamera : .center
+        fontSize = preset.prefersLargeFont ? .lg : .sm
+        cueBrightness = preset.prefersBrightCues ? .bright : .medium
+        scrollSpeed = preset.recommendedScrollWordsPerSecond
+
+        if let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) {
+            scripts[idx].presetID = preset.id
+            scripts[idx].targetWPM = preset.targetWPM
+            scripts[idx].updatedAt = Date()
+            persistLibrary()
+        }
+    }
+
+    // MARK: - Creator Script Library
+
+    @discardableResult
+    func createNewScript(title: String = "Untitled Script", text: String = "") -> DanteScript {
+        let newEntry = DanteScript(
+            title: title,
+            pages: [text],
+            presetID: activePreset?.id,
+            targetWPM: activeTargetWPM
+        )
+        scripts.insert(newEntry, at: 0)
+        scripts = ScriptLibraryPersistence.sorted(scripts)
+        selectScript(newEntry)
+        persistLibrary()
+        return newEntry
+    }
+
+    func selectScript(_ entry: DanteScript) {
+        selectedScriptID = entry.id
+        defaults.set(entry.id.uuidString, forKey: Key.selectedScriptID)
+        isSynchronizingLibrary = true
+        script = entry.pages.first ?? ""
+        isSynchronizingLibrary = false
+    }
+
+    func renameScript(scriptID: UUID, to newTitle: String) {
+        guard let idx = scripts.firstIndex(where: { $0.id == scriptID }) else { return }
+        scripts[idx].title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        scripts[idx].updatedAt = Date()
+        scripts = ScriptLibraryPersistence.sorted(scripts)
+        persistLibrary()
+    }
+
+    func togglePin(scriptID: UUID) {
+        guard let idx = scripts.firstIndex(where: { $0.id == scriptID }) else { return }
+        scripts[idx].isPinned.toggle()
+        scripts = ScriptLibraryPersistence.sorted(scripts)
+        persistLibrary()
+    }
+
+    @discardableResult
+    func duplicateScript(scriptID: UUID) -> DanteScript? {
+        guard let existing = scripts.first(where: { $0.id == scriptID }) else { return nil }
+        let copy = DanteScript(
+            title: "\(existing.displayTitle) Copy",
+            pages: existing.pages,
+            presetID: existing.presetID,
+            targetWPM: existing.targetWPM,
+            isPinned: false
+        )
+        scripts.insert(copy, at: 0)
+        scripts = ScriptLibraryPersistence.sorted(scripts)
+        selectScript(copy)
+        persistLibrary()
+        return copy
+    }
+
+    func deleteScript(scriptID: UUID) {
+        guard scripts.count > 1 else { return }
+        scripts.removeAll { $0.id == scriptID }
+        if selectedScriptID == scriptID, let first = scripts.first {
+            selectScript(first)
+        }
+        persistLibrary()
+    }
+
+    func setActiveTargetWPM(_ wpm: Int) {
+        guard let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
+        scripts[idx].targetWPM = ScriptMetrics.clampedWPM(wpm)
+        scripts[idx].updatedAt = Date()
+        persistLibrary()
+    }
+
+    private func syncScriptTextToActiveLibraryEntry(_ newText: String) {
+        guard let idx = scripts.firstIndex(where: { $0.id == selectedScriptID }) else { return }
+        guard scripts[idx].pages.first != newText else { return }
+        scripts[idx].pages = [newText]
+        scripts[idx].updatedAt = Date()
+        scripts = ScriptLibraryPersistence.sorted(scripts)
+        persistLibrary()
+    }
+
+    private func persistLibrary() {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        if let encoded = try? encoder.encode(scripts) {
+            defaults.set(encoded, forKey: Key.scriptLibrary)
+        }
+        defaults.set(selectedScriptID.uuidString, forKey: Key.selectedScriptID)
+        filePersistence?.save(scripts)
+    }
+
+    private static func loadInitialScripts(
+        defaults: UserDefaults,
+        filePersistence: ScriptLibraryPersistence?
+    ) -> [DanteScript] {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        if let data = defaults.data(forKey: Key.scriptLibrary),
+           let decoded = try? decoder.decode([DanteScript].self, from: data),
+           !decoded.isEmpty {
+            return ScriptLibraryPersistence.sorted(decoded)
+        }
+
+        if let fileLoaded = filePersistence?.load(), !fileLoaded.isEmpty {
+            return fileLoaded
+        }
+
+        if let existingSingleScript = defaults.string(forKey: Key.script) {
+            return [
+                DanteScript(
+                    title: "My Script",
+                    pages: [existingSingleScript],
+                    presetID: .shortsReels,
+                    targetWPM: ScriptMetrics.defaultWPM
+                )
+            ]
+        }
+
+        return [DanteScript.welcomeScript(forMac: false)]
     }
 
     func configuration() -> PromptSessionConfiguration {
@@ -113,11 +317,5 @@ final class AppModel {
         )
     }
 
-    private static let sampleScript = """
-    Welcome to Textream for iPhone. [smile]
-
-    Read naturally and Textream follows every word you say. Switch to Classic for steady auto-scrolling, or Voice-Activated to move only while you speak.
-
-    In Record mode, your camera stays full screen while this script floats above it. Tap the red record button when you are ready. [pause]
-    """
+    private static let sampleScript = DanteScript.welcomeScript(forMac: false).pages[0]
 }

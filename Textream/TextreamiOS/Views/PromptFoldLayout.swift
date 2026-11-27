@@ -81,6 +81,7 @@ struct PromptFoldLayout: Equatable {
     /// The active fold of the display that holds `geometry`, or `nil` where the
     /// display is flat, closed, or cannot fold.
     static func current(in geometry: GeometryProxy) -> PromptFoldLayout? {
+        #if DANTE_ENABLE_IOS27_DUO
         guard #available(iOS 27.1, *) else { return nil }
         // Reserved regions have no change notification. Read them in the body
         // on every layout pass and never cache them.
@@ -88,5 +89,8 @@ struct PromptFoldLayout: Equatable {
             .first(where: \.isActive)?
             .frame
         return PromptFoldLayout(fold: fold, containerSize: geometry.size)
+        #else
+        return nil
+        #endif
     }
 }

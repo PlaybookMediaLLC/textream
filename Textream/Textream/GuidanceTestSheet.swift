@@ -298,7 +298,7 @@ struct GuidanceTestSheet: View {
             return "Writing the last words from the local model."
         }
         if dictation.isRecording {
-            return "Speak normally. Textream will write what it hears below."
+            return "Speak naturally—Smart Follow keeps up with ad-libs, skips, and re-reads. Dante will transcribe below."
         }
         if dictation.isStarting {
             return engine == .local
@@ -330,6 +330,15 @@ struct GuidanceTestSheet: View {
                         .foregroundStyle(dictation.error == nil ? .secondary : Color.red)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    if dictation.permissionSettingsURL != nil {
+                        Button("Open System Settings") {
+                            dictation.openPermissionSettings()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .padding(.top, 4)
+                    }
                 }
 
                 AudioWaveformView(

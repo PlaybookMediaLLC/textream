@@ -395,6 +395,7 @@ struct SettingsView: View {
     @State private var previewController = NotchPreviewController()
     @State private var selectedTab: SettingsTab = .appearance
     @State private var showResetConfirmation = false
+    @State private var showAcknowledgements = false
     @State private var guidanceTestEngine: SpeechEngine?
 
     var body: some View {
@@ -459,9 +460,16 @@ struct SettingsView: View {
 
                 Divider()
 
-                HStack {
+                HStack(spacing: 12) {
                     Button("Reset All") {
                         showResetConfirmation = true
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .controlSize(.regular)
+
+                    Button("Acknowledgements") {
+                        showAcknowledgements = true
                     }
                     .buttonStyle(.borderless)
                     .foregroundStyle(.secondary)
@@ -484,6 +492,9 @@ struct SettingsView: View {
         .background(.ultraThinMaterial)
         .sheet(item: $guidanceTestEngine) { engine in
             GuidanceTestSheet(engine: engine)
+        }
+        .sheet(isPresented: $showAcknowledgements) {
+            OpenSourceLicensesView()
         }
         .alert("Reset All Settings?", isPresented: $showResetConfirmation) {
             Button("Cancel", role: .cancel) { }
@@ -783,6 +794,24 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
 
                 if settings.listeningMode == .wordTracking {
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.accentColor)
+                            .padding(.top, 1)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Smart Follow Active")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("Automatically recovers when you ad-lib, pause, skip a paragraph, or re-read a line.")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+
                     Divider()
 
                     VStack(alignment: .leading, spacing: 6) {

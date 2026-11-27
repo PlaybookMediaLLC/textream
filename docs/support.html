@@ -4,21 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
-  <title>Support — Textream</title>
-  <meta name="description" content="Setup help, troubleshooting, and support for the Textream teleprompter on macOS and iOS.">
+  <title>Support — Dante for Creators</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta name="description" content="Setup guide, troubleshooting, and support for Dante for Creators on macOS, iPhone, and iPad.">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
 
     :root {
-      --bg: #0a0a0c;
-      --surface: #1c1c1e;
-      --surface2: #28282c;
-      --text: #f5f5f7;
-      --muted: #a1a1a8;
-      --quiet: #6e6e76;
+      --bg: #0b0a09;
+      --surface: #1b1917;
+      --surface2: #24211e;
+      --text: #f7f5f2;
+      --muted: #aca59e;
+      --quiet: #746d66;
       --line: rgba(255, 255, 255, 0.08);
-      --accent1: #7c6aff;
-      --accent2: #4f8bff;
+      --accent1: #e85d2a;
+      --accent2: #f59e0b;
     }
 
     html { scroll-behavior: smooth; }
@@ -29,14 +30,14 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at 50% -15%, rgba(79, 139, 255, 0.15), transparent 42rem),
+        radial-gradient(circle at 50% -15%, rgba(245, 158, 11, 0.14), transparent 42rem),
         var(--bg);
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
     }
 
-    a { color: #8eb4ff; }
-    a:hover { color: #b9ceff; }
+    a { color: #f6a96b; }
+    a:hover { color: #ffd1a6; }
 
     .shell {
       width: min(100% - 40px, 920px);
@@ -66,31 +67,28 @@
       place-items: center;
       width: 34px;
       height: 34px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 10px;
-      background: linear-gradient(145deg, #29292d, #111114);
+      background: #0a0a0a;
+      overflow: hidden;
       box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
     }
 
-    .brand-mark span {
-      font-size: 21px;
-      font-weight: 850;
-      line-height: 1;
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
+    .brand-mark svg {
+      width: 24px;
+      height: 24px;
+      display: block;
     }
 
     .nav-links { display: flex; gap: 18px; }
     .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; }
     .nav-links a:hover { color: var(--text); }
 
-    header { padding: 92px 0 54px; }
+    header { padding: 84px 0 50px; }
 
     .eyebrow {
       margin: 0 0 14px;
-      color: #9dbbff;
+      color: #f6a96b;
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -100,16 +98,16 @@
     h1 {
       max-width: 720px;
       margin: 0 0 22px;
-      font-size: clamp(42px, 8vw, 72px);
-      line-height: 1.02;
-      letter-spacing: -0.05em;
+      font-size: clamp(40px, 7.5vw, 68px);
+      line-height: 1.03;
+      letter-spacing: -0.045em;
     }
 
     .lede {
       max-width: 660px;
       margin: 0;
       color: var(--muted);
-      font-size: clamp(18px, 3vw, 22px);
+      font-size: clamp(18px, 3vw, 21px);
       line-height: 1.55;
     }
 
@@ -117,11 +115,11 @@
       display: inline-flex;
       align-items: center;
       gap: 9px;
-      margin-top: 30px;
-      padding: 13px 20px;
+      margin-top: 28px;
+      padding: 13px 22px;
       border-radius: 12px;
       background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      box-shadow: 0 12px 36px rgba(79, 139, 255, 0.22);
+      box-shadow: 0 12px 36px rgba(232, 93, 42, 0.25);
       color: white;
       font-size: 15px;
       font-weight: 700;
@@ -132,21 +130,10 @@
     .primary-action:hover {
       color: white;
       transform: translateY(-2px);
-      box-shadow: 0 16px 44px rgba(79, 139, 255, 0.3);
+      box-shadow: 0 16px 44px rgba(232, 93, 42, 0.35);
     }
 
-    .before-posting {
-      margin: 18px 0 68px;
-      padding: 24px 26px;
-      border: 1px solid rgba(124, 106, 255, 0.22);
-      border-radius: 18px;
-      background: rgba(124, 106, 255, 0.07);
-    }
-
-    .before-posting h2 { margin: 0 0 11px; font-size: 17px; }
-    .before-posting p { margin: 0; color: #cbc8eb; }
-
-    .troubleshooting { padding-bottom: 78px; }
+    .troubleshooting { padding: 20px 0 74px; }
     .troubleshooting > h2 { margin: 0 0 24px; font-size: 28px; letter-spacing: -0.025em; }
 
     .grid {
@@ -156,10 +143,10 @@
     }
 
     .card {
-      padding: 25px;
+      padding: 24px;
       border: 1px solid var(--line);
       border-radius: 18px;
-      background: linear-gradient(155deg, rgba(42, 42, 47, 0.94), rgba(23, 23, 26, 0.94));
+      background: linear-gradient(155deg, rgba(44, 39, 35, 0.94), rgba(22, 20, 18, 0.94));
     }
 
     .card .number {
@@ -167,29 +154,29 @@
       place-items: center;
       width: 30px;
       height: 30px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       border-radius: 9px;
-      background: rgba(79, 139, 255, 0.12);
-      color: #9dbbff;
+      background: rgba(232, 93, 42, 0.16);
+      color: #f6a96b;
       font-size: 13px;
       font-weight: 800;
     }
 
     .card h3 { margin: 0 0 9px; font-size: 17px; letter-spacing: -0.015em; }
     .card p { margin: 0; color: var(--muted); font-size: 14px; }
-    .card p + p { margin-top: 12px; }
+    .card p + p { margin-top: 10px; }
 
     .details {
       display: grid;
-      grid-template-columns: 190px minmax(0, 1fr);
+      grid-template-columns: 200px minmax(0, 1fr);
       gap: 42px;
       padding: 34px 0;
       border-top: 1px solid var(--line);
     }
 
     .details h2 { margin: 2px 0 0; font-size: 17px; line-height: 1.35; }
-    .details p { margin: 0 0 14px; color: #c8c8ce; }
-    .details ul { margin: 0; padding-left: 20px; color: #c8c8ce; }
+    .details p { margin: 0 0 14px; color: #cfcac4; }
+    .details ul { margin: 0; padding-left: 20px; color: #cfcac4; }
     .details li + li { margin-top: 8px; }
 
     code {
@@ -197,7 +184,7 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--surface);
-      color: #d5d5db;
+      color: #e4dfd9;
       font-family: "SFMono-Regular", Consolas, monospace;
       font-size: 0.88em;
     }
@@ -219,7 +206,6 @@
       header { padding-top: 64px; }
       .grid { grid-template-columns: 1fr; }
       .details { grid-template-columns: 1fr; gap: 14px; }
-      .nav-links a:first-child { display: none; }
       footer { flex-direction: column; }
     }
   </style>
@@ -227,28 +213,22 @@
 <body>
   <div class="shell">
     <nav aria-label="Primary navigation">
-      <a class="brand" href="./" aria-label="Textream home">
-        <span class="brand-mark" aria-hidden="true"><span>T</span></span>
-        Textream
+      <a class="brand" href="./" aria-label="Dante for Creators home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="100 100 440 440" fill="none" xmlns="http://www.w3.org/2000/svg"><g fill="#FFFFFF"><path d="M266 140H440V312H266A86 86 0 0 1 266 140Z"/><path d="M200 328H374A86 86 0 0 1 374 500H200Z"/></g></svg></span>
+        Dante for Creators
       </a>
       <div class="nav-links">
-        <a href="https://github.com/f/textream">GitHub</a>
-        <a href="/docs/">Docs</a>
+        <a href="./docs/">Docs</a>
         <a href="privacy.html">Privacy</a>
       </div>
     </nav>
 
     <header>
-      <p class="eyebrow">Textream support</p>
+      <p class="eyebrow">Dante for Creators Support</p>
       <h1>Let’s get you back on script.</h1>
-      <p class="lede">Find quick fixes for permissions, overlays, iPhone recordings, local-network connections, and document imports. If the problem persists, report it in the open-source project.</p>
-      <a class="primary-action" href="https://github.com/f/textream/issues/new">Open a support issue <span aria-hidden="true">↗</span></a>
+      <p class="lede">Quick setup tips and troubleshooting for Smart Follow, Local AI speech models, Creator Presets, overlays, iPhone and iPad camera recording, and local-network modes.</p>
+      <a class="primary-action" href="mailto:support@playbookinteractivemedia.com">Email Playbook Interactive Media Support <span aria-hidden="true">↗</span></a>
     </header>
-
-    <aside class="before-posting">
-      <h2>Before posting publicly</h2>
-      <p>Remove private scripts, credentials, QR codes, local IP addresses, and personal details from screenshots or logs. Textream support does not need your script to diagnose most problems.</p>
-    </aside>
 
     <main>
       <section class="troubleshooting">
@@ -256,82 +236,72 @@
         <div class="grid">
           <article class="card">
             <span class="number">01</span>
-            <h3>Word tracking does not start</h3>
-            <p>Allow Textream under both Microphone and Speech Recognition in the device’s Privacy &amp; Security settings. Quit and reopen Textream after changing permissions.</p>
+            <h3>Smart Follow (Word Tracking) will not start</h3>
+            <p>Allow <strong>Dante for Creators</strong> under both Microphone and Speech Recognition in System Settings → Privacy &amp; Security (macOS) or Settings (iOS). You can also switch to Classic mode for microphone-free scrolling.</p>
           </article>
           <article class="card">
             <span class="number">02</span>
-            <h3>The overlay is on the wrong screen</h3>
-            <p>Open Textream Settings → Teleprompter. Choose Follow Mouse to move between displays, or Fixed Display to keep the overlay on one screen.</p>
+            <h3>Choosing a Local AI speech model on Mac</h3>
+            <p>Open <strong>Settings → Guidance → Local Model → Manage Models</strong>. On Apple Silicon Macs, <strong>Nemotron 3.5 ASR Streaming 0.6B</strong> is ideal for live streaming, <strong>Qwen3-ASR 1.7B</strong> excels with strong accents, and <strong>Canary 180M Flash</strong> uses minimal memory. Intel Macs should use Apple Speech or lightweight models.</p>
           </article>
           <article class="card">
             <span class="number">03</span>
-            <h3>Remote or Director Mode will not connect</h3>
-            <p>Put both devices on the same trusted network, enable the mode in Settings, and open the address shown by Textream. If prompted, allow incoming connections in the macOS firewall.</p>
+            <h3>The overlay appears on the wrong monitor</h3>
+            <p>Open <strong>Settings → Teleprompter</strong>. Choose <strong>Follow Mouse</strong> to move automatically between displays, or <strong>Fixed Display</strong> to lock the notch or fullscreen overlay to one screen.</p>
           </article>
           <article class="card">
             <span class="number">04</span>
-            <h3>PowerPoint notes do not import</h3>
-            <p>Use a <code>.pptx</code> file that contains presenter notes. For Keynote or Google Slides, export to PowerPoint first, then import the exported file.</p>
+            <h3>Remote Connection or Director Mode will not connect</h3>
+            <p>Ensure both devices are on the same trusted Wi-Fi network, enable the mode in Settings, and scan the QR code. If macOS Firewall prompts for incoming connections, allow Dante for Creators.</p>
           </article>
           <article class="card">
             <span class="number">05</span>
-            <h3>The overlay appears in a recording</h3>
-            <p>Turn on Hide from Screen Sharing in Teleprompter settings before recording. Then make a short test recording: capture apps and external hardware do not all behave the same way.</p>
+            <h3>Importing PowerPoint or Keynote speaker notes</h3>
+            <p>Drop any <code>.pptx</code> file with presenter notes directly onto the Dante editor window or open it via <strong>File → Open</strong>. For Keynote or Google Slides, export to PowerPoint (<code>.pptx</code>) first.</p>
           </article>
           <article class="card">
             <span class="number">06</span>
-            <h3>Textream will not update</h3>
-            <p>For a Mac App Store installation, update it there. If installed with Homebrew, run <code>brew upgrade textream</code>. Direct downloads are published on GitHub Releases.</p>
+            <h3>Hiding the overlay from screen sharing</h3>
+            <p>Enable <strong>Hide from Screen Sharing</strong> in <strong>Settings → Teleprompter</strong> (also included in the Podcast and Keynote Creator Presets). Make a quick test recording to confirm compatibility with your capture tool.</p>
           </article>
           <article class="card">
             <span class="number">07</span>
-            <h3>The iPhone camera or record button is unavailable</h3>
-            <p>Record mode needs Camera, Microphone, and Photos add-only permission. Check each permission in iOS Settings, then reopen the prompter. Camera capture is not available in iOS Simulator, so use a physical iPhone or iPad to test preview, front/back switching, microphone audio, recording, and Photos saving.</p>
+            <h3>iPhone or iPad recording and Photos access</h3>
+            <p>Record mode needs Camera, Microphone, and Photos add-only permission. If a save fails, tap <strong>Retry Save</strong> in the Record session—Dante safely holds the pending take locally until saved or discarded.</p>
           </article>
           <article class="card">
             <span class="number">08</span>
-            <h3>A recording did not appear in Photos</h3>
-            <p>Confirm Textream can add to Photos in iOS Settings, then tap <strong>Retry Save</strong> in the current or next Record session. Textream keeps the pending recording in local app storage after a failed save and removes that pending copy once the retry succeeds. Use <strong>Discard Recording</strong> only if you no longer need it.</p>
-            <p>The thumbnail beside the record button opens Textream’s saved-recordings gallery. The first time you open it, allow Photos read and write access. This access is requested separately from add-only saving, and the gallery filters the library to videos Textream recorded. Tap <strong>Select</strong> to select one or more videos, then use <strong>Delete from Photos</strong>; Photos will ask you to confirm the deletion.</p>
+            <h3>Updates and Universal Purchase</h3>
+            <p>Dante for Creators is a Universal Purchase across Mac, iPhone, and iPad. Install and update through the Apple App Store using the same Apple Account across your devices.</p>
           </article>
         </div>
       </section>
 
       <section class="details">
-        <h2>What to include</h2>
+        <h2>What to include in a support email</h2>
         <div>
-          <p>A useful report includes:</p>
+          <p>To help us resolve your issue quickly, include:</p>
           <ul>
-            <li>your macOS or iOS version and Textream version;</li>
-            <li>your Mac, iPhone, or iPad model, or the exact Simulator device;</li>
-            <li>the guidance, session, and overlay modes you selected;</li>
-            <li>steps that reproduce the problem;</li>
-            <li>what you expected and what happened instead.</li>
+            <li>your macOS, iOS, or iPadOS version and Dante for Creators version;</li>
+            <li>your Mac (Apple Silicon or Intel), iPhone, or iPad model;</li>
+            <li>your selected Guidance mode (Apple Speech, Local Model name, Classic, or Voice-Activated);</li>
+            <li>steps to reproduce the issue (please remove private scripts before sending screenshots).</li>
           </ul>
         </div>
       </section>
 
       <section class="details">
-        <h2>Where to ask</h2>
+        <h2>Contact &amp; Privacy</h2>
         <div>
-          <p>Search <a href="https://github.com/f/textream/issues">existing GitHub issues</a> first. If you do not find a match, <a href="https://github.com/f/textream/issues/new">open a new issue</a>.</p>
-          <p>For direct support, email <a href="mailto:fka@linux.com">fka@linux.com</a>. The same privacy guidance above applies to anything you send by email.</p>
-          <p>Textream is a free, open-source project. Support is provided on a best-effort basis; there is no guaranteed response time.</p>
-        </div>
-      </section>
-
-      <section class="details">
-        <h2>Privacy</h2>
-        <div>
-          <p>Read the <a href="privacy.html">Textream Privacy Policy</a> for details about camera and microphone access, Apple speech recognition, Photos saving, saved scripts, and optional local-network features.</p>
+          <p>Email <a href="mailto:support@playbookinteractivemedia.com">support@playbookinteractivemedia.com</a> for direct assistance from Playbook Interactive Media LLC.</p>
+          <p>Read the <a href="privacy.html">Dante for Creators Privacy Policy</a> for full details on microphone, camera, Photos, Apple Speech, and local Hugging Face model downloads.</p>
         </div>
       </section>
     </main>
 
     <footer>
-      <p>© 2026 Fatih Kadir Akin</p>
-      <p><a href="./">Textream</a> · <a href="/docs/">Docs</a> · <a href="privacy.html">Privacy</a> · <a href="https://github.com/f/textream">Source</a></p>
+      <p>© 2026 Playbook Interactive Media LLC</p>
+      <p><a href="./">Dante for Creators</a> · <a href="./docs/">Docs</a> · <a href="privacy.html">Privacy</a></p>
     </footer>
   </div>
 </body>

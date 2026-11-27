@@ -139,7 +139,7 @@ struct TextreamiOSApp: App {
             script: """
             Stay on script. Keep eye contact. [smile]
 
-            Textream follows every word you say and keeps the last spoken line close to the camera.
+            Dante follows every word you say and keeps the last spoken line close to the camera.
 
             Read naturally, speak confidently, and never lose your place.
             """,

@@ -12,12 +12,14 @@ import TranscribeCpp
 extension Notification.Name {
     static let openSettings = Notification.Name("openSettings")
     static let openAbout = Notification.Name("openAbout")
+    static let openOnboarding = Notification.Name("openOnboarding")
+    static let newScript = Notification.Name("newScript")
     static let startPrompter = Notification.Name("startPrompter")
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let lifecycleLogger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "dev.fka.textream",
+        subsystem: Bundle.main.bundleIdentifier ?? DanteAppLinks.bundleIdentifier,
         category: "AppLifecycle"
     )
 
@@ -45,7 +47,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // Route native transcribe.cpp diagnostics to the system log. ggml emits
         // verbose per-kernel detail at info level; keep only warnings/errors.
-        let logSubsystem = Bundle.main.bundleIdentifier ?? "dev.fka.textream"
+        let logSubsystem = Bundle.main.bundleIdentifier ?? DanteAppLinks.bundleIdentifier
         Transcribe.setLogHandler { level, message in
             guard level == .warn || level == .error else { return }
             let logger = Logger(subsystem: logSubsystem, category: "LocalSpeech")
@@ -60,11 +62,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             TextreamService.shared.hideMainWindow()
         }
 
-        #if !APP_STORE
-        // Direct-download builds check GitHub for updates. App Store builds are
-        // updated exclusively through the App Store.
-        UpdateChecker.shared.checkForUpdates(silent: true)
-        #endif
         benchLog("launch.step", ["name": "updateCheck"])
 
         // Start browser server if enabled
@@ -156,7 +153,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
-            if url.pathExtension == "textream" {
+            let ext = url.pathExtension.lowercased()
+            if ext == DanteAppLinks.fileExtension {
                 TextreamService.shared.openFileAtURL(url)
                 // Show the main window for file opens
                 for window in NSApp.windows where !(window is NSPanel) {
@@ -184,7 +182,7 @@ struct TextreamApp: App {
         WindowGroup {
             ContentView()
                 .onOpenURL { url in
-                    if url.pathExtension == "textream" {
+                    if url.pathExtension.lowercased() == DanteAppLinks.fileExtension {
                         TextreamService.shared.openFileAtURL(url)
                     } else {
                         TextreamService.shared.handleURL(url)
@@ -196,15 +194,9 @@ struct TextreamApp: App {
 
         .commands {
             CommandGroup(replacing: .appInfo) {
-                Button("About Textream") {
+                Button("About Dante for Creators") {
                     NotificationCenter.default.post(name: .openAbout, object: nil)
                 }
-                #if !APP_STORE
-                Divider()
-                Button("Check for Updates…") {
-                    UpdateChecker.shared.checkForUpdates()
-                }
-                #endif
             }
             CommandGroup(after: .appSettings) {
                 Button("Settings…") {
@@ -213,6 +205,11 @@ struct TextreamApp: App {
                 .keyboardShortcut(",", modifiers: .command)
             }
             CommandGroup(replacing: .newItem) {
+                Button("New Script") {
+                    NotificationCenter.default.post(name: .newScript, object: nil)
+                }
+                .keyboardShortcut("n", modifiers: .command)
+
                 Button("Open File or Presentation…") {
                     TextreamService.shared.openFile()
                 }
@@ -239,10 +236,15 @@ struct TextreamApp: App {
             }
             CommandGroup(replacing: .windowArrangement) { }
             CommandGroup(replacing: .help) {
-                Button("Textream Help") {
-                    if let url = URL(string: "https://github.com/f/textream") {
-                        NSWorkspace.shared.open(url)
-                    }
+                Button("Creator Setup Guide…") {
+                    NotificationCenter.default.post(name: .openOnboarding, object: nil)
+                }
+                Divider()
+                Button("Dante for Creators Support") {
+                    NSWorkspace.shared.open(DanteAppLinks.supportURL)
+                }
+                Button("Privacy Policy") {
+                    NSWorkspace.shared.open(DanteAppLinks.privacyURL)
                 }
             }
         }

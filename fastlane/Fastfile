@@ -1,31 +1,39 @@
-# App Store releases for Textream on iPhone and iPad.
+# App Store releases for Dante for Creators (Universal: macOS, iPhone, and iPad).
 #
-# Authenticates with an App Store Connect API key. Set these first:
-#   ASC_KEY_ID      the key's ID
-#   ASC_ISSUER_ID   the issuer ID shown in App Store Connect > Users and Access > Integrations
-#   ASC_KEY_PATH    path to the key's .p8 file
+# Authenticates with an App Store Connect API key. Set these environment variables first:
+#   ASC_KEY_ID          the key's ID
+#   ASC_ISSUER_ID       the issuer ID shown in App Store Connect > Users and Access > Integrations
+#   ASC_KEY_PATH        path to the key's .p8 file
+#   DANTE_TEAM_ID       Playbook Interactive Media LLC Apple Developer Team ID
 #
-# Then, from the repository root:
+# Optional provisioning profile overrides:
+#   DANTE_IOS_PROFILE   default: "Dante for Creators iOS App Store"
+#   DANTE_MAC_PROFILE   default: "Dante for Creators macOS App Store"
+#
+# Usage from repository root:
 #   fastlane ios release
+#   fastlane mac release
 #
-# Any key can upload a build. Creating the App Store version and submitting it
-# for review need a key with the App Manager or Admin role; with a narrower key,
-# run `fastlane ios archive_build` and `fastlane ios upload_build`, then submit
-# in App Store Connect or later with `fastlane ios submit_build`.
-#
-# The version and build number come from the TextreamiOS target in the Xcode
-# project, and the What's New text from fastlane/metadata/en-US/release_notes.txt.
+# Both platforms default to automatic_release: false (Manual Release) so macOS
+# and iOS can be released synchronously once both pass App Review.
 
 require "xcodeproj"
+require "shellwords"
 
 opt_out_usage
 default_platform(:ios)
 
 PROJECT = "Textream/Textream.xcodeproj"
-SCHEME = "TextreamiOS"
+IOS_SCHEME = "TextreamiOS"
+MAC_SCHEME = "Textream"
 CONFIGURATION = "AppStore"
-TEAM_ID = "RJA7656U34"
-APP_IDENTIFIER = "dev.fka.textream"
+APP_IDENTIFIER = "com.playbookinteractivemedia.dante"
+
+def team_id
+  value = ENV.fetch("DANTE_TEAM_ID", "").strip
+  UI.user_error!("Set DANTE_TEAM_ID to the Playbook Interactive Media LLC Apple Developer Team ID.") if value.empty?
+  value
+end
 
 def asc_key_path
   File.expand_path(ENV.fetch("ASC_KEY_PATH"))
@@ -39,56 +47,57 @@ def asc_api_key
   )
 end
 
-def app_build_setting(name)
+def app_build_setting(target_name, setting_name)
   project = Xcodeproj::Project.open(File.expand_path("../#{PROJECT}", __dir__))
-  target = project.targets.find { |candidate| candidate.name == SCHEME }
+  target = project.targets.find { |candidate| candidate.name == target_name }
+  UI.user_error!("Xcode target '#{target_name}' not found.") unless target
   target.build_configurations
     .find { |configuration| configuration.name == CONFIGURATION }
     .build_settings
-    .fetch(name)
+    .fetch(setting_name)
+end
+
+def asc_xcargs
+  [
+    "DEVELOPMENT_TEAM=#{team_id.shellescape}",
+    "-allowProvisioningUpdates",
+    "-authenticationKeyPath #{asc_key_path.shellescape}",
+    "-authenticationKeyID #{ENV.fetch('ASC_KEY_ID').shellescape}",
+    "-authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID').shellescape}"
+  ].join(" ")
 end
 
 platform :ios do
-  desc "Archive, upload, and submit the iOS app for App Review"
-  desc "The update is released automatically once App Review approves it"
+  desc "Archive, upload, and submit Dante for Creators (iOS/iPadOS) for App Review"
   lane :release do
     ipa = archive_build
     upload_build(ipa: ipa)
     submit_build
   end
 
-  desc "Archive the iOS app and export an App Store IPA"
+  desc "Archive the iOS/iPadOS app and export an App Store IPA"
   lane :archive_build do
     build_app(
       project: PROJECT,
-      scheme: SCHEME,
+      scheme: IOS_SCHEME,
       configuration: CONFIGURATION,
       export_method: "app-store",
-      # The API key cannot use cloud signing, so export with the team's
-      # existing App Store profile and the Apple Distribution certificate in
-      # the keychain.
       export_options: {
-        teamID: TEAM_ID,
+        teamID: team_id,
         signingStyle: "manual",
         signingCertificate: "Apple Distribution",
         provisioningProfiles: {
-          APP_IDENTIFIER => ENV.fetch("TEXTREAM_IOS_PROFILE", "Textream iOS App Store")
+          APP_IDENTIFIER => ENV.fetch("DANTE_IOS_PROFILE", "Dante for Creators iOS App Store")
         },
         manageAppVersionAndBuildNumber: false
       },
-      output_directory: ENV.fetch("TEXTREAM_RELEASE_OUTPUT", "build/ios-release"),
+      output_directory: ENV.fetch("DANTE_IOS_RELEASE_OUTPUT", "build/ios-release"),
       clean: true,
-      # The archive signs automatically; let Xcode fetch a profile with the key.
-      xcargs: [
-        "-allowProvisioningUpdates",
-        "-authenticationKeyPath #{asc_key_path.shellescape}",
-        "-authenticationKeyID #{ENV.fetch('ASC_KEY_ID').shellescape}",
-        "-authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID').shellescape}"
-      ].join(" ")
+      xcargs: asc_xcargs
     )
   end
 
-  desc "Upload an exported IPA to App Store Connect without submitting it"
+  desc "Upload an exported iOS IPA to TestFlight / App Store Connect without submitting"
   lane :upload_build do |options|
     upload_to_testflight(
       api_key: asc_api_key,
@@ -98,20 +107,80 @@ platform :ios do
     )
   end
 
-  desc "Create the App Store version, set What's New, and submit the uploaded build"
+  desc "Create the iOS App Store version and submit for review (Manual Release)"
   lane :submit_build do
     upload_to_app_store(
       api_key: asc_api_key,
       app_identifier: APP_IDENTIFIER,
       platform: "ios",
-      app_version: app_build_setting("MARKETING_VERSION"),
-      build_number: app_build_setting("CURRENT_PROJECT_VERSION"),
+      app_version: app_build_setting(IOS_SCHEME, "MARKETING_VERSION"),
+      build_number: app_build_setting(IOS_SCHEME, "CURRENT_PROJECT_VERSION"),
       skip_binary_upload: true,
-      # Only release_notes.txt lives here, so only What's New is updated.
       metadata_path: File.expand_path("metadata", __dir__),
       skip_screenshots: true,
       submit_for_review: true,
-      automatic_release: true,
+      automatic_release: false,
+      run_precheck_before_submit: false,
+      force: true
+    )
+  end
+end
+
+platform :mac do
+  desc "Archive, upload, and submit Dante for Creators (macOS) for App Review"
+  lane :release do
+    pkg = archive_build
+    upload_build(pkg: pkg)
+    submit_build
+  end
+
+  desc "Archive the macOS app and export a Mac App Store PKG"
+  lane :archive_build do
+    build_mac_app(
+      project: PROJECT,
+      scheme: MAC_SCHEME,
+      configuration: CONFIGURATION,
+      export_method: "app-store",
+      export_options: {
+        teamID: team_id,
+        signingStyle: "manual",
+        signingCertificate: "3rd Party Mac Developer Application",
+        installerSigningCertificate: "3rd Party Mac Developer Installer",
+        provisioningProfiles: {
+          APP_IDENTIFIER => ENV.fetch("DANTE_MAC_PROFILE", "Dante for Creators macOS App Store")
+        },
+        manageAppVersionAndBuildNumber: false
+      },
+      output_directory: ENV.fetch("DANTE_MAC_RELEASE_OUTPUT", "build/mac-release"),
+      clean: true,
+      xcargs: asc_xcargs
+    )
+  end
+
+  desc "Upload an exported macOS PKG to TestFlight / App Store Connect without submitting"
+  lane :upload_build do |options|
+    upload_to_testflight(
+      api_key: asc_api_key,
+      pkg: options[:pkg] || lane_context[SharedValues::PKG_OUTPUT_PATH],
+      app_platform: "osx",
+      skip_submission: true,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Create the macOS App Store version and submit for review (Manual Release)"
+  lane :submit_build do
+    upload_to_app_store(
+      api_key: asc_api_key,
+      app_identifier: APP_IDENTIFIER,
+      platform: "osx",
+      app_version: app_build_setting(MAC_SCHEME, "MARKETING_VERSION"),
+      build_number: app_build_setting(MAC_SCHEME, "CURRENT_PROJECT_VERSION"),
+      skip_binary_upload: true,
+      metadata_path: File.expand_path("metadata", __dir__),
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: false,
       run_precheck_before_submit: false,
       force: true
     )

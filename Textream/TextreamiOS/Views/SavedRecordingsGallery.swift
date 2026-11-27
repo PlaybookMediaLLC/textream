@@ -45,7 +45,7 @@ struct SavedRecordingsGallery: View {
                             "No Saved Recordings",
                             systemImage: "video",
                             description: Text(
-                                "Videos you record with Textream will appear here after they are saved to Photos."
+                                "Videos you record with Dante for Creators will appear here after they are saved to Photos."
                             )
                         )
                     } else {
@@ -219,7 +219,7 @@ struct SavedRecordingsGallery: View {
             if isSelecting {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .symbolRenderingMode(.palette)
-                    .foregroundStyle(isSelected ? .white : .white.opacity(0.9), isSelected ? .indigo : .black.opacity(0.45))
+                    .foregroundStyle(isSelected ? .white : .white.opacity(0.9), isSelected ? Color.accentColor : .black.opacity(0.45))
                     .font(.system(size: 25, weight: .semibold))
                     .padding(8)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
@@ -228,7 +228,7 @@ struct SavedRecordingsGallery: View {
         .clipShape(.rect(cornerRadius: 14))
         .overlay {
             RoundedRectangle(cornerRadius: 14)
-                .stroke(isSelected ? Color.indigo : .white.opacity(0.12), lineWidth: isSelected ? 3 : 1)
+                .stroke(isSelected ? Color.accentColor : .white.opacity(0.12), lineWidth: isSelected ? 3 : 1)
         }
         .contentShape(.rect(cornerRadius: 14))
         .accessibilityElement(children: .ignore)
@@ -249,7 +249,7 @@ struct SavedRecordingsGallery: View {
         ContentUnavailableView {
             Label("Photos Access Is Off", systemImage: "photo.on.rectangle.angled")
         } description: {
-            Text("Allow Photos access to view and manage videos recorded with Textream.")
+            Text("Allow Photos access to view and manage videos recorded with Dante for Creators.")
         } actions: {
             Button("Open Settings") { openSettings() }
                 .buttonStyle(.glassProminent)

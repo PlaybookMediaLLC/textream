@@ -405,13 +405,13 @@ struct PromptCoreTests {
     @MainActor
     @Test
     func brandedLogoAssetLoadsFromTheAppBundle() {
-        #expect(UIImage(named: "TextreamLogo") != nil)
+        #expect(UIImage(named: "DanteLogo") != nil)
     }
 
     @Test
     func aboutVersionLabelIncludesVersionAndBuild() {
         #expect(
-            TextreamAppInfo.versionLabel(
+            DanteAppInfo.versionLabel(
                 from: [
                     "CFBundleShortVersionString": "1.2.3",
                     "CFBundleVersion": "45"
@@ -419,17 +419,16 @@ struct PromptCoreTests {
             ) == "Version 1.2.3 (45)"
         )
         #expect(
-            TextreamAppInfo.versionLabel(
+            DanteAppInfo.versionLabel(
                 from: ["CFBundleShortVersionString": "1.2.3"]
             ) == "Version 1.2.3"
         )
     }
 
     @Test
-    func aboutLinksToTheTextreamMacApp() {
+    func aboutLinksToTheDanteMacApp() {
         #expect(
-            TextreamAppInfo.macAppStoreURL.absoluteString
-                == "https://apps.apple.com/app/textream/id6800061488"
+            DanteAppInfo.macAppStoreURL == DanteAppLinks.appStoreURL
         )
     }
 

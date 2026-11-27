@@ -198,6 +198,7 @@ final class CameraPreviewView: UIView {
     }
 
     private func installDirectionCoordinatorIfPossible() {
+        #if DANTE_ENABLE_IOS27_DUO
         guard #available(iOS 27.1, *), window != nil, directionCoordinator == nil else { return }
         // The handler runs on the main queue: once with the first map, then
         // whenever a fold or unfold changes which cameras face the viewer.
@@ -218,6 +219,7 @@ final class CameraPreviewView: UIView {
                 CATransaction.commit()
             }
         }
+        #endif
     }
 
     private func applyMirroring() {

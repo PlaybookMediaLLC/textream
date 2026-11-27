@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 
 class TextreamService: NSObject, ObservableObject {
     static let shared = TextreamService()
-    private static let lastDocumentURLDefaultsKey = "lastDocumentURL"
+    private static let lastDocumentBookmarkDefaultsKey = "lastDocumentDirectoryBookmark"
     let overlayController = NotchOverlayController()
     let externalDisplayController = ExternalDisplayController()
     let browserServer = BrowserServer()
@@ -176,24 +176,46 @@ class TextreamService: NSObject, ObservableObject {
     // MARK: - File Operations
 
     private var lastDocumentDirectoryURL: URL? {
-        guard let path = UserDefaults.standard.string(forKey: Self.lastDocumentURLDefaultsKey),
-              !path.isEmpty else { return nil }
-
-        let directoryURL = URL(fileURLWithPath: path).deletingLastPathComponent()
+        guard let bookmarkData = UserDefaults.standard.data(forKey: Self.lastDocumentBookmarkDefaultsKey) else {
+            return nil
+        }
+        var isStale = false
+        guard let resolved = try? URL(
+            resolvingBookmarkData: bookmarkData,
+            options: [.withSecurityScope],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        ) else {
+            return nil
+        }
+        let didAccess = resolved.startAccessingSecurityScopedResource()
+        defer { if didAccess { resolved.stopAccessingSecurityScopedResource() } }
+        if isStale,
+           let refreshed = try? resolved.bookmarkData(
+               options: [.withSecurityScope],
+               includingResourceValuesForKeys: nil,
+               relativeTo: nil
+           ) {
+            UserDefaults.standard.set(refreshed, forKey: Self.lastDocumentBookmarkDefaultsKey)
+        }
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(
-            atPath: directoryURL.path,
+            atPath: resolved.path,
             isDirectory: &isDirectory
         ), isDirectory.boolValue else { return nil }
-        return directoryURL
+        return resolved
     }
 
     func rememberDocumentURL(_ url: URL) {
         guard url.isFileURL else { return }
-        UserDefaults.standard.set(
-            url.standardizedFileURL.path,
-            forKey: Self.lastDocumentURLDefaultsKey
-        )
+        let directoryURL = url.standardizedFileURL.deletingLastPathComponent()
+        if let bookmark = try? directoryURL.bookmarkData(
+            options: [.withSecurityScope],
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        ) {
+            UserDefaults.standard.set(bookmark, forKey: Self.lastDocumentBookmarkDefaultsKey)
+        }
     }
 
     func saveFile() {
@@ -206,8 +228,8 @@ class TextreamService: NSObject, ObservableObject {
 
     func saveFileAs() {
         let panel = NSSavePanel()
-        panel.allowedContentTypes = [.init(filenameExtension: "textream")!]
-        panel.nameFieldStringValue = "Untitled.textream"
+        panel.allowedContentTypes = [UTType(filenameExtension: DanteAppLinks.fileExtension) ?? .json]
+        panel.nameFieldStringValue = "Untitled.\(DanteAppLinks.fileExtension)"
         panel.canCreateDirectories = true
         panel.directoryURL = currentFileURL?.deletingLastPathComponent()
             ?? lastDocumentDirectoryURL
@@ -219,6 +241,8 @@ class TextreamService: NSObject, ObservableObject {
     }
 
     private func saveToURL(_ url: URL) {
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
         do {
             let data = try JSONEncoder().encode(pages)
             try data.write(to: url, options: .atomic)
@@ -243,9 +267,9 @@ class TextreamService: NSObject, ObservableObject {
 
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [
-            .init(filenameExtension: "textream")!,
-            .init(filenameExtension: "key")!,
-            .init(filenameExtension: "pptx")!,
+            UTType(filenameExtension: DanteAppLinks.fileExtension) ?? .json,
+            UTType(filenameExtension: "key") ?? .data,
+            UTType(filenameExtension: "pptx") ?? .data,
         ]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
@@ -318,6 +342,8 @@ class TextreamService: NSObject, ObservableObject {
     }
 
     func openFileAtURL(_ url: URL) {
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
         do {
             let data = try Data(contentsOf: url)
             let loadedPages = try JSONDecoder().decode([String].self, from: data)
@@ -486,7 +512,7 @@ class TextreamService: NSObject, ObservableObject {
     }
 
     // macOS Services handler
-    @objc func readInTextream(_ pboard: NSPasteboard, userData: String, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
+    @objc func readInDante(_ pboard: NSPasteboard, userData: String, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
         guard let text = pboard.string(forType: .string) else {
             error.pointee = "No text found on pasteboard" as NSString
             return
@@ -494,9 +520,9 @@ class TextreamService: NSObject, ObservableObject {
         readText(text)
     }
 
-    // URL scheme handler: textream://read?text=Hello%20World
+    // URL scheme handler: dante://read?text=Hello%20World
     func handleURL(_ url: URL) {
-        guard url.scheme == "textream" else { return }
+        guard url.scheme?.lowercased() == DanteAppLinks.urlScheme else { return }
 
         if url.host == "read" || url.path == "/read" {
             if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),

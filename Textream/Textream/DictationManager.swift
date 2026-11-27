@@ -17,6 +17,7 @@ class DictationManager {
     var isFinalizing: Bool = false
     var audioLevels: [CGFloat] = Array(repeating: 0, count: 40)
     var error: String?
+    var permissionSettingsURL: URL?
 
     /// Called on main thread with the latest recognized text for the current segment
     var onTextUpdate: ((String) -> Void)?
@@ -72,6 +73,7 @@ class DictationManager {
         sessionGeneration &+= 1
         retryCount = 0
         error = nil
+        permissionSettingsURL = nil
         shouldRecord = true
         isStarting = true
         isFinalizing = false
@@ -122,8 +124,10 @@ class DictationManager {
         // Check microphone permission
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
         case .denied, .restricted:
-            fail("Microphone access denied. Open System Settings → Privacy & Security → Microphone.")
-            openMicrophoneSettings()
+            fail(
+                "Microphone access denied. Allow Dante for Creators in System Settings → Privacy & Security → Microphone.",
+                settingsURL: SpeechRecognizer.microphoneSettingsURL
+            )
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
                 DispatchQueue.main.async {
@@ -133,7 +137,10 @@ class DictationManager {
                     if granted {
                         self.beginAfterMicrophoneAccess(for: generation)
                     } else {
-                        self.fail("Microphone access denied. Open System Settings → Privacy & Security → Microphone.")
+                        self.fail(
+                            "Microphone access denied. Allow Dante for Creators in System Settings → Privacy & Security → Microphone.",
+                            settingsURL: SpeechRecognizer.microphoneSettingsURL
+                        )
                     }
                 }
             }
@@ -194,30 +201,27 @@ class DictationManager {
                 case .authorized:
                     self.beginRecognition()
                 default:
-                    self.fail("Speech recognition not authorized. Open System Settings → Privacy & Security → Speech Recognition.")
-                    self.openSpeechRecognitionSettings()
+                    self.fail(
+                        "Speech recognition not authorized. Allow Dante for Creators in System Settings → Privacy & Security → Speech Recognition.",
+                        settingsURL: SpeechRecognizer.speechRecognitionSettingsURL
+                    )
                 }
             }
         }
     }
 
-    private func openMicrophoneSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+    func openPermissionSettings() {
+        if let url = permissionSettingsURL {
             NSWorkspace.shared.open(url)
         }
     }
 
-    private func openSpeechRecognitionSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    private func fail(_ message: String) {
+    private func fail(_ message: String, settingsURL: URL? = nil) {
         shouldRecord = false
         isRecording = false
         isStarting = false
         error = message
+        permissionSettingsURL = settingsURL
         cleanup()
         isFinalizing = false
         releaseLocalModel()

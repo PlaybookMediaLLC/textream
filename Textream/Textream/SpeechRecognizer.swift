@@ -103,6 +103,7 @@ class SpeechRecognizer {
     var isListening: Bool = false
     var isStarting: Bool = false
     var error: String?
+    var permissionSettingsURL: URL?
     var audioLevels: [CGFloat] = Array(repeating: 0, count: 30)
     var lastSpokenText: String = ""
     var shouldDismiss: Bool = false
@@ -198,6 +199,7 @@ class SpeechRecognizer {
         recognizedCharCount = matcher.recognizedCharacterCount
         retryCount = 0
         error = nil
+        permissionSettingsURL = nil
         sessionGeneration &+= 1
         shouldListen = true
         isListening = false
@@ -233,8 +235,10 @@ class SpeechRecognizer {
         // Check microphone permission first
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
         case .denied, .restricted:
-            failListening("Microphone access denied. Open System Settings → Privacy & Security → Microphone to allow Textream.")
-            openMicrophoneSettings()
+            failListening(
+                "Microphone access denied. Allow Dante for Creators in System Settings → Privacy & Security → Microphone.",
+                settingsURL: Self.microphoneSettingsURL
+            )
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
                 DispatchQueue.main.async {
@@ -244,7 +248,10 @@ class SpeechRecognizer {
                     if granted {
                         self.beginAfterMicrophoneAccess(for: generation)
                     } else {
-                        self.failListening("Microphone access denied. Open System Settings → Privacy & Security → Microphone to allow Textream.")
+                        self.failListening(
+                            "Microphone access denied. Allow Dante for Creators in System Settings → Privacy & Security → Microphone.",
+                            settingsURL: Self.microphoneSettingsURL
+                        )
                     }
                 }
             }
@@ -311,31 +318,31 @@ class SpeechRecognizer {
                 case .authorized:
                     self.beginRecognition()
                 default:
-                    self.failListening("Speech recognition not authorized. Open System Settings → Privacy & Security → Speech Recognition to allow Textream.")
-                    self.openSpeechRecognitionSettings()
+                    self.failListening(
+                        "Speech recognition not authorized. Allow Dante for Creators in System Settings → Privacy & Security → Speech Recognition.",
+                        settingsURL: Self.speechRecognitionSettingsURL
+                    )
                 }
             }
         }
     }
 
-    private func openMicrophoneSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+    static let microphoneSettingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")
+    static let speechRecognitionSettingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition")
+
+    func openPermissionSettings() {
+        if let url = permissionSettingsURL {
             NSWorkspace.shared.open(url)
         }
     }
 
-    private func openSpeechRecognitionSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    private func failListening(_ message: String) {
+    private func failListening(_ message: String, settingsURL: URL? = nil) {
         voiceActivityDetector.reset()
         shouldListen = false
         isListening = false
         isStarting = false
         error = message
+        permissionSettingsURL = settingsURL
         cleanupRecognition()
         releaseLocalModel()
     }

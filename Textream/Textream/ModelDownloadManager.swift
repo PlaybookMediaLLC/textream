@@ -189,8 +189,7 @@ final class ModelDownloadManager {
         onProgress: @escaping (UInt64, UInt64, Double) -> Void,
         onVerify: @escaping () -> Void
     ) async throws {
-        let directory = LocalSpeechModelStore.modelsDirectory
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = try LocalSpeechModelStore.ensureModelsDirectory()
         let destination = directory.appendingPathComponent(file.filename)
         let partial = partialURL(for: file.filename)
 
@@ -345,7 +344,7 @@ private final class PartialFileWriter: NSObject, URLSessionDataDelegate, @unchec
         completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
     ) {
         guard let http = response as? HTTPURLResponse else {
-            fail(ModelDownloadError.transport("The server sent a response Textream cannot read."))
+            fail(ModelDownloadError.transport("The server sent a response Dante for Creators cannot read."))
             completionHandler(.cancel)
             return
         }
