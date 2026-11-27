@@ -55,7 +55,7 @@ struct StudioRemoteView: View {
                         Button("Disconnect") {
                             client.disconnect()
                         }
-                        .foregroundStyle(palette.statusError)
+                        .foregroundStyle(palette.statusDanger)
                     }
                 }
             }
@@ -345,9 +345,9 @@ struct StudioRemoteView: View {
             } label: {
                 Label("Stop Mac Session", systemImage: "stop.fill")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(palette.statusError)
+                    .foregroundStyle(palette.statusDanger)
                     .frame(maxWidth: .infinity, minHeight: 46)
-                    .background(palette.statusError.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(palette.statusDanger.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
         }
