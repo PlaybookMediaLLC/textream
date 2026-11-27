@@ -109,6 +109,8 @@ jobs:
           capture "ios-light-library.png" light -DanteThemeLight -DanteSeedDemoScripts -DanteLibraryPreview
           capture "ios-dark-composer.png" dark  -DanteThemeDark  -DanteSeedDemoScripts -DanteQuickComposerPreview
           capture "ios-light-composer.png" light -DanteThemeLight -DanteSeedDemoScripts -DanteQuickComposerPreview
+          capture "ios-dark-remote.png"   dark  -DanteThemeDark  -DanteStudioRemotePreview
+          capture "ios-light-remote.png"  light -DanteThemeLight -DanteStudioRemotePreview
 
           ls -lh "$OUT"
 

@@ -779,7 +779,7 @@ private struct StudioPaceBadge: View {
     }
 }
 
-private struct StudioTakeSummaryView: View {
+struct StudioTakeSummaryView: View {
     let summary: TakeSummary
     var takeRecord: TakeTranscriptRecord? = nil
     let palette: DantePalette

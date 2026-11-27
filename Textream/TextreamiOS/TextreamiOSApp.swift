@@ -39,6 +39,29 @@ struct TextreamiOSApp: App {
                 ScriptLibrarySheet(model: model)
             } else if args.contains("-DanteQuickComposerPreview") {
                 QuickComposerSheet(model: model)
+            } else if args.contains("-DanteStudioRemotePreview") {
+                StudioRemoteView(
+                    previewHostName: "Studio MacBook Pro",
+                    previewState: StudioRemoteState(
+                        highlightedCharCount: 186,
+                        totalCharCount: 310,
+                        isActive: true,
+                        isDone: false,
+                        isListening: true,
+                        fontColor: "#ffffff",
+                        cueColor: "#38bdf8",
+                        lastSpokenText: "studio videos in a single take",
+                        audioLevels: [0.3, 0.7, 0.5, 0.8],
+                        pageIndex: 0,
+                        pageCount: 3,
+                        currentWPM: 152,
+                        paceDeltaSeconds: 0,
+                        elapsedSeconds: 74,
+                        retakeCount: 1,
+                        scriptTitle: "How I Shoot 4K Studio Videos",
+                        scrollSpeed: 3.0
+                    )
+                )
             } else {
                 RootView(model: model)
             }
