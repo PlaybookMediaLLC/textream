@@ -1089,6 +1089,17 @@ struct SettingsView: View {
                 }
                 .toggleStyle(.checkbox)
 
+                Toggle(isOn: $settings.iCloudSyncEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("iCloud Script Sync")
+                            .font(.system(size: 13, weight: .medium))
+                        Text("Automatically sync your scripts and pages across Mac, iPhone, and iPad via iCloud.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.checkbox)
+
                 Toggle(isOn: $settings.keepScreenAwake) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Keep Screen Awake")

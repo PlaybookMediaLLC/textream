@@ -76,6 +76,7 @@ struct DanteScript: Identifiable, Codable, Equatable, Sendable {
     var isPinned: Bool
     var createdAt: Date
     var updatedAt: Date
+    var deletedAt: Date?
 
     init(
         id: UUID = UUID(),
@@ -85,7 +86,8 @@ struct DanteScript: Identifiable, Codable, Equatable, Sendable {
         targetWPM: Int = ScriptMetrics.defaultWPM,
         isPinned: Bool = false,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
+        deletedAt: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -95,6 +97,51 @@ struct DanteScript: Identifiable, Codable, Equatable, Sendable {
         self.isPinned = isPinned
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
+
+    var isDeleted: Bool {
+        deletedAt != nil
+    }
+
+    /// Monotonic revision timestamp used for last-write-wins cross-device conflict resolution.
+    var syncTimestamp: Date {
+        if let deletedAt {
+            return max(updatedAt, deletedAt)
+        }
+        return updatedAt
+    }
+
+    /// Deterministically merges local and remote script snapshots using last-write-wins
+    /// per script ID while preserving soft-delete tombstones within `tombstoneRetentionDays`.
+    static func merge(
+        local: [DanteScript],
+        remote: [DanteScript],
+        now: Date = Date(),
+        tombstoneRetentionDays: Int = 30
+    ) -> [DanteScript] {
+        var byID: [UUID: DanteScript] = [:]
+        for script in local {
+            byID[script.id] = script
+        }
+        for incoming in remote {
+            if let existing = byID[incoming.id] {
+                if incoming.syncTimestamp > existing.syncTimestamp {
+                    byID[incoming.id] = incoming
+                } else if incoming.syncTimestamp == existing.syncTimestamp,
+                          incoming.isDeleted && !existing.isDeleted {
+                    byID[incoming.id] = incoming
+                }
+            } else {
+                byID[incoming.id] = incoming
+            }
+        }
+        let cutoff = now.addingTimeInterval(-Double(max(1, tombstoneRetentionDays)) * 86_400)
+        let retained = byID.values.filter { script in
+            guard let deletedAt = script.deletedAt else { return true }
+            return deletedAt >= cutoff
+        }
+        return ScriptLibraryPersistence.sorted(Array(retained))
     }
 
     var combinedText: String {

@@ -735,6 +735,23 @@ struct ContentView: View {
 
                 Spacer()
 
+                // iCloud Sync status & manual trigger
+                Button {
+                    Task {
+                        await library.syncWithCloud()
+                    }
+                } label: {
+                    Image(systemName: library.syncStatus.systemImage)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(
+                            library.syncStatus == .syncing ? palette.accent : palette.textSecondary
+                        )
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("iCloud Sync: \(library.syncStatus.label) (Click to sync now)")
+
                 // Appearance toggle (System / Dark / Light)
                 Menu {
                     ForEach(AppAppearance.allCases) { appearance in
