@@ -329,9 +329,15 @@ struct PromptSessionView: View {
             SavedRecordingsGallery(store: controller.captureController.savedRecordingsStore)
         }
         .onChange(of: controller.captureController.lastSavedRecording?.assetIdentifier) { _, identifier in
-            guard identifier != nil else {
+            guard let identifier else {
                 isSavedRecordingPlaced = false
                 return
+            }
+            if controller.hasRecordedTimeline {
+                controller.captureController.savedRecordingsStore.saveTakeRecord(
+                    controller.makeTakeRecord(),
+                    for: identifier
+                )
             }
             guard !accessibilityReduceMotion else {
                 isSavedRecordingPlaced = true

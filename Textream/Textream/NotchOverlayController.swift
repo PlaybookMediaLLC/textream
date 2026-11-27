@@ -708,43 +708,69 @@ private struct StudioPaceBadge: View {
 
 private struct StudioTakeSummaryView: View {
     let summary: TakeSummary
+    var takeRecord: TakeTranscriptRecord? = nil
     let palette: DantePalette
     @State private var didCopy = false
 
     var body: some View {
-        HStack(spacing: 8) {
-            Text("\(summary.formattedDuration) · \(summary.averageWPM) WPM")
-                .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .foregroundStyle(palette.textSecondary)
-            if summary.retakeCount > 0 {
-                Text("· \(summary.retakeCount) \(summary.retakeCount == 1 ? "retake" : "retakes")")
-                    .font(.system(size: 10.5, weight: .medium))
-                    .foregroundStyle(palette.textTertiary)
-            }
-            Button {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(summary.formattedSummaryText, forType: .string)
-                didCopy = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
-                    didCopy = false
+        VStack(spacing: 6) {
+            HStack(spacing: 8) {
+                Text("\(summary.formattedDuration) · \(summary.averageWPM) WPM")
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(palette.textSecondary)
+                if summary.retakeCount > 0 {
+                    Text("· \(summary.retakeCount) \(summary.retakeCount == 1 ? "retake" : "retakes")")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(palette.textTertiary)
                 }
-            } label: {
-                Text(didCopy ? "Copied" : "Copy")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(didCopy ? palette.statusSuccess : palette.textSecondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(palette.surface)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                    )
             }
-            .buttonStyle(.plain)
+
+            HStack(spacing: 6) {
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(summary.formattedSummaryText, forType: .string)
+                    didCopy = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                        didCopy = false
+                    }
+                } label: {
+                    summaryChip(didCopy ? "Copied" : "Copy", accent: didCopy)
+                }
+                .buttonStyle(.plain)
+
+                if let record = takeRecord, !record.wordTimings.isEmpty {
+                    Button {
+                        TextreamService.shared.exportLastTake(format: .srt, record: record)
+                    } label: {
+                        summaryChip(".SRT", accent: false)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        TextreamService.shared.exportLastTake(format: .fcpxml, record: record)
+                    } label: {
+                        summaryChip("FCPXML", accent: false)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
+    }
+
+    private func summaryChip(_ title: String, accent: Bool) -> some View {
+        Text(title)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(accent ? palette.statusSuccess : palette.textSecondary)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(palette.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+            )
     }
 }
 
@@ -858,6 +884,7 @@ struct NotchOverlayView: View {
     @State private var showRetakeBadge: Bool = false
     @State private var pacingEngine: PacingCoachEngine
     @State private var paceSnapshot: PaceSnapshot? = nil
+    @State private var timelineRecorder: TakeTimelineRecorder
 
     private let topInset: CGFloat = 16
     private let collapsedInset: CGFloat = 8
@@ -886,6 +913,7 @@ struct NotchOverlayView: View {
             script: content.promptScript,
             targetWPM: content.targetWPM
         ))
+        _timelineRecorder = State(initialValue: TakeTimelineRecorder(script: content.promptScript))
     }
 
     private var listeningMode: ListeningMode {
@@ -1059,21 +1087,38 @@ struct NotchOverlayView: View {
         .onChange(of: content.totalCharCount) { _, _ in
             timerWordProgress = 0
             pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            timelineRecorder.reset(script: content.promptScript)
             paceSnapshot = nil
         }
-        .onChange(of: content.currentPageIndex) { _, _ in
+        .onChange(of: content.currentPageIndex) { _, newPage in
             timerWordProgress = 0
             isUserScrolling = false
             pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            timelineRecorder.recordPageBreak(pageNumber: newPage + 1, at: ProcessInfo.processInfo.systemUptime)
+            timelineRecorder.reset(script: content.promptScript)
             paceSnapshot = nil
         }
         .onChange(of: effectiveCharCount) { oldOffset, newOffset in
             let now = ProcessInfo.processInfo.systemUptime
+            let isRetake = newOffset < oldOffset
             paceSnapshot = pacingEngine.recordProgress(
                 characterOffset: newOffset,
                 at: now,
-                isRetake: newOffset < oldOffset
+                isRetake: isRetake
             )
+            timelineRecorder.recordProgress(
+                characterOffset: newOffset,
+                at: now,
+                isRetake: isRetake
+            )
+            if isDone {
+                publishLastTakeRecord(at: now)
+            }
+        }
+        .onDisappear {
+            if timelineRecorder.hasRecordedContent {
+                publishLastTakeRecord(at: ProcessInfo.processInfo.systemUptime)
+            }
         }
         .onChange(of: speechRecognizer.rewindSentenceRevision) { _, _ in
             performSentenceRewind()
@@ -1102,6 +1147,15 @@ struct NotchOverlayView: View {
             speechRecognizer.retakeCount += 1
             speechRecognizer.retakeBannerRevision &+= 1
         }
+    }
+
+    private func publishLastTakeRecord(at timestamp: TimeInterval) {
+        let record = timelineRecorder.makeRecord(
+            at: timestamp,
+            scriptTitle: TextreamService.shared.activeScriptTitle,
+            targetWPM: content.targetWPM
+        )
+        TextreamService.shared.recordLastTake(record)
     }
 
     @ViewBuilder
@@ -1564,9 +1618,15 @@ struct NotchOverlayView: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(palette.textPrimary)
                     }
-                    let summary = pacingEngine.makeSummary(at: ProcessInfo.processInfo.systemUptime)
+                    let now = ProcessInfo.processInfo.systemUptime
+                    let summary = pacingEngine.makeSummary(at: now)
                     if summary.spokenWordsCompleted > 0 {
-                        StudioTakeSummaryView(summary: summary, palette: palette)
+                        let record = timelineRecorder.makeRecord(
+                            at: now,
+                            scriptTitle: TextreamService.shared.activeScriptTitle,
+                            targetWPM: content.targetWPM
+                        )
+                        StudioTakeSummaryView(summary: summary, takeRecord: record, palette: palette)
                     }
                 }
             }
@@ -1624,6 +1684,7 @@ struct FloatingOverlayView: View {
     @State private var showRetakeBadge: Bool = false
     @State private var pacingEngine: PacingCoachEngine
     @State private var paceSnapshot: PaceSnapshot? = nil
+    @State private var timelineRecorder: TakeTimelineRecorder
 
     init(
         content: OverlayContent,
@@ -1642,6 +1703,7 @@ struct FloatingOverlayView: View {
             script: content.promptScript,
             targetWPM: content.targetWPM
         ))
+        _timelineRecorder = State(initialValue: TakeTimelineRecorder(script: content.promptScript))
     }
 
     private var listeningMode: ListeningMode {
@@ -1797,21 +1859,38 @@ struct FloatingOverlayView: View {
         .onChange(of: content.totalCharCount) { _, _ in
             timerWordProgress = 0
             pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            timelineRecorder.reset(script: content.promptScript)
             paceSnapshot = nil
         }
-        .onChange(of: content.currentPageIndex) { _, _ in
+        .onChange(of: content.currentPageIndex) { _, newPage in
             timerWordProgress = 0
             isUserScrolling = false
             pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            timelineRecorder.recordPageBreak(pageNumber: newPage + 1, at: ProcessInfo.processInfo.systemUptime)
+            timelineRecorder.reset(script: content.promptScript)
             paceSnapshot = nil
         }
         .onChange(of: effectiveCharCount) { oldOffset, newOffset in
             let now = ProcessInfo.processInfo.systemUptime
+            let isRetake = newOffset < oldOffset
             paceSnapshot = pacingEngine.recordProgress(
                 characterOffset: newOffset,
                 at: now,
-                isRetake: newOffset < oldOffset
+                isRetake: isRetake
             )
+            timelineRecorder.recordProgress(
+                characterOffset: newOffset,
+                at: now,
+                isRetake: isRetake
+            )
+            if isDone {
+                publishLastTakeRecord(at: now)
+            }
+        }
+        .onDisappear {
+            if timelineRecorder.hasRecordedContent {
+                publishLastTakeRecord(at: ProcessInfo.processInfo.systemUptime)
+            }
         }
         .onChange(of: speechRecognizer.rewindSentenceRevision) { _, _ in
             performSentenceRewind()
@@ -1840,6 +1919,15 @@ struct FloatingOverlayView: View {
             speechRecognizer.retakeCount += 1
             speechRecognizer.retakeBannerRevision &+= 1
         }
+    }
+
+    private func publishLastTakeRecord(at timestamp: TimeInterval) {
+        let record = timelineRecorder.makeRecord(
+            at: timestamp,
+            scriptTitle: TextreamService.shared.activeScriptTitle,
+            targetWPM: content.targetWPM
+        )
+        TextreamService.shared.recordLastTake(record)
     }
 
     @ViewBuilder
@@ -2273,9 +2361,15 @@ struct FloatingOverlayView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(palette.textPrimary)
                     }
-                    let summary = pacingEngine.makeSummary(at: ProcessInfo.processInfo.systemUptime)
+                    let now = ProcessInfo.processInfo.systemUptime
+                    let summary = pacingEngine.makeSummary(at: now)
                     if summary.spokenWordsCompleted > 0 {
-                        StudioTakeSummaryView(summary: summary, palette: palette)
+                        let record = timelineRecorder.makeRecord(
+                            at: now,
+                            scriptTitle: TextreamService.shared.activeScriptTitle,
+                            targetWPM: content.targetWPM
+                        )
+                        StudioTakeSummaryView(summary: summary, takeRecord: record, palette: palette)
                     }
                 }
             }

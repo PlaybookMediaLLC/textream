@@ -130,6 +130,17 @@ struct SavedRecordingsGallery: View {
                         } label: {
                             Label("Select", systemImage: "checkmark.circle")
                         }
+
+                        if store.takeRecord(for: recording.assetIdentifier) != nil {
+                            Divider()
+                            ForEach(TakeExportFormat.allCases) { format in
+                                if let exportURL = store.exportURL(for: recording.assetIdentifier, format: format) {
+                                    ShareLink(item: exportURL) {
+                                        Label("Export \(format.shortLabel)", systemImage: "captions.bubble")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -189,6 +200,7 @@ struct SavedRecordingsGallery: View {
 
     private func recordingTile(_ recording: SavedRecording) -> some View {
         let isSelected = selectedIdentifiers.contains(recording.assetIdentifier)
+        let hasSidecar = store.takeRecord(for: recording.assetIdentifier) != nil
         return ZStack(alignment: .bottomLeading) {
             Color.black
                 .aspectRatio(1, contentMode: .fit)
@@ -205,6 +217,17 @@ struct SavedRecordingsGallery: View {
                 startPoint: .center,
                 endPoint: .bottom
             )
+
+            if hasSidecar && !isSelecting {
+                Text("CC")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(DantePalette(colorScheme: .dark).accent.opacity(0.9), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .padding(8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
 
             HStack(alignment: .bottom) {
                 Text(recording.createdAt, format: .dateTime.month(.abbreviated).day())

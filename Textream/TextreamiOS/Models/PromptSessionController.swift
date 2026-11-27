@@ -57,6 +57,7 @@ final class PromptSessionController {
     private(set) var paceSnapshot: PaceSnapshot?
 
     @ObservationIgnored private var pacingEngine: PacingCoachEngine
+    @ObservationIgnored private var timelineRecorder: TakeTimelineRecorder
     @ObservationIgnored private var lastPacedCharacterOffset = 0
     @ObservationIgnored private var progressTimer: Timer?
     @ObservationIgnored private var lastTickTime: TimeInterval?
@@ -71,6 +72,7 @@ final class PromptSessionController {
             script: builtPrompt,
             targetWPM: configuration.targetWPM
         )
+        timelineRecorder = TakeTimelineRecorder(script: builtPrompt)
         showsCamera = configuration.usesCamera
         let initialScrollSpeed = min(
             PromptScrollSpeedAdjustment.maximumSpeed,
@@ -85,6 +87,18 @@ final class PromptSessionController {
 
     var takeSummary: TakeSummary {
         pacingEngine.makeSummary(at: ProcessInfo.processInfo.systemUptime)
+    }
+
+    var hasRecordedTimeline: Bool {
+        timelineRecorder.hasRecordedContent
+    }
+
+    func makeTakeRecord() -> TakeTranscriptRecord {
+        timelineRecorder.makeRecord(
+            at: ProcessInfo.processInfo.systemUptime,
+            scriptTitle: configuration.scriptTitle,
+            targetWPM: configuration.targetWPM
+        )
     }
 
     var effectiveCharacterCount: Int {
@@ -218,7 +232,11 @@ final class PromptSessionController {
         } else {
             guard canRecord else { return }
             let started = await captureController.startRecording()
-            if started { startPrompt() }
+            if started {
+                timelineRecorder.reset(script: prompt)
+                timelineRecorder.markStart(at: ProcessInfo.processInfo.systemUptime)
+                startPrompt()
+            }
         }
     }
 
@@ -407,6 +425,11 @@ final class PromptSessionController {
             let isRetake = currentOffset < lastPacedCharacterOffset
             lastPacedCharacterOffset = currentOffset
             paceSnapshot = pacingEngine.recordProgress(
+                characterOffset: currentOffset,
+                at: now,
+                isRetake: isRetake
+            )
+            timelineRecorder.recordProgress(
                 characterOffset: currentOffset,
                 at: now,
                 isRetake: isRetake
