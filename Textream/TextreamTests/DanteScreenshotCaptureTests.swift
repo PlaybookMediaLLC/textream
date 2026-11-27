@@ -20,11 +20,11 @@ final class DanteScreenshotCaptureTests: XCTestCase {
         let shouldCapture = env["DANTE_CAPTURE_SCREENSHOTS"] ?? env["TEST_RUNNER_DANTE_CAPTURE_SCREENSHOTS"]
         guard shouldCapture == "1" else { return }
 
-        let outputDirPath = env["DANTE_SCREENSHOT_DIR"]
-            ?? env["TEST_RUNNER_DANTE_SCREENSHOT_DIR"]
-            ?? FileManager.default.temporaryDirectory.appendingPathComponent("dante-screenshots").path
-        let outputDir = URL(fileURLWithPath: outputDirPath, isDirectory: true)
+        let outputDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dante-screenshots", isDirectory: true)
+        try? FileManager.default.removeItem(at: outputDir)
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        print("DANTE_SCREENSHOT_DIR_OUT=\(outputDir.path)")
 
         seedDemoWorkspace()
 
