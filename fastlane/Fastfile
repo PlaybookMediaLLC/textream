@@ -4,7 +4,8 @@
 #   ASC_KEY_ID          the key's ID
 #   ASC_ISSUER_ID       the issuer ID shown in App Store Connect > Users and Access > Integrations
 #   ASC_KEY_PATH        path to the key's .p8 file
-#   DANTE_TEAM_ID       Playbook Interactive Media LLC Apple Developer Team ID
+#   XCODE_DEVELOPMENT_TEAM  (optional, defaults to T44K9669GA)
+#   DANTE_TEAM_ID           (optional alias for XCODE_DEVELOPMENT_TEAM)
 #
 # Optional provisioning profile overrides:
 #   DANTE_IOS_PROFILE   default: "Dante for Creators iOS App Store"
@@ -27,12 +28,12 @@ PROJECT = "Textream/Textream.xcodeproj"
 IOS_SCHEME = "TextreamiOS"
 MAC_SCHEME = "Textream"
 CONFIGURATION = "AppStore"
-APP_IDENTIFIER = "com.playbookinteractivemedia.dante"
+APP_IDENTIFIER = "com.playbookinteractivemediallc.app"
+DEFAULT_TEAM_ID = "T44K9669GA"
 
 def team_id
-  value = ENV.fetch("DANTE_TEAM_ID", "").strip
-  UI.user_error!("Set DANTE_TEAM_ID to the Playbook Interactive Media LLC Apple Developer Team ID.") if value.empty?
-  value
+  value = (ENV["XCODE_DEVELOPMENT_TEAM"] || ENV["DANTE_TEAM_ID"] || DEFAULT_TEAM_ID).strip
+  value.empty? ? DEFAULT_TEAM_ID : value
 end
 
 def asc_key_path

@@ -1,7 +1,7 @@
 # Dante for Creators
 
 **Smart Voice-Following Teleprompter for macOS, iPhone, and iPad**  
-Published by **Playbook Interactive Media LLC** (Universal Purchase · Bundle ID `com.playbookinteractivemedia.dante`)
+Published by **Playbook Interactive Media LLC** (Universal Purchase · Bundle ID `com.playbookinteractivemediallc.app`)
 
 ---
 

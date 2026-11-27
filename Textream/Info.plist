@@ -17,7 +17,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.playbookinteractivemedia.dante.document</string>
+				<string>com.playbookinteractivemediallc.app.document</string>
 			</array>
 		</dict>
 	</array>
@@ -32,7 +32,7 @@
 			<key>UTTypeDescription</key>
 			<string>Dante Script</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.playbookinteractivemedia.dante.document</string>
+			<string>com.playbookinteractivemediallc.app.document</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -46,7 +46,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.playbookinteractivemedia.dante</string>
+			<string>com.playbookinteractivemediallc.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>dante</string>

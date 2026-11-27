@@ -1,7 +1,7 @@
 # App Store Connect Submission & Review Kit — **Dante for Creators**
 
-**Publisher:** Playbook Interactive Media LLC  
-**Bundle Identifier (Universal macOS + iOS + iPadOS):** `com.playbookinteractivemedia.dante`  
+**Publisher:** Playbook Interactive Media LLC (Apple Developer Team `T44K9669GA` — D Yoan L Mekontchou Yomba individual account)  
+**Bundle Identifier (Universal macOS + iOS + iPadOS):** `com.playbookinteractivemediallc.app`  
 **Version / Build:** `1.0.0 (1)`  
 **Monetization:** Paid Upfront (Universal Purchase; zero IAP / zero external donate links)
 
@@ -81,9 +81,9 @@ No accounts. No subscriptions. No ads or analytics. Your scripts and recordings 
 
 ## 3. Pre-Submission Operational Checklist
 
-- [ ] Complete **Playbook Interactive Media LLC** Apple Developer Organization enrollment and set `DANTE_TEAM_ID` (and `DEVELOPMENT_TEAM` in Xcode Signing & Capabilities).
+- [x] Configure Apple Developer Team ID (`DEVELOPMENT_TEAM = T44K9669GA`, `XCODE_DEVELOPMENT_TEAM = T44K9669GA`, D Yoan L Mekontchou Yomba individual account) across Xcode targets and `fastlane/Fastfile`.
 - [ ] Complete the **Paid Applications Agreement**, W-9 tax forms, and banking in App Store Connect → Business.
-- [ ] Register explicit App ID `com.playbookinteractivemedia.dante` and create the Universal Purchase app record named **`Dante for Creators`**.
+- [ ] Verify explicit App ID `com.playbookinteractivemediallc.app` and Universal Purchase app record **`Dante for Creators`** in App Store Connect (macOS + iOS).
 - [ ] Archive macOS (`AppStore` configuration) and upload to internal TestFlight to validate `CTranscribe.framework` re-signing, `Info.plist`, and `PrivacyInfo.xcprivacy` (`ITMS-91053` / `ITMS-90208` / `ITMS-90685`).
 - [ ] Run `cd benchmarks/speech-tracking && go run run.go -check` (37/37 Layer A + 108/108 Layer B) and run all `TextreamTests` + `TextreamiOSTests` on Xcode 26.1.1+.
 - [ ] Capture final macOS (2880×1800), iPhone (6.9"), and iPad (13") App Store screenshots.

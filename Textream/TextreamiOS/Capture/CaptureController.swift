@@ -123,11 +123,11 @@ final class CaptureController: NSObject, AVCaptureAudioDataOutputSampleBufferDel
 
     @ObservationIgnored nonisolated let session = AVCaptureSession()
     @ObservationIgnored nonisolated private let sessionQueue = DispatchQueue(
-        label: "com.playbookinteractivemedia.dante.ios.capture.session",
+        label: "com.playbookinteractivemediallc.app.ios.capture.session",
         qos: .userInitiated
     )
     @ObservationIgnored nonisolated private let sampleQueue = DispatchQueue(
-        label: "com.playbookinteractivemedia.dante.ios.capture.samples",
+        label: "com.playbookinteractivemediallc.app.ios.capture.samples",
         qos: .userInitiated
     )
     @ObservationIgnored nonisolated(unsafe) private let movieOutput = AVCaptureMovieFileOutput()

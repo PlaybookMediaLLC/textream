@@ -45,7 +45,7 @@ class DirectorServer {
     private let maxConnections = 5
 
     // Dedicated queue for broadcasting to avoid blocking the main/UI thread
-    private let broadcastQueue = DispatchQueue(label: "com.playbookinteractivemedia.dante.director.broadcast")
+    private let broadcastQueue = DispatchQueue(label: "com.playbookinteractivemediallc.app.director.broadcast")
     // Security: shared secret token for WebSocket authentication
     private var authToken: String = ""
 

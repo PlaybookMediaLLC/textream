@@ -124,7 +124,7 @@ if [ -n "${SIGNING_IDENTITY:-}" ]; then
     --force \
     --sign "$SIGNING_IDENTITY" \
     --timestamp \
-    --identifier com.playbookinteractivemedia.dante.dmg \
+    --identifier com.playbookinteractivemediallc.app.dmg \
     "$DMG_PATH"
 
   codesign --verify --strict --verbose=2 "$DMG_PATH"

@@ -10,7 +10,7 @@ enum DanteAppLinks {
     static let shortName = "Dante"
     static let companyName = "Playbook Interactive Media LLC"
     static let copyrightNotice = "Copyright © 2026 Playbook Interactive Media LLC"
-    static let bundleIdentifier = "com.playbookinteractivemedia.dante"
+    static let bundleIdentifier = "com.playbookinteractivemediallc.app"
     static let fileExtension = "dante"
     static let urlScheme = "dante"
 

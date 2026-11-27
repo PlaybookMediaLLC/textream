@@ -69,13 +69,13 @@ enum Bench {
 
     // MARK: Log
 
-    private static let queue = DispatchQueue(label: "com.playbookinteractivemedia.dante.bench-log")
+    private static let queue = DispatchQueue(label: "com.playbookinteractivemediallc.app.bench-log")
     private static let handle: FileHandle? = {
         guard let logPath else { return nil }
         FileManager.default.createFile(atPath: logPath, contents: nil)
         return FileHandle(forWritingAtPath: logPath)
     }()
-    static let signposter = OSSignposter(subsystem: "com.playbookinteractivemedia.dante", category: "Perf")
+    static let signposter = OSSignposter(subsystem: "com.playbookinteractivemediallc.app", category: "Perf")
     private(set) static var session = 0
 
     static func monoNanos() -> UInt64 { clock_gettime_nsec_np(CLOCK_UPTIME_RAW) }
