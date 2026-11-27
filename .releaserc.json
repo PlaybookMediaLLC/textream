@@ -15,6 +15,9 @@
     [
       "@semantic-release/github",
       {
+        "successComment": false,
+        "failComment": false,
+        "releasedLabels": false,
         "assets": [
           {
             "path": "release-artifacts/Dante-for-Creators-macOS-universal.dmg",
