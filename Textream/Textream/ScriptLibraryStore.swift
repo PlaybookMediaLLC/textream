@@ -26,6 +26,7 @@ final class ScriptLibraryStore {
         }
         self.scripts = loaded
         self.selectedScriptID = loaded[0].id
+        TextreamService.shared.activeTargetWPM = loaded[0].targetWPM
     }
 
     var filteredScripts: [DanteScript] {
@@ -52,12 +53,14 @@ final class ScriptLibraryStore {
         scripts.insert(script, at: 0)
         scripts = ScriptLibraryPersistence.sorted(scripts)
         selectedScriptID = script.id
+        TextreamService.shared.activeTargetWPM = script.targetWPM
         persistence.save(scripts)
         return script
     }
 
     func selectScript(_ script: DanteScript) {
         selectedScriptID = script.id
+        TextreamService.shared.activeTargetWPM = script.targetWPM
     }
 
     func updateActivePages(_ pages: [String]) {
@@ -76,7 +79,9 @@ final class ScriptLibraryStore {
             scripts[idx].title = title
         }
         if let targetWPM {
-            scripts[idx].targetWPM = ScriptMetrics.clampedWPM(targetWPM)
+            let clamped = ScriptMetrics.clampedWPM(targetWPM)
+            scripts[idx].targetWPM = clamped
+            TextreamService.shared.activeTargetWPM = clamped
         }
         if let presetID {
             scripts[idx].presetID = presetID

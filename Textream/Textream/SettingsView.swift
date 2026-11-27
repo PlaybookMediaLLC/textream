@@ -1078,6 +1078,17 @@ struct SettingsView: View {
                 }
                 .toggleStyle(.checkbox)
 
+                Toggle(isOn: $settings.showPacingCoach) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Live Pacing Coach")
+                            .font(.system(size: 13, weight: .medium))
+                        Text("Show real-time WPM and schedule delta against your script's target pace.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.checkbox)
+
                 Toggle(isOn: $settings.keepScreenAwake) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Keep Screen Awake")

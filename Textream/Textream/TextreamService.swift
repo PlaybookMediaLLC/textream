@@ -24,6 +24,7 @@ class TextreamService: NSObject, ObservableObject {
     @Published var pages: [String] = [""]
     @Published var currentPageIndex: Int = 0
     @Published var readPages: Set<Int> = []
+    var activeTargetWPM: Int = ScriptMetrics.defaultWPM
 
     var hasNextPage: Bool {
         for i in (currentPageIndex + 1)..<pages.count {
@@ -46,7 +47,7 @@ class TextreamService: NSObject, ObservableObject {
         launchedExternally = true
         hideMainWindow()
 
-        overlayController.show(text: trimmed, hasNextPage: hasNextPage) { [weak self] in
+        overlayController.show(text: trimmed, hasNextPage: hasNextPage, targetWPM: activeTargetWPM) { [weak self] in
             self?.externalDisplayController.dismiss()
             self?.browserServer.hideContent()
             self?.onOverlayDismissed?()

@@ -538,6 +538,10 @@ class NotchSettings {
         didSet { UserDefaults.standard.set(smartRetakeEnabled, forKey: "dante.mac.smartRetakeEnabled") }
     }
 
+    var showPacingCoach: Bool {
+        didSet { UserDefaults.standard.set(showPacingCoach, forKey: "dante.mac.showPacingCoach") }
+    }
+
     var font: NSFont {
         fontFamilyPreset.font(size: fontSizePreset.pointSize)
     }
@@ -610,5 +614,6 @@ class NotchSettings {
         self.hasDismissedSetupChecklist = UserDefaults.standard.bool(forKey: "dante.mac.dismissedSetupChecklist")
         self.hasCompletedFirstSession = UserDefaults.standard.bool(forKey: "dante.mac.completedFirstSession")
         self.smartRetakeEnabled = UserDefaults.standard.object(forKey: "dante.mac.smartRetakeEnabled") as? Bool ?? true
+        self.showPacingCoach = UserDefaults.standard.object(forKey: "dante.mac.showPacingCoach") as? Bool ?? true
     }
 }

@@ -336,7 +336,8 @@ final class AppModel {
             cueColor: cueColor,
             cueBrightness: cueBrightness,
             overlayOpacity: overlayOpacity,
-            speechLocaleIdentifier: speechLocaleIdentifier
+            speechLocaleIdentifier: speechLocaleIdentifier,
+            targetWPM: activeTargetWPM
         )
     }
 

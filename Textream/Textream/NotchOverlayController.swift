@@ -44,6 +44,7 @@ class OverlayContent {
     var paragraphBreakBeforeWordIndices: Set<Int> = []
     var totalCharCount: Int = 0
     var hasNextPage: Bool = false
+    var targetWPM: Int = ScriptMetrics.defaultWPM
 
     // Page picker
     var pageCount: Int = 1
@@ -71,7 +72,12 @@ class NotchOverlayController: NSObject {
     private var escMonitor: Any?
     private var keepAwakeActivity: NSObjectProtocol?
 
-    func show(text: String, hasNextPage: Bool = false, onComplete: (() -> Void)? = nil) {
+    func show(
+        text: String,
+        hasNextPage: Bool = false,
+        targetWPM: Int = ScriptMetrics.defaultWPM,
+        onComplete: (() -> Void)? = nil
+    ) {
         self.onComplete = onComplete
         self.onNextPage = {
             TextreamService.shared.advanceToNextPage()
@@ -87,6 +93,7 @@ class NotchOverlayController: NSObject {
         overlayContent.paragraphBreakBeforeWordIndices = paragraphBreakWordIndices(in: text)
         overlayContent.totalCharCount = normalized.joined(separator: " ").count
         overlayContent.hasNextPage = hasNextPage
+        overlayContent.targetWPM = ScriptMetrics.clampedWPM(targetWPM)
 
         let settings = NotchSettings.shared
 
@@ -663,6 +670,84 @@ private struct StudioOverlayIconButton: View {
     }
 }
 
+private struct StudioPaceBadge: View {
+    let snapshot: PaceSnapshot
+    let compact: Bool
+    let palette: DantePalette
+
+    private var indicatorColor: Color {
+        switch snapshot.status {
+        case .onPace: return palette.statusSuccess
+        case .slow:   return palette.statusWarning
+        case .fast:   return palette.accent
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(indicatorColor)
+                .frame(width: 5, height: 5)
+            Text(compact ? snapshot.wpmLabel : snapshot.compactReadout)
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(palette.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+        )
+    }
+}
+
+private struct StudioTakeSummaryView: View {
+    let summary: TakeSummary
+    let palette: DantePalette
+    @State private var didCopy = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("\(summary.formattedDuration) · \(summary.averageWPM) WPM")
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundStyle(palette.textSecondary)
+            if summary.retakeCount > 0 {
+                Text("· \(summary.retakeCount) \(summary.retakeCount == 1 ? "retake" : "retakes")")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(palette.textTertiary)
+            }
+            Button {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(summary.formattedSummaryText, forType: .string)
+                didCopy = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                    didCopy = false
+                }
+            } label: {
+                Text(didCopy ? "Copied" : "Copy")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(didCopy ? palette.statusSuccess : palette.textSecondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(palette.surface)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
 // MARK: - Notch Blur View (for transparency mode)
 
 struct NotchBlurView: NSViewRepresentable {
@@ -771,6 +856,8 @@ struct NotchOverlayView: View {
     @State private var countdownRemaining: Int = 0
     @State private var countdownTimer: Timer? = nil
     @State private var showRetakeBadge: Bool = false
+    @State private var pacingEngine: PacingCoachEngine
+    @State private var paceSnapshot: PaceSnapshot? = nil
 
     private let topInset: CGFloat = 16
     private let collapsedInset: CGFloat = 8
@@ -795,6 +882,10 @@ struct NotchOverlayView: View {
         self.startExpanded = startExpanded
         _expansion = State(initialValue: startExpanded ? 1 : 0)
         _contentVisible = State(initialValue: startExpanded)
+        _pacingEngine = State(initialValue: PacingCoachEngine(
+            script: content.promptScript,
+            targetWPM: content.targetWPM
+        ))
     }
 
     private var listeningMode: ListeningMode {
@@ -967,10 +1058,22 @@ struct NotchOverlayView: View {
         }
         .onChange(of: content.totalCharCount) { _, _ in
             timerWordProgress = 0
+            pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            paceSnapshot = nil
         }
         .onChange(of: content.currentPageIndex) { _, _ in
             timerWordProgress = 0
             isUserScrolling = false
+            pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            paceSnapshot = nil
+        }
+        .onChange(of: effectiveCharCount) { oldOffset, newOffset in
+            let now = ProcessInfo.processInfo.systemUptime
+            paceSnapshot = pacingEngine.recordProgress(
+                characterOffset: newOffset,
+                at: now,
+                isRetake: newOffset < oldOffset
+            )
         }
         .onChange(of: speechRecognizer.rewindSentenceRevision) { _, _ in
             performSentenceRewind()
@@ -1130,6 +1233,12 @@ struct NotchOverlayView: View {
                     maxBars: 18
                 )
                 .frame(width: 88, height: 24, alignment: .leading)
+
+                if NotchSettings.shared.showPacingCoach,
+                   let snapshot = paceSnapshot,
+                   snapshot.rollingWPM > 0 {
+                    StudioPaceBadge(snapshot: snapshot, compact: true, palette: palette)
+                }
 
                 notchStatusReadout
 
@@ -1447,12 +1556,18 @@ struct NotchOverlayView: View {
                     .buttonStyle(.plain)
                 }
             } else {
-                HStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(palette.statusSuccess)
-                    Text("Done")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(palette.textPrimary)
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(palette.statusSuccess)
+                        Text("Done")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(palette.textPrimary)
+                    }
+                    let summary = pacingEngine.makeSummary(at: ProcessInfo.processInfo.systemUptime)
+                    if summary.spokenWordsCompleted > 0 {
+                        StudioTakeSummaryView(summary: summary, palette: palette)
+                    }
                 }
             }
             Spacer()
@@ -1507,6 +1622,8 @@ struct FloatingOverlayView: View {
     @State private var isPaused: Bool = false
     @State private var isUserScrolling: Bool = false
     @State private var showRetakeBadge: Bool = false
+    @State private var pacingEngine: PacingCoachEngine
+    @State private var paceSnapshot: PaceSnapshot? = nil
 
     init(
         content: OverlayContent,
@@ -1521,6 +1638,10 @@ struct FloatingOverlayView: View {
         self.followingCursor = followingCursor
         self.startExpanded = startExpanded
         _appeared = State(initialValue: startExpanded)
+        _pacingEngine = State(initialValue: PacingCoachEngine(
+            script: content.promptScript,
+            targetWPM: content.targetWPM
+        ))
     }
 
     private var listeningMode: ListeningMode {
@@ -1675,10 +1796,22 @@ struct FloatingOverlayView: View {
         }
         .onChange(of: content.totalCharCount) { _, _ in
             timerWordProgress = 0
+            pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            paceSnapshot = nil
         }
         .onChange(of: content.currentPageIndex) { _, _ in
             timerWordProgress = 0
             isUserScrolling = false
+            pacingEngine.reset(script: content.promptScript, targetWPM: content.targetWPM)
+            paceSnapshot = nil
+        }
+        .onChange(of: effectiveCharCount) { oldOffset, newOffset in
+            let now = ProcessInfo.processInfo.systemUptime
+            paceSnapshot = pacingEngine.recordProgress(
+                characterOffset: newOffset,
+                at: now,
+                isRetake: newOffset < oldOffset
+            )
         }
         .onChange(of: speechRecognizer.rewindSentenceRevision) { _, _ in
             performSentenceRewind()
@@ -1754,6 +1887,12 @@ struct FloatingOverlayView: View {
                             RoundedRectangle(cornerRadius: 4, style: .continuous)
                                 .strokeBorder(palette.borderSubtle, lineWidth: 1)
                         )
+                }
+
+                if NotchSettings.shared.showPacingCoach,
+                   let snapshot = paceSnapshot,
+                   snapshot.rollingWPM > 0 {
+                    StudioPaceBadge(snapshot: snapshot, compact: false, palette: palette)
                 }
 
                 Spacer()
@@ -2126,12 +2265,18 @@ struct FloatingOverlayView: View {
                     }
                 }
             } else {
-                HStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(palette.statusSuccess)
-                    Text("Done")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(palette.textPrimary)
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(palette.statusSuccess)
+                        Text("Done")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(palette.textPrimary)
+                    }
+                    let summary = pacingEngine.makeSummary(at: ProcessInfo.processInfo.systemUptime)
+                    if summary.spokenWordsCompleted > 0 {
+                        StudioTakeSummaryView(summary: summary, palette: palette)
+                    }
                 }
             }
             Spacer()
