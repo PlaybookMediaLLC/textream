@@ -172,7 +172,7 @@ final class DanteScreenshotCaptureTests: XCTestCase {
         let sampleRecord = TakeTranscriptRecord(
             id: UUID(),
             scriptTitle: "How I Shoot 4K Studio Videos in One Take",
-            recordedAt: Date(),
+            createdAt: Date(),
             durationSeconds: 84,
             targetWPM: 150,
             wordTimings: [
@@ -191,9 +191,10 @@ final class DanteScreenshotCaptureTests: XCTestCase {
             averageWPM: 152,
             targetWPM: 150,
             spokenWordsCompleted: 212,
+            totalSpokenWords: 212,
+            completionRatio: 1.0,
             retakeCount: 1,
-            pauseHotspotCount: 0,
-            status: .onPace
+            longestPauseSeconds: 1.8
         )
 
         let schemes: [(suffix: String, appearance: AppAppearance, scheme: ColorScheme)] = [
