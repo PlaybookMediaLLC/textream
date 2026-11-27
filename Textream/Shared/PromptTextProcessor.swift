@@ -88,6 +88,7 @@ struct PromptScript: Equatable {
     let words: [PromptWord]
     let annotationRanges: [Range<Int>]
     let annotationStyleRanges: [Range<Int>]
+    let sentenceStartOffsets: [Int]
     let direction: PromptTextDirection
 
     init(_ rawText: String) {
@@ -138,6 +139,10 @@ struct PromptScript: Equatable {
         words = builtWords
         annotationRanges = balancedAnnotationRanges
         annotationStyleRanges = styleRanges.sorted { $0.lowerBound < $1.lowerBound }
+        sentenceStartOffsets = Self.computeSentenceStartOffsets(
+            rawText: rawText,
+            words: builtWords
+        )
         direction = PromptTextDirection.inferred(from: collapsed)
     }
 
@@ -172,6 +177,122 @@ struct PromptScript: Equatable {
             return words[index + 1]
         }
         return words[index]
+    }
+
+    /// Start character offset of the sentence containing `characterOffset`.
+    func sentenceStartOffset(containing characterOffset: Int) -> Int {
+        let clamped = max(0, min(characterOffset, characterCount))
+        guard let first = sentenceStartOffsets.first else { return 0 }
+        var current = first
+        for start in sentenceStartOffsets {
+            if start <= clamped {
+                current = start
+            } else {
+                break
+            }
+        }
+        return current
+    }
+
+    /// Rewinds to the start of the current sentence if already more than `minProgressIntoSentence`
+    /// characters into it; otherwise rewinds to the start of the previous sentence.
+    func previousSentenceStartOffset(
+        before characterOffset: Int,
+        minProgressIntoSentence: Int = 8
+    ) -> Int {
+        let clamped = max(0, min(characterOffset, characterCount))
+        guard !sentenceStartOffsets.isEmpty else { return 0 }
+
+        var currentIndex = 0
+        for (idx, start) in sentenceStartOffsets.enumerated() {
+            if start <= clamped {
+                currentIndex = idx
+            } else {
+                break
+            }
+        }
+
+        let currentStart = sentenceStartOffsets[currentIndex]
+        if clamped - currentStart >= minProgressIntoSentence {
+            return currentStart
+        }
+        return currentIndex > 0 ? sentenceStartOffsets[currentIndex - 1] : currentStart
+    }
+
+    /// Start character offset of the next sentence after `characterOffset`, or `characterCount`.
+    func nextSentenceStartOffset(after characterOffset: Int) -> Int {
+        let clamped = max(0, min(characterOffset, characterCount))
+        return sentenceStartOffsets.first(where: { $0 > clamped }) ?? characterCount
+    }
+
+    private static func computeSentenceStartOffsets(
+        rawText: String,
+        words: [PromptWord]
+    ) -> [Int] {
+        guard !words.isEmpty else { return [] }
+
+        // Track raw-word indices that begin a new paragraph (separated by a blank line)
+        var paragraphStartRawWordIndices = Set<Int>()
+        let normalizedRaw = rawText
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        let paragraphs = normalizedRaw.components(separatedBy: "\n\n")
+        var rawWordCursor = 0
+        for paragraph in paragraphs {
+            let count = splitPromptTextIntoWords(paragraph).count
+            if count > 0 {
+                if rawWordCursor > 0 {
+                    paragraphStartRawWordIndices.insert(rawWordCursor)
+                }
+                rawWordCursor += count
+            }
+        }
+
+        // Map each PromptWord to its enclosing raw-word index (splits happen inside cues without spaces)
+        var rawIndexForWord: [Int] = []
+        rawIndexForWord.reserveCapacity(words.count)
+        var currentRawIndex = 0
+        for (idx, word) in words.enumerated() {
+            if idx > 0, word.characterRange.lowerBound > words[idx - 1].characterRange.upperBound {
+                currentRawIndex += 1
+            }
+            rawIndexForWord.append(currentRawIndex)
+        }
+
+        var starts: [Int] = []
+        var expectNewSentence = true
+        for (idx, word) in words.enumerated() {
+            if paragraphStartRawWordIndices.contains(rawIndexForWord[idx]) {
+                expectNewSentence = true
+            }
+            if word.isAnnotation {
+                if Self.endsSentence(word.text) {
+                    expectNewSentence = true
+                }
+                continue
+            }
+            if expectNewSentence {
+                if starts.last != word.characterRange.lowerBound {
+                    starts.append(word.characterRange.lowerBound)
+                }
+                expectNewSentence = false
+            }
+            if Self.endsSentence(word.text) {
+                expectNewSentence = true
+            }
+        }
+        return starts
+    }
+
+    private static func endsSentence(_ text: String) -> Bool {
+        let closers: Set<Character> = ["\"", "'", "”", "’", ")", "]", "»"]
+        var trimmed = text
+        while let last = trimmed.last, closers.contains(last) {
+            trimmed.removeLast()
+        }
+        guard let finalChar = trimmed.last else { return false }
+        return finalChar == "." || finalChar == "!" || finalChar == "?"
+            || finalChar == "。" || finalChar == "！" || finalChar == "？"
     }
 
     func nsRange(forCharacterRange range: Range<Int>) -> NSRange {

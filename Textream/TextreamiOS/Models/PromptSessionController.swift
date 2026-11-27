@@ -254,6 +254,35 @@ final class PromptSessionController {
         finishManualScroll(at: characterOffset)
     }
 
+    private(set) var manualRetakeCount = 0
+    private(set) var manualRetakeBannerRevision = 0
+
+    var retakeCount: Int {
+        speechFollower.retakeCount + manualRetakeCount
+    }
+
+    var retakeBannerRevision: Int {
+        speechFollower.retakeBannerRevision &+ manualRetakeBannerRevision
+    }
+
+    func rewindSentence() {
+        switch configuration.followMode {
+        case .wordTracking:
+            speechFollower.rewindSentence()
+        case .classic, .voiceActivated:
+            let previous = effectiveCharacterCount
+            let target = prompt.previousSentenceStartOffset(before: previous)
+            timerWordProgress = prompt.wordProgress(forCharacterOffset: target)
+            if target < previous {
+                manualRetakeCount += 1
+                manualRetakeBannerRevision &+= 1
+            }
+            if isPromptRunning {
+                lastTickTime = ProcessInfo.processInfo.systemUptime
+            }
+        }
+    }
+
     func beginScrollSpeedAdjustment() {
         guard canAdjustScrollSpeed else { return }
         scrollSpeedAtGestureStart = scrollSpeed

@@ -108,6 +108,10 @@ class SpeechRecognizer {
     var lastSpokenText: String = ""
     var shouldDismiss: Bool = false
     var shouldAdvancePage: Bool = false
+    var lastMatchEvent: PromptMatchEvent = .unchanged
+    var retakeCount: Int = 0
+    var retakeBannerRevision: Int = 0
+    var rewindSentenceRevision: Int = 0
 
     /// True when recent audio levels indicate the user is actively speaking
     var isSpeaking: Bool {
@@ -157,10 +161,13 @@ class SpeechRecognizer {
     /// Update the source text while preserving the current recognized char count.
     /// Used by Director Mode to live-edit unread text without resetting read progress.
     func updateText(_ text: String, preservingCharCount: Int) {
-        let words = splitTextIntoWords(text)
-        let collapsed = words.joined(separator: " ")
-        sourceText = collapsed
-        matcher = PromptMatcher(source: PromptScript(collapsed), startingAt: min(preservingCharCount, collapsed.count))
+        let prompt = PromptScript(text)
+        sourceText = prompt.text
+        matcher = PromptMatcher(
+            source: prompt,
+            startingAt: min(preservingCharCount, prompt.characterCount),
+            smartRetakeEnabled: NotchSettings.shared.smartRetakeEnabled
+        )
         recognizedCharCount = matcher.recognizedCharacterCount
     }
 
@@ -187,16 +194,35 @@ class SpeechRecognizer {
         lastJumpAt = Date()
     }
 
+    /// Rewinds the reading position to the start of the current (or previous) sentence.
+    func rewindSentence() {
+        let previous = recognizedCharCount
+        let target = matcher.rewindSentence()
+        recognizedCharCount = target
+        if target < previous {
+            lastMatchEvent = .retake(from: previous, to: target)
+            retakeCount += 1
+            retakeBannerRevision &+= 1
+        }
+        spokenAnchorPrefix = lastSpokenText
+        lastJumpAt = Date()
+    }
+
     func start(with text: String) {
         // Clean up any previous session immediately so pending restarts
         // and stale taps are removed before the async auth callback fires.
         cleanupRecognition()
 
-        let words = splitTextIntoWords(text)
-        let collapsed = words.joined(separator: " ")
+        let prompt = PromptScript(text)
+        let collapsed = prompt.text
         sourceText = collapsed
-        matcher = PromptMatcher(source: PromptScript(collapsed))
+        matcher = PromptMatcher(
+            source: prompt,
+            smartRetakeEnabled: NotchSettings.shared.smartRetakeEnabled
+        )
         recognizedCharCount = matcher.recognizedCharacterCount
+        lastMatchEvent = .unchanged
+        retakeCount = 0
         retryCount = 0
         error = nil
         permissionSettingsURL = nil
@@ -1103,6 +1129,15 @@ class SpeechRecognizer {
         if recognizedCharCount != matcher.recognizedCharacterCount {
             recognizedCharCount = matcher.jump(to: recognizedCharCount)
         }
-        recognizedCharCount = matcher.match(transcript: spoken)
+        matcher.smartRetakeEnabled = NotchSettings.shared.smartRetakeEnabled
+        let event = matcher.matchWithEvent(transcript: spoken)
+        recognizedCharCount = matcher.recognizedCharacterCount
+        if event != .unchanged {
+            lastMatchEvent = event
+            if event.isRetake {
+                retakeCount += 1
+                retakeBannerRevision &+= 1
+            }
+        }
     }
 }
