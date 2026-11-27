@@ -187,10 +187,6 @@ struct PromptMatcher {
         }
 
         let distance = best.position - position
-        if distance <= 0 && distance >= -Self.backwardSlack {
-            return .unchanged   // nothing new; a pending far jump stays pending
-        }
-
         if distance > 0 && distance <= Self.nearWindow {
             guard best.gain >= Self.requiredGain(forStep: distance),
                   // Beyond a few words, the same phrase elsewhere (a refrain) must not tie.
@@ -201,54 +197,74 @@ struct PromptMatcher {
             return recognizedCharacterCount != previousOffset
                 ? .advanced(from: previousOffset, to: recognizedCharacterCount)
                 : .unchanged
-        } else if smartRetakeEnabled && distance < -Self.backwardSlack && distance >= -Self.retakeNearWindow {
-            // Mid-sentence or previous-sentence retake: when the speaker stumbles and restarts
-            // a nearby sentence, allow a responsive backward commit once the newest spoken words
-            // cleanly agree on the restarted position.
-            guard best.score >= Self.retakeScore,
-                  best.matches >= Self.retakeMatches,
-                  best.score - best.runnerUp >= Self.retakeUniqueness,
-                  recentSpeechAgrees(
-                    with: best.position,
-                    heard: heard,
-                    minMatches: Self.retakeMatches,
-                    minUniqueness: Self.retakeUniqueness
-                  ) else {
-                pendingJump = nil
-                return .unchanged
-            }
-            if let pending = pendingJump, abs(pending - best.position) <= 4 {
-                commit(best.position)
-                return .retake(from: previousOffset, to: recognizedCharacterCount)
-            } else if best.score >= Self.retakeImmediateScore {
-                commit(best.position)
-                return .retake(from: previousOffset, to: recognizedCharacterCount)
-            } else {
-                pendingJump = best.position
-                return .unchanged
-            }
+        }
+
+        if smartRetakeEnabled,
+           let retakeEvent = detectSmartRetake(heard: heard, previousOffset: previousOffset) {
+            return retakeEvent
+        }
+
+        if distance <= 0 && distance >= -Self.backwardSlack {
+            return .unchanged   // nothing new; a pending far jump stays pending
+        }
+
+        let evidence = distance > 0 ? best.gain : best.score
+        guard evidence >= Self.farScore, best.matches >= Self.farMatches,
+              best.score - best.runnerUp >= Self.farUniqueness,
+              recentSpeechAgrees(with: best.position, heard: heard) else {
+            pendingJump = nil
+            return .unchanged
+        }
+        if let pending = pendingJump, abs(pending - best.position) <= 4 {
+            commit(best.position)
+            if distance < 0 { carriedTail = [] }
+            return distance < 0
+                ? .retake(from: previousOffset, to: recognizedCharacterCount)
+                : .jumped(from: previousOffset, to: recognizedCharacterCount)
+        } else if evidence >= Self.farScore + 1 {   // overwhelming: don't wait a partial
+            commit(best.position)
+            if distance < 0 { carriedTail = [] }
+            return distance < 0
+                ? .retake(from: previousOffset, to: recognizedCharacterCount)
+                : .jumped(from: previousOffset, to: recognizedCharacterCount)
         } else {
-            let evidence = distance > 0 ? best.gain : best.score
-            guard evidence >= Self.farScore, best.matches >= Self.farMatches,
-                  best.score - best.runnerUp >= Self.farUniqueness,
-                  recentSpeechAgrees(with: best.position, heard: heard) else {
-                pendingJump = nil
-                return .unchanged
-            }
-            if let pending = pendingJump, abs(pending - best.position) <= 4 {
-                commit(best.position)
-                return distance < 0
-                    ? .retake(from: previousOffset, to: recognizedCharacterCount)
-                    : .jumped(from: previousOffset, to: recognizedCharacterCount)
-            } else if evidence >= Self.farScore + 1 {   // overwhelming: don't wait a partial
-                commit(best.position)
-                return distance < 0
-                    ? .retake(from: previousOffset, to: recognizedCharacterCount)
-                    : .jumped(from: previousOffset, to: recognizedCharacterCount)
-            } else {
-                pendingJump = best.position
-                return .unchanged
-            }
+            pendingJump = best.position
+            return .unchanged
+        }
+    }
+
+    /// Evaluates the freshest spoken words on their own (without old pre-stumble `carriedTail`)
+    /// so restarting the current or previous sentence triggers a responsive rewind.
+    private mutating func detectSmartRetake(
+        heard: [String],
+        previousOffset: Int
+    ) -> PromptMatchEvent? {
+        guard heard.count >= Self.retakeMatches,
+              let recent = bestCandidate(for: Array(heard.suffix(Self.recentLength))) else {
+            return nil
+        }
+        let recentDistance = recent.position - position
+        let restartOrigin = recent.position - recent.matches
+        guard recentDistance <= -2,
+              recentDistance >= -Self.retakeNearWindow,
+              restartOrigin <= position - 4,
+              recent.matches >= Self.retakeMatches,
+              recent.score >= Self.retakeScore,
+              recent.score - recent.runnerUp >= Self.retakeUniqueness else {
+            return nil
+        }
+
+        if let pending = pendingJump, abs(pending - recent.position) <= 4 {
+            commit(recent.position)
+            carriedTail = []
+            return .retake(from: previousOffset, to: recognizedCharacterCount)
+        } else if recent.score >= Self.retakeImmediateScore {
+            commit(recent.position)
+            carriedTail = []
+            return .retake(from: previousOffset, to: recognizedCharacterCount)
+        } else {
+            pendingJump = recent.position
+            return .unchanged
         }
     }
 
