@@ -94,6 +94,10 @@ struct RootView: View {
         .sheet(isPresented: $model.isShowingOnboarding) {
             CreatorOnboardingSheet(model: model)
         }
+        .sheet(isPresented: $model.isShowingStudioRemote) {
+            StudioRemoteView()
+                .preferredColorScheme(model.appAppearance.colorScheme)
+        }
         .fullScreenCover(isPresented: $isShowingExpandedScriptEditor) {
             ExpandedScriptEditor(
                 model: model,
@@ -147,6 +151,7 @@ struct RootView: View {
                         headerLogo
                         headerTitle
                         Spacer(minLength: 6)
+                        studioRemoteButton
                         themeToggleButton
                         quickComposeButton
                         libraryButton
@@ -181,6 +186,7 @@ struct RootView: View {
                     .layoutPriority(1)
 
                     Spacer(minLength: 8)
+                    studioRemoteButton
                     themeToggleButton
                     quickComposeButton
                     libraryButton
@@ -188,6 +194,26 @@ struct RootView: View {
                 }
             }
         }
+    }
+
+    private var studioRemoteButton: some View {
+        Button {
+            isInlineScriptEditorFocused = false
+            model.isShowingStudioRemote = true
+        } label: {
+            Image(systemName: "antenna.radiowaves.left.and.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(palette.accent)
+                .frame(width: 34, height: 34)
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Mac Studio Remote")
+        .accessibilityIdentifier("studioRemoteButton")
     }
 
     private var headerLogo: some View {

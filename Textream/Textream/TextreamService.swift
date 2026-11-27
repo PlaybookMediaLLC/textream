@@ -17,6 +17,7 @@ class TextreamService: NSObject, ObservableObject {
     let externalDisplayController = ExternalDisplayController()
     let browserServer = BrowserServer()
     let directorServer = DirectorServer()
+    let obsClient = OBSWebSocketClient()
     var onOverlayDismissed: (() -> Void)?
     var launchedExternally = false
     @Published var directorIsReading = false
@@ -52,6 +53,9 @@ class TextreamService: NSObject, ObservableObject {
         overlayController.show(text: trimmed, hasNextPage: hasNextPage, targetWPM: activeTargetWPM) { [weak self] in
             self?.externalDisplayController.dismiss()
             self?.browserServer.hideContent()
+            if self?.directorServer.isRunning == true {
+                self?.directorServer.hideContent()
+            }
             self?.onOverlayDismissed?()
         }
         updatePageInfo()
@@ -76,6 +80,14 @@ class TextreamService: NSObject, ObservableObject {
                 hasNextPage: hasNextPage
             )
         }
+        if directorServer.isRunning {
+            directorServer.showContent(
+                speechRecognizer: overlayController.speechRecognizer,
+                words: words,
+                totalCharCount: totalCharCount,
+                overlayContent: overlayController.overlayContent
+            )
+        }
     }
 
     func readCurrentPage() {
@@ -95,6 +107,17 @@ class TextreamService: NSObject, ObservableObject {
         }
         guard nextIndex < pages.count else { return }
         jumpToPage(index: nextIndex)
+    }
+
+    func goToPreviousPage() {
+        var prevIndex = currentPageIndex - 1
+        while prevIndex >= 0 {
+            let text = pages[prevIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty { break }
+            prevIndex -= 1
+        }
+        guard prevIndex >= 0 else { return }
+        jumpToPage(index: prevIndex)
     }
 
     func jumpToPage(index: Int) {
@@ -130,6 +153,12 @@ class TextreamService: NSObject, ObservableObject {
                 words: words,
                 totalCharCount: words.joined(separator: " ").count,
                 hasNextPage: hasNextPage
+            )
+        }
+        if directorServer.isRunning {
+            directorServer.updateContent(
+                words: words,
+                totalCharCount: words.joined(separator: " ").count
             )
         }
 
@@ -403,7 +432,68 @@ class TextreamService: NSObject, ObservableObject {
             self?.updateTextFromDirector(text, readCharCount: readCharCount)
         }
         directorServer.onStop = { [weak self] in
-            self?.stopDirectorReading()
+            guard let self else { return }
+            if self.directorIsReading {
+                self.stopDirectorReading()
+            } else if self.overlayController.isShowing {
+                self.overlayController.dismiss()
+            }
+        }
+        directorServer.onToggleListening = { [weak self] in
+            self?.overlayController.triggerTogglePause()
+        }
+        directorServer.onPause = { [weak self] in
+            self?.overlayController.triggerPause()
+        }
+        directorServer.onResume = { [weak self] in
+            self?.overlayController.triggerResume()
+        }
+        directorServer.onRewindSentence = { [weak self] in
+            self?.overlayController.triggerRewindSentence()
+        }
+        directorServer.onNextPage = { [weak self] in
+            self?.advanceToNextPage()
+        }
+        directorServer.onPreviousPage = { [weak self] in
+            self?.goToPreviousPage()
+        }
+        directorServer.onAdjustSpeed = { [weak self] delta in
+            self?.overlayController.triggerAdjustSpeed(delta: delta)
+        }
+        directorServer.onDropMarker = { [weak self] label in
+            self?.overlayController.triggerDropMarker(label: label ?? "Studio Marker")
+        }
+    }
+
+    // MARK: - OBS Studio WebSocket v5
+
+    func updateOBSConnection() {
+        let settings = NotchSettings.shared
+        MainActor.assumeIsolated {
+            obsClient.onRecordingStarted = { [weak self] in
+                guard let self, NotchSettings.shared.obsAutoStartTeleprompter else { return }
+                if !self.overlayController.isShowing {
+                    self.readCurrentPage()
+                } else {
+                    self.overlayController.triggerResume()
+                }
+            }
+            obsClient.onRecordingStopped = { [weak self] in
+                guard let self, NotchSettings.shared.obsAutoStopTeleprompter else { return }
+                if self.overlayController.isShowing {
+                    self.overlayController.dismiss()
+                }
+            }
+
+            if settings.obsWebSocketEnabled {
+                obsClient.connect(
+                    host: settings.obsHost,
+                    port: settings.obsPort,
+                    password: settings.obsPassword
+                )
+            } else {
+                obsClient.disconnect()
+            }
         }
     }
 
@@ -422,7 +512,7 @@ class TextreamService: NSObject, ObservableObject {
 
         directorIsReading = true
 
-        overlayController.show(text: trimmed, hasNextPage: false) { [weak self] in
+        overlayController.show(text: trimmed, hasNextPage: false, targetWPM: activeTargetWPM) { [weak self] in
             self?.directorIsReading = false
             self?.directorServer.hideContent()
             self?.externalDisplayController.dismiss()
@@ -437,7 +527,8 @@ class TextreamService: NSObject, ObservableObject {
         directorServer.showContent(
             speechRecognizer: overlayController.speechRecognizer,
             words: words,
-            totalCharCount: totalCharCount
+            totalCharCount: totalCharCount,
+            overlayContent: overlayController.overlayContent
         )
 
         // Also show on external display & browser if configured

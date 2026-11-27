@@ -14,6 +14,12 @@
 	<string>Dante for Creators shows only the videos you recorded with Dante for Creators from your Photos library.</string>
 	<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Dante for Creators discovers and controls nearby Macs running Dante Studio on your Wi-Fi network.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_dante-director._tcp</string>
+	</array>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Dante for Creators uses Apple Speech Recognition to follow and highlight the words you read aloud.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

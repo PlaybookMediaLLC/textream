@@ -80,6 +80,7 @@ final class AppModel {
     var isShowingLibrary = false
     var isShowingOnboarding = false
     var isShowingQuickComposer = false
+    var isShowingStudioRemote = false
 
     init(
         defaults: UserDefaults = .standard,

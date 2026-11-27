@@ -1534,6 +1534,7 @@ struct SettingsView: View {
                 Divider()
 
                 let url = "http://\(directorLocalIP):\(settings.directorServerPort)"
+                let pairingCode = TextreamService.shared.directorServer.pairingCode
 
                 if let qrImage = generateQRCode(from: url) {
                     HStack {
@@ -1570,6 +1571,40 @@ struct SettingsView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.accentColor.opacity(0.08))
                 )
+
+                if !pairingCode.isEmpty {
+                    HStack(spacing: 10) {
+                        Image(systemName: "iphone.radiowaves.left.and.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("iOS Studio Remote PIN")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Discovered automatically via Bonjour on the same Wi-Fi.")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(pairingCode)
+                            .font(.system(size: 15, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.accentColor)
+                            .textSelection(.enabled)
+                        Button {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(pairingCode, forType: .string)
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                    }
+                    .padding(10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.primary.opacity(0.04))
+                    )
+                }
 
                 HStack(spacing: 6) {
                     Image(systemName: "info.circle")
@@ -1626,6 +1661,96 @@ struct SettingsView: View {
                 }
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
+            // OBS Studio WebSocket v5 Integration
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Label("OBS Studio WebSocket v5", systemImage: "record.circle")
+                        .font(.system(size: 13, weight: .semibold))
+                    Spacer()
+                    let obsState = TextreamService.shared.obsClient.state
+                    Text(obsState.label)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(obsState.isConnected ? Color.green : .secondary)
+                }
+
+                Text("Automatically start and stop the teleprompter when OBS Studio starts or stops recording.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+
+                Toggle(isOn: $settings.obsWebSocketEnabled) {
+                    Text("Connect to OBS WebSocket")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+
+                if settings.obsWebSocketEnabled {
+                    HStack(spacing: 8) {
+                        TextField("Host", text: $settings.obsHost)
+                            .textFieldStyle(.roundedBorder)
+                        TextField("Port", text: Binding(
+                            get: { String(settings.obsPort) },
+                            set: { str in
+                                if let val = UInt16(str), val > 0 {
+                                    settings.obsPort = val
+                                }
+                            }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 72)
+                    }
+
+                    HStack(spacing: 8) {
+                        SecureField("OBS WebSocket Password (optional)", text: $settings.obsPassword)
+                            .textFieldStyle(.roundedBorder)
+                        Button("Reconnect") {
+                            TextreamService.shared.updateOBSConnection()
+                        }
+                        .controlSize(.small)
+                        .buttonStyle(.bordered)
+                    }
+
+                    Toggle(isOn: $settings.obsAutoStartTeleprompter) {
+                        Text("Auto-start teleprompter on OBS Record Start")
+                            .font(.system(size: 12))
+                    }
+                    .toggleStyle(.checkbox)
+
+                    Toggle(isOn: $settings.obsAutoStopTeleprompter) {
+                        Text("Auto-stop teleprompter on OBS Record Stop")
+                            .font(.system(size: 12))
+                    }
+                    .toggleStyle(.checkbox)
+                }
+            }
+
+            Divider()
+
+            // Hands-Free Clickers, Foot Pedals & Controllers
+            VStack(alignment: .leading, spacing: 6) {
+                Label("Clickers, Foot Pedals & Controllers", systemImage: "gamecontroller")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("Presenter clickers, USB/Bluetooth foot pedals, and game controllers work automatically during live sessions:")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("• Space / Period / F13 / Button A — Play or Pause")
+                    Text("• Left Arrow / F14 / Button B — Rewind Sentence (Smart Retake)")
+                    Text("• Page Down / Right Arrow / F17 — Next Page   • Page Up / F16 — Previous Page")
+                    Text("• Up / Down Arrows — Speed ±0.5 wps   • M / F15 / Button X — Drop NLE Marker")
+                }
+                .font(.system(size: 10.5, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.primary.opacity(0.04))
+                )
             }
 
         }
