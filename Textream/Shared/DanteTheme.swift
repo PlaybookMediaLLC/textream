@@ -57,17 +57,18 @@ enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
     }
 
     #if os(macOS)
+    var nsAppearance: NSAppearance? {
+        switch self {
+        case .system: return nil
+        case .light:  return NSAppearance(named: .aqua)
+        case .dark:   return NSAppearance(named: .darkAqua)
+        }
+    }
+
     @MainActor
     func applyToApplication() {
         guard let app = NSApp else { return }
-        switch self {
-        case .system:
-            app.appearance = nil
-        case .light:
-            app.appearance = NSAppearance(named: .aqua)
-        case .dark:
-            app.appearance = NSAppearance(named: .darkAqua)
-        }
+        app.appearance = nsAppearance
     }
     #endif
 }

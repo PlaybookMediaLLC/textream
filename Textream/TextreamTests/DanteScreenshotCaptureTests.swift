@@ -57,6 +57,209 @@ final class DanteScreenshotCaptureTests: XCTestCase {
             try pngData.write(to: dest)
             XCTAssertGreaterThan(pngData.count, 10_000, "Screenshot \(item.filename) unexpectedly small")
         }
+
+        try captureOverlayScreenshots(outputDir: outputDir)
+    }
+
+    private func captureOverlayScreenshots(outputDir: URL) throws {
+        let settings = NotchSettings.shared
+        settings.listeningMode = .wordTracking
+        settings.showElapsedTime = true
+        settings.showLastSpokenWords = true
+        settings.showParagraphDividers = true
+        settings.overlayTransparency = false
+        settings.floatingGlassEffect = false
+        settings.fontFamilyPreset = .sans
+        settings.fontSizePreset = .lg
+        settings.fontColorPreset = .white
+        settings.cueColorPreset = .white
+        settings.notchWidth = 420
+        settings.textAreaHeight = 190
+
+        let scriptText = """
+        [hook — eye contact]
+        Here is the exact desk setup I use every week to film crisp 4K studio videos in a single take.
+
+        [slow down]
+        When your script sits right underneath the camera lens, you never have to look away or lose your rhythm. Every sentence lands naturally.
+        """
+
+        let content = OverlayContent()
+        let words = splitTextIntoWords(scriptText)
+        content.words = words
+        content.paragraphBreakBeforeWordIndices = paragraphBreakWordIndices(in: scriptText)
+        content.totalCharCount = words.joined(separator: " ").count
+        content.pageCount = 3
+        content.currentPageIndex = 0
+        content.hasNextPage = true
+        content.pagePreviews = [
+            "Hook — eye contact & desk setup",
+            "Lighting chain & camera angle",
+            "Outro call-to-action"
+        ]
+
+        let recognizer = SpeechRecognizer()
+        recognizer.isListening = true
+        recognizer.recognizedCharCount = words.prefix(15).reduce(0) { $0 + $1.count + 1 }
+        recognizer.lastSpokenText = "studio videos in a single take"
+        recognizer.audioLevels = [
+            0.18, 0.34, 0.52, 0.78, 0.61, 0.44, 0.85, 0.92, 0.56, 0.38,
+            0.70, 0.88, 0.64, 0.49, 0.74, 0.58, 0.42, 0.30, 0.62, 0.48,
+            0.35, 0.25, 0.44, 0.55, 0.32, 0.24, 0.38, 0.28, 0.20, 0.16
+        ]
+
+        let tracker = NotchFrameTracker()
+        tracker.menuBarHeight = 37
+        tracker.visibleWidth = settings.notchWidth
+        tracker.visibleHeight = 37 + settings.textAreaHeight
+
+        let overlayCaptures: [(filename: String, appearance: AppAppearance, scheme: ColorScheme, mode: OverlayMode)] = [
+            ("macos-notch-snapped-dark.png", .dark, .dark, .pinned),
+            ("macos-notch-snapped-light.png", .light, .light, .pinned),
+            ("macos-floating-dark.png", .dark, .dark, .floating),
+            ("macos-floating-light.png", .light, .light, .floating)
+        ]
+
+        for item in overlayCaptures {
+            settings.appAppearance = item.appearance
+            settings.overlayMode = item.mode
+            item.appearance.applyToApplication()
+
+            let stageView = makeOverlayStageView(
+                mode: item.mode,
+                scheme: item.scheme,
+                content: content,
+                recognizer: recognizer,
+                tracker: tracker
+            )
+            .preferredColorScheme(item.scheme)
+            .frame(width: 1180, height: 740)
+
+            let pngData = try renderPNG(
+                view: stageView,
+                size: NSSize(width: 1180, height: 740),
+                appearanceName: item.scheme == .dark ? .darkAqua : .aqua
+            )
+            let dest = outputDir.appendingPathComponent(item.filename)
+            try pngData.write(to: dest)
+            XCTAssertGreaterThan(pngData.count, 10_000, "Screenshot \(item.filename) unexpectedly small")
+        }
+    }
+
+    @ViewBuilder
+    private func makeOverlayStageView(
+        mode: OverlayMode,
+        scheme: ColorScheme,
+        content: OverlayContent,
+        recognizer: SpeechRecognizer,
+        tracker: NotchFrameTracker
+    ) -> some View {
+        let palette = DantePalette(colorScheme: scheme)
+        let menuBarHeight: CGFloat = 37
+
+        ZStack(alignment: .top) {
+            // Subtle studio desktop backdrop with the Dante workspace resting below the menu bar
+            palette.sidebarBackground
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Realistic macOS menu bar strip
+                HStack(spacing: 14) {
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 13, weight: .semibold))
+                    Text("Dante for Creators")
+                        .font(.system(size: 12.5, weight: .semibold))
+                    Text("File")
+                    Text("Edit")
+                    Text("Teleprompter")
+                    Text("View")
+                    Spacer()
+                    Image(systemName: "mic.fill")
+                        .foregroundStyle(palette.accent)
+                    Image(systemName: "wifi")
+                    Text("Thu 9:41 AM")
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(palette.textSecondary)
+                .padding(.horizontal, 18)
+                .frame(height: menuBarHeight)
+                .background(palette.surface.opacity(scheme == .dark ? 0.92 : 0.96))
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(palette.borderSubtle)
+                        .frame(height: 1)
+                }
+
+                // Underlying workspace window gently framed on the desktop
+                ContentView(
+                    initialWorkspaceView: .editor,
+                    initialShowQuickComposer: false
+                )
+                .frame(width: 1080, height: 635)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(palette.borderStrong, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(scheme == .dark ? 0.45 : 0.12), radius: 24, y: 12)
+                .opacity(mode == .pinned ? 0.62 : 0.48)
+                .padding(.top, 34)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+
+            if mode == .pinned {
+                // Snapped-to-notch teleprompter docked flush to the top edge of the screen
+                ZStack(alignment: .top) {
+                    NotchOverlayView(
+                        content: content,
+                        speechRecognizer: recognizer,
+                        menuBarHeight: menuBarHeight,
+                        frameTracker: tracker,
+                        startExpanded: true
+                    )
+                    .frame(width: 420, height: menuBarHeight + 190)
+                    .shadow(color: Color.black.opacity(scheme == .dark ? 0.65 : 0.28), radius: 22, y: 10)
+
+                    // Hardware MacBook camera notch centered at top edge
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 10,
+                        bottomTrailingRadius: 10,
+                        topTrailingRadius: 0,
+                        style: .continuous
+                    )
+                    .fill(Color.black)
+                    .frame(width: 176, height: 30)
+                    .overlay {
+                        Circle()
+                            .fill(Color(red: 28 / 255, green: 34 / 255, blue: 46 / 255))
+                            .frame(width: 8, height: 8)
+                            .overlay(
+                                Circle()
+                                    .fill(Color(red: 69 / 255, green: 106 / 255, blue: 246 / 255).opacity(0.45))
+                                    .frame(width: 3, height: 3)
+                            )
+                    }
+                }
+            } else {
+                // Floating studio teleprompter overlay centered above the workspace
+                FloatingOverlayView(
+                    content: content,
+                    speechRecognizer: recognizer,
+                    baseHeight: 235,
+                    followingCursor: false,
+                    startExpanded: true
+                )
+                .frame(width: 460, height: 245)
+                .shadow(
+                    color: Color.black.opacity(scheme == .dark ? 0.60 : 0.18),
+                    radius: 28,
+                    y: 14
+                )
+                .padding(.top, 118)
+            }
+        }
     }
 
     private func seedDemoWorkspace() {

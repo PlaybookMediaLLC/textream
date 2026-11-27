@@ -762,7 +762,7 @@ struct WordFlowLayout: View {
                         HStack(spacing: paragraphDividerDotSpacing) {
                             ForEach(0..<3, id: \.self) { _ in
                                 Circle()
-                                    .fill(Color.white.opacity(paragraphDividerDotOpacity))
+                                    .fill(highlightColor.opacity(paragraphDividerDotOpacity))
                                     .frame(
                                         width: paragraphDividerDotSize,
                                         height: paragraphDividerDotSize
@@ -932,6 +932,7 @@ struct WordFlowLayout: View {
 
 struct ElapsedTimeView: View {
     let fontSize: CGFloat
+    var color: Color = .white.opacity(0.55)
 
     @State private var startDate = Date()
 
@@ -942,7 +943,7 @@ struct ElapsedTimeView: View {
             let seconds = Int(elapsed) % 60
             Text(String(format: "%02d:%02d", minutes, seconds))
                 .font(.system(size: fontSize, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(color)
         }
     }
 }
@@ -952,6 +953,8 @@ struct ElapsedTimeView: View {
 struct AudioWaveformProgressView: View {
     let levels: [CGFloat]
     let progress: Double // 0.0 to 1.0
+    var activeColor: Color = DantePalette(colorScheme: .dark).accent
+    var inactiveColor: Color = .white.opacity(0.16)
 
     var body: some View {
         HStack(alignment: .center, spacing: 2) {
@@ -960,10 +963,7 @@ struct AudioWaveformProgressView: View {
                 let isLit = barProgress <= progress
 
                 RoundedRectangle(cornerRadius: 1.5)
-                    .fill(isLit
-                          ? Color.yellow.opacity(0.9)
-                          : Color.white.opacity(0.15)
-                    )
+                    .fill(isLit ? activeColor : inactiveColor)
                     .frame(width: 3, height: max(3, level * 28))
                     .animation(.easeOut(duration: 0.08), value: level)
             }
