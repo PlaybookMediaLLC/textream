@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.0.0...v1.1.0) (2026-11-27)
+
+
+### Bug Fixes
+
+* **ui:** simplify ContentView body for Xcode 16 type-checker and deflake iOS classic timer test ([ec985fa](https://github.com/PlaybookMediaLLC/textream/commit/ec985fa121c22e602548a05bcadd6734b5dc6da2))
+
+
+### Features
+
+* **ui:** minimalist studio workspace with Dark & Light mode across macOS and iOS ([c41234b](https://github.com/PlaybookMediaLLC/textream/commit/c41234b7424f50e9b69507124eb23b6703ba0f9b)), closes [#3B5FEF](https://github.com/PlaybookMediaLLC/textream/issues/3B5FEF) [#456AF6](https://github.com/PlaybookMediaLLC/textream/issues/456AF6)
+
 # 1.0.0 (2026-11-27)
 
 
