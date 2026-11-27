@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.4.0...v1.5.0) (2026-11-27)
+
+
+### Features
+
+* **sync:** add iCloud CloudKit script synchronization across macOS and iOS ([#14](https://github.com/PlaybookMediaLLC/textream/issues/14)) ([68b00ec](https://github.com/PlaybookMediaLLC/textream/commit/68b00ec6c13966b977c3e8b6245407a23b112754))
+
 # [1.4.0](https://github.com/PlaybookMediaLLC/textream/compare/v1.3.0...v1.4.0) (2026-11-27)
 
 
