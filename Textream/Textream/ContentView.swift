@@ -56,17 +56,22 @@ struct ContentView: View {
     @State private var isDroppingPresentation = false
     @State private var dropError: String?
     @State private var dropAlertTitle: String = "Import Error"
-    @State private var showSettings = false
+    @State private var showSettings: Bool
+    @State private var settingsInitialTab: SettingsTab
     @State private var showAbout = false
     @State private var showOnboarding = false
     @State private var showQuickComposer: Bool
 
     init(
         initialWorkspaceView: StudioWorkspaceView = .editor,
-        initialShowQuickComposer: Bool = false
+        initialShowQuickComposer: Bool = false,
+        initialShowSettings: Bool = false,
+        initialSettingsTab: SettingsTab = .general
     ) {
         _workspaceView = State(initialValue: initialWorkspaceView)
         _showQuickComposer = State(initialValue: initialShowQuickComposer)
+        _showSettings = State(initialValue: initialShowSettings)
+        _settingsInitialTab = State(initialValue: initialSettingsTab)
     }
     @State private var showWPMPopover = false
     @State private var renamingScriptID: UUID?
@@ -166,20 +171,50 @@ struct ContentView: View {
 
     private var rootLayer: some View {
         ZStack {
-            if settings.directorModeEnabled {
-                directorOverlay
-            } else {
-                studioShell
+            Group {
+                if settings.directorModeEnabled {
+                    directorOverlay
+                } else {
+                    studioShell
+                }
+            }
+            .opacity(showSettings ? 0 : 1)
+            .allowsHitTesting(!showSettings)
+            .accessibilityHidden(showSettings)
+
+            if showSettings {
+                SettingsView(
+                    settings: settings,
+                    initialTab: settingsInitialTab,
+                    isEmbeddedInWindow: true,
+                    onClose: {
+                        withAnimation(.easeInOut(duration: 0.16)) {
+                            showSettings = false
+                        }
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(40)
             }
 
-            if showQuickComposer {
+            if showQuickComposer && !showSettings {
                 quickComposerLayer
                     .transition(.opacity)
                     .zIndex(50)
             }
         }
         .background(palette.sidebarBackground)
-        .frame(minWidth: 760, minHeight: 500)
+        .frame(minWidth: 840, minHeight: 540)
+    }
+
+    private func openSettings(tab: SettingsTab = .general) {
+        if isRecording { stopRecording() }
+        if showQuickComposer { showQuickComposer = false }
+        isTextFocused = false
+        settingsInitialTab = tab
+        withAnimation(.easeInOut(duration: 0.16)) {
+            showSettings = true
+        }
     }
 
     private var quickComposerLayer: some View {
@@ -266,10 +301,6 @@ struct ContentView: View {
                     renamingScriptID = nil
                 }
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView(settings: settings)
-                    .preferredColorScheme(settings.appAppearance.colorScheme)
-            }
             .sheet(isPresented: $showAbout) {
                 AboutView()
                     .preferredColorScheme(settings.appAppearance.colorScheme)
@@ -302,7 +333,13 @@ struct ContentView: View {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .openSettings)) { _ in
-                showSettings = true
+                if showSettings {
+                    withAnimation(.easeInOut(duration: 0.16)) {
+                        showSettings = false
+                    }
+                } else {
+                    openSettings(tab: .general)
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .openAbout)) { _ in
                 showAbout = true
@@ -311,6 +348,7 @@ struct ContentView: View {
                 showOnboarding = true
             }
             .onReceive(NotificationCenter.default.publisher(for: .newScript)) { _ in
+                guard !showSettings, !showOnboarding else { return }
                 createNewScript()
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -802,7 +840,7 @@ struct ContentView: View {
                 .help("Creator Setup Guide")
 
                 Button {
-                    showSettings = true
+                    openSettings(tab: .general)
                 } label: {
                     Image(systemName: "gearshape")
                         .font(.system(size: 12, weight: .medium))
@@ -959,7 +997,7 @@ struct ContentView: View {
 
             // Quick Guidance / Engine status pill
             Button {
-                showSettings = true
+                openSettings(tab: .guidance)
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: settings.listeningMode.icon)
@@ -2007,7 +2045,7 @@ struct ContentView: View {
             Spacer()
 
             Button("Open Settings") {
-                showSettings = true
+                openSettings(tab: .director)
             }
             .buttonStyle(.bordered)
             .padding(.bottom, 22)

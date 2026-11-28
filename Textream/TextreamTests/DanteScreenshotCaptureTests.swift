@@ -165,8 +165,7 @@ final class DanteScreenshotCaptureTests: XCTestCase {
 
         defer {
             TextreamService.shared.directorServer.stop()
-            settings.directorModeEnabled = false
-            settings.obsWebSocketEnabled = false
+            settings.resetToDefaults()
         }
 
         let sampleRecord = TakeTranscriptRecord(
@@ -207,16 +206,50 @@ final class DanteScreenshotCaptureTests: XCTestCase {
             item.appearance.applyToApplication()
             let palette = DantePalette(colorScheme: item.scheme)
 
-            // 1. Settings -> Director / Studio Integrations (Pairing PIN + OBS WebSocket v5 + Hardware Controls)
-            let settingsShot = SettingsView(settings: settings, initialTab: .director)
-                .preferredColorScheme(item.scheme)
-                .frame(width: 680, height: 640)
-            let settingsPNG = try renderPNG(
-                view: settingsShot,
-                size: NSSize(width: 680, height: 640),
+            // 1. Modernized Settings Workspace Screenshots (Embedded General + Appearance, Teleprompter, Guidance, Director, OBS, About)
+            let embeddedGeneralView = ContentView(
+                initialWorkspaceView: .editor,
+                initialShowQuickComposer: false,
+                initialShowSettings: true,
+                initialSettingsTab: .general
+            )
+            .preferredColorScheme(item.scheme)
+            .frame(width: 1180, height: 740)
+
+            let embeddedGeneralPNG = try renderPNG(
+                view: embeddedGeneralView,
+                size: NSSize(width: 1180, height: 740),
                 appearanceName: item.scheme == .dark ? .darkAqua : .aqua
             )
-            try settingsPNG.write(to: outputDir.appendingPathComponent("macos-studio-integrations-\(item.suffix).png"))
+            try embeddedGeneralPNG.write(to: outputDir.appendingPathComponent("macos-settings-general-\(item.suffix).png"))
+            XCTAssertGreaterThan(embeddedGeneralPNG.count, 10_000, "Embedded General settings screenshot unexpectedly small")
+
+            let settingsTabs: [(name: String, tab: SettingsTab)] = [
+                ("macos-settings-appearance-\(item.suffix).png", .appearance),
+                ("macos-settings-teleprompter-\(item.suffix).png", .teleprompter),
+                ("macos-settings-guidance-\(item.suffix).png", .guidance),
+                ("macos-studio-integrations-\(item.suffix).png", .director),
+                ("macos-settings-obs-\(item.suffix).png", .obs),
+                ("macos-settings-about-\(item.suffix).png", .about)
+            ]
+            for tabShot in settingsTabs {
+                let settingsView = SettingsView(
+                    settings: settings,
+                    initialTab: tabShot.tab,
+                    isEmbeddedInWindow: true,
+                    enableLivePreview: false
+                )
+                .preferredColorScheme(item.scheme)
+                .frame(width: 1180, height: 740)
+
+                let settingsPNG = try renderPNG(
+                    view: settingsView,
+                    size: NSSize(width: 1180, height: 740),
+                    appearanceName: item.scheme == .dark ? .darkAqua : .aqua
+                )
+                try settingsPNG.write(to: outputDir.appendingPathComponent(tabShot.name))
+                XCTAssertGreaterThan(settingsPNG.count, 10_000, "Screenshot \(tabShot.name) unexpectedly small")
+            }
 
             // 2. Post-Take Analytics & Instant .SRT / FCPXML Export Card
             let summaryStage = ZStack {

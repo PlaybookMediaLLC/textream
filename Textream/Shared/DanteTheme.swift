@@ -139,6 +139,30 @@ struct DantePalette: Sendable {
         isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.14)
     }
 
+    /// Settings detail pane canvas (`#121213` dark / `#FAFAFB` light so pure-white cards pop softly).
+    var settingsCanvasBackground: Color {
+        isDark
+            ? Color(red: 18.0 / 255.0, green: 18.0 / 255.0, blue: 19.0 / 255.0)
+            : Color(red: 250.0 / 255.0, green: 250.0 / 255.0, blue: 251.0 / 255.0)
+    }
+
+    /// Grouped settings card surface (`#1A1A1B` dark / `#FFFFFF` light).
+    var settingsCardBackground: Color {
+        isDark
+            ? Color(red: 26.0 / 255.0, green: 26.0 / 255.0, blue: 27.0 / 255.0)
+            : Color.white
+    }
+
+    /// Hairline divider between rows inside a grouped settings card.
+    var settingsDivider: Color {
+        isDark ? Color.white.opacity(0.07) : Color.black.opacity(0.06)
+    }
+
+    /// Selected sidebar navigation pill inside Settings (`rgba(255,255,255,0.09)` dark / `rgba(0,0,0,0.065)` light).
+    var settingsSelectedSidebarBackground: Color {
+        isDark ? Color.white.opacity(0.09) : Color.black.opacity(0.065)
+    }
+
     /// Primary ink (`#F4F4F5` dark / `#111113` light).
     var textPrimary: Color {
         isDark
@@ -153,11 +177,11 @@ struct DantePalette: Sendable {
             : Color(red: 92.0 / 255.0, green: 92.0 / 255.0, blue: 100.0 / 255.0)
     }
 
-    /// Muted metadata / timestamps / shortcut hints (`#64646A` dark / `#8E8E96` light).
+    /// Muted metadata / timestamps / shortcut hints (`#86868F` dark / `#666670` light — WCAG AA).
     var textTertiary: Color {
         isDark
-            ? Color(red: 100.0 / 255.0, green: 100.0 / 255.0, blue: 106.0 / 255.0)
-            : Color(red: 142.0 / 255.0, green: 142.0 / 255.0, blue: 150.0 / 255.0)
+            ? Color(red: 134.0 / 255.0, green: 134.0 / 255.0, blue: 143.0 / 255.0)
+            : Color(red: 102.0 / 255.0, green: 102.0 / 255.0, blue: 112.0 / 255.0)
     }
 
     /// Signature cobalt blue primary action & indicator accent (`#456AF6` dark / `#3B5FEF` light).

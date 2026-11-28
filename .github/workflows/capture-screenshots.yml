@@ -19,13 +19,14 @@ jobs:
         env:
           TEST_RUNNER_DANTE_CAPTURE_SCREENSHOTS: "1"
         run: |
+          set -o pipefail
           OUT="${{ github.workspace }}/screenshots/macos"
           mkdir -p "$OUT"
           xcodebuild test \
             -project Textream.xcodeproj \
             -scheme Textream \
             -destination 'platform=macOS' \
-            -only-testing:TextreamTests/DanteScreenshotCaptureTests \
+            -only-testing:TextreamTests \
             CODE_SIGN_IDENTITY=- \
             DEVELOPMENT_TEAM="" \
             CODE_SIGN_STYLE=Manual | tee /tmp/macos_shots.log
