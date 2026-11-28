@@ -382,173 +382,152 @@ struct NotchPreviewContent: View {
     }
 }
 
-// MARK: - Settings Tabs
-
-enum SettingsTab: String, CaseIterable, Identifiable {
-    case appearance, guidance, reading, teleprompter, external, browser, director
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .appearance: return "Appearance"
-        case .guidance:   return "Guidance"
-        case .reading:    return "Reading"
-        case .teleprompter: return "Teleprompter"
-        case .external:   return "External"
-        case .browser:    return "Remote"
-        case .director:   return "Director"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .appearance: return "paintpalette"
-        case .guidance:   return "waveform"
-        case .reading:    return "book"
-        case .teleprompter: return "macwindow"
-        case .external:   return "rectangle.on.rectangle"
-        case .browser:    return "antenna.radiowaves.left.and.right"
-        case .director:   return "megaphone"
-        }
-    }
-}
-
 // MARK: - Settings View
 
 struct SettingsView: View {
-    /// Segmented controls grew on macOS 26+ (up to ~374pt for the overlay mode
-    /// picker). At 500pt the content column (~312pt) overflowed and SwiftUI
-    /// centered it, clipping both edges of the sheet. Older systems keep 500pt.
-    private static var sheetWidth: CGFloat {
-        if #available(macOS 26, *) { return 600 }
-        return 500
-    }
-
     @Bindable var settings: NotchSettings
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
-    @State private var previewController = NotchPreviewController()
-    @State private var selectedTab: SettingsTab
-    @State private var showResetConfirmation = false
-    @State private var showAcknowledgements = false
-    @State private var guidanceTestEngine: SpeechEngine?
 
-    init(settings: NotchSettings, initialTab: SettingsTab = .appearance) {
+    let isEmbeddedInWindow: Bool
+    let enableLivePreview: Bool
+    let onClose: (() -> Void)?
+
+    @State private var previewController = NotchPreviewController()
+    @State var selectedTab: SettingsTab
+    @State private var isSidebarVisible = true
+    @State private var searchQuery = ""
+    @State private var hoveredTab: SettingsTab?
+    @State private var showLivePreview: Bool
+    @State private var library = ScriptLibraryStore.shared
+
+    @State var showResetConfirmation = false
+    @State var showAcknowledgements = false
+    @State var showModelManager = false
+    @State var guidanceTestEngine: SpeechEngine?
+    @State var availableMics: [AudioInputDevice] = []
+    @State var supportedLocales: [Locale] = []
+    @State var availableScreens: [NSScreen] = []
+    @State var overlayScreens: [NSScreen] = []
+    @State var localIP: String = BrowserServer.localIPAddress() ?? "localhost"
+    @State var directorLocalIP: String = BrowserServer.localIPAddress() ?? "localhost"
+    @State var modelStore = LocalSpeechModelStore.shared
+    @State var modelDownloads = ModelDownloadManager.shared
+
+    init(
+        settings: NotchSettings,
+        initialTab: SettingsTab = .general,
+        isEmbeddedInWindow: Bool = false,
+        enableLivePreview: Bool = true,
+        onClose: (() -> Void)? = nil
+    ) {
         self.settings = settings
+        self.isEmbeddedInWindow = isEmbeddedInWindow
+        self.enableLivePreview = enableLivePreview
+        self.onClose = onClose
         _selectedTab = State(initialValue: initialTab)
+        _showLivePreview = State(initialValue: enableLivePreview)
     }
 
-    private var palette: DantePalette {
+    var palette: DantePalette {
         DantePalette(colorScheme: colorScheme)
     }
 
+    var isPrompterActive: Bool {
+        let service = TextreamService.shared
+        let recognizer = service.overlayController.speechRecognizer
+        return service.overlayController.isShowing
+            || service.directorIsReading
+            || recognizer.isListening
+            || recognizer.isStarting
+    }
+
+    var appVersionLabel: String {
+        let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.6.1"
+        if let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String, !build.isEmpty {
+            return "\(short) (\(build))"
+        }
+        return short
+    }
+
+    private var appVersionShort: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.6.1"
+    }
+
+    private var isSearching: Bool {
+        !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var filteredSearchResults: [SettingsSearchItem] {
+        SettingsSearchIndex.search(searchQuery)
+    }
+
+    private var matchingSidebarTabs: Set<SettingsTab> {
+        Set(SettingsSearchIndex.matchingTabs(for: searchQuery))
+    }
+
+    private var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
+    private var shouldRenderOverlayPreview: Bool {
+        enableLivePreview && showLivePreview && !isRunningTests && settings.overlayMode != .fullscreen
+    }
+
+    private var activeCreatorPresetID: CreatorPresetID {
+        library.activeScript?.presetID ?? .youtubeStudio
+    }
+
+    // MARK: - Body
+
     var body: some View {
         HStack(spacing: 0) {
-            // Sidebar
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Settings")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(palette.textTertiary)
-                    .textCase(.uppercase)
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 6)
-
-                ForEach(SettingsTab.allCases) { tab in
-                    let isSelected = selectedTab == tab
-                    Button {
-                        selectedTab = tab
-                    } label: {
-                        HStack(spacing: 7) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(isSelected ? palette.accent : palette.textTertiary)
-                                .frame(width: 16)
-                            Text(tab.label)
-                                .font(.system(size: 13, weight: isSelected ? .medium : .regular))
-                                .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
-                            Spacer(minLength: 4)
-                            if isSelected {
-                                Circle()
-                                    .fill(palette.accent)
-                                    .frame(width: 5, height: 5)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(
-                            isSelected ? palette.surfaceHover : Color.clear,
-                            in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Spacer()
+            if isSidebarVisible {
+                settingsSidebar
+                    .frame(width: 236)
+                    .background(palette.sidebarBackground)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
             }
-            .padding(12)
-            .frame(width: 162)
-            .frame(maxHeight: .infinity)
-            .background(palette.sidebarBackground)
 
-            Rectangle().fill(palette.borderSubtle).frame(width: 1)
-
-            // Content
             VStack(spacing: 0) {
-                switch selectedTab {
-                case .appearance:
-                    appearanceTab
-                case .guidance:
-                    guidanceTab
-                case .reading:
-                    readingTab
-                case .teleprompter:
-                    teleprompterTab
-                case .external:
-                    externalTab
-                case .browser:
-                    browserTab
-                case .director:
-                    directorTab
+                settingsTopBar
+
+                // Rounded inner content pane matching sleek studio workspace aesthetic
+                ZStack {
+                    detailPane
                 }
-
-                Rectangle().fill(palette.borderSubtle).frame(height: 1)
-
-                HStack(spacing: 12) {
-                    Button("Reset All") {
-                        showResetConfirmation = true
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(palette.textSecondary)
-                    .controlSize(.regular)
-
-                    Button("Acknowledgements") {
-                        showAcknowledgements = true
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(palette.textSecondary)
-                    .controlSize(.regular)
-
-                    Spacer()
-
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.regular)
-                }
-                .padding(12)
-                .background(palette.surface)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(palette.settingsCanvasBackground)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: isSidebarVisible ? 12 : 0,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 0,
+                        style: .continuous
+                    )
+                )
+                .overlay(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: isSidebarVisible ? 12 : 0,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 0,
+                        style: .continuous
+                    )
+                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(palette.canvasBackground)
+            .background(palette.sidebarBackground)
         }
-        .frame(width: Self.sheetWidth, height: 520)
-        .background(palette.canvasBackground)
+        .background(palette.sidebarBackground)
+        .ignoresSafeArea(.container, edges: isEmbeddedInWindow ? .top : [])
         .sheet(item: $guidanceTestEngine) { engine in
             GuidanceTestSheet(engine: engine)
+        }
+        .sheet(isPresented: $showModelManager) {
+            ModelManagerSheet(settings: settings)
         }
         .sheet(isPresented: $showAcknowledgements) {
             OpenSourceLicensesView()
@@ -557,21 +536,23 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) { }
             Button("Reset", role: .destructive) {
                 withAnimation(.easeInOut(duration: 0.2)) {
-                    resetAllSettings()
+                    settings.resetToDefaults()
                 }
             }
         } message: {
-            Text("This will restore all settings to their defaults.")
+            Text("This will restore every appearance, teleprompter, speech, and studio integration preference to its factory default.")
+        }
+        .task {
+            await loadSupportedLocalesIfNeeded()
         }
         .onAppear {
-            if settings.overlayMode != .fullscreen {
-                previewController.show(settings: settings)
-                if settings.followCursorWhenUndocked && settings.overlayMode == .floating {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        previewController.animateToCursor(settings: settings)
-                    }
-                }
-            }
+            refreshMicrophones()
+            refreshScreens()
+            refreshOverlayScreens()
+            localIP = BrowserServer.localIPAddress() ?? "localhost"
+            directorLocalIP = localIP
+            modelStore.refresh()
+            syncPreviewVisibility()
         }
         .onDisappear {
             previewController.dismiss()
@@ -580,16 +561,13 @@ struct SettingsView: View {
             previewController.hide()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            if settings.overlayMode != .fullscreen {
-                previewController.show(settings: settings)
-                if settings.followCursorWhenUndocked && settings.overlayMode == .floating {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        previewController.animateToCursor(settings: settings)
-                    }
-                }
-            }
+            syncPreviewVisibility()
+        }
+        .onChange(of: showLivePreview) { _, _ in
+            syncPreviewVisibility()
         }
         .onChange(of: settings.followCursorWhenUndocked) { _, follow in
+            guard shouldRenderOverlayPreview else { return }
             if follow && settings.overlayMode == .floating {
                 previewController.animateToCursor(settings: settings)
             } else {
@@ -597,7 +575,7 @@ struct SettingsView: View {
             }
         }
         .onChange(of: settings.overlayMode) { _, mode in
-            if mode == .fullscreen {
+            if mode == .fullscreen || !shouldRenderOverlayPreview {
                 previewController.hide()
             } else {
                 previewController.show(settings: settings)
@@ -608,1296 +586,1084 @@ struct SettingsView: View {
                 }
             }
         }
+        .onExitCommand {
+            if isSearching {
+                searchQuery = ""
+            } else {
+                closeSettings()
+            }
+        }
     }
 
-    // MARK: - Appearance Tab
+    // MARK: - Sidebar
+
+    private var settingsSidebar: some View {
+        VStack(spacing: 0) {
+            if isEmbeddedInWindow {
+                // Keep clear of macOS window traffic lights in hidden-titlebar mode
+                Color.clear
+                    .frame(height: 36)
+            }
+
+            // Back + Collapse Header (`← Settings    [◫]`)
+            HStack(spacing: 6) {
+                Button {
+                    closeSettings()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 11.5, weight: .semibold))
+                            .foregroundStyle(palette.textSecondary)
+                        Text("Settings")
+                            .font(.system(size: 13.5, weight: .semibold))
+                            .foregroundStyle(palette.textPrimary)
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Back to Studio (Esc)")
+
+                Spacer()
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        isSidebarVisible = false
+                    }
+                } label: {
+                    Image(systemName: "sidebar.left")
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundStyle(palette.textSecondary)
+                        .frame(width: 26, height: 26)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Hide Settings Sidebar")
+            }
+            .padding(.horizontal, 10)
+            .padding(.top, isEmbeddedInWindow ? 2 : 12)
+            .padding(.bottom, 10)
+
+            // Search Field (`Q Search settings`)
+            HStack(spacing: 7) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(palette.textTertiary)
+
+                TextField("Search settings", text: $searchQuery)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(palette.textPrimary)
+
+                if isSearching {
+                    Button {
+                        searchQuery = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 11.5))
+                            .foregroundStyle(palette.textTertiary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Clear search")
+                }
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 6.5)
+            .background(
+                palette.elevatedSurface,
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+            )
+            .padding(.horizontal, 12)
+            .padding(.bottom, 12)
+
+            // Categorized Navigation List
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(SettingsSidebarGroup.allCases) { group in
+                        let visibleTabs = group.tabs.filter { tab in
+                            !isSearching || matchingSidebarTabs.contains(tab)
+                        }
+                        if !visibleTabs.isEmpty {
+                            if let title = group.title {
+                                Text(title)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(palette.textTertiary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.top, 14)
+                                    .padding(.bottom, 5)
+                            }
+
+                            ForEach(visibleTabs) { tab in
+                                sidebarNavRow(for: tab)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.bottom, 16)
+            }
+
+            // Bottom Brand & Info Footer (matching workspace footer aesthetic)
+            Rectangle()
+                .fill(palette.borderSubtle)
+                .frame(height: 1)
+
+            Menu {
+                Button {
+                    searchQuery = ""
+                    selectedTab = .about
+                } label: {
+                    Label("About & Reset", systemImage: "info.circle")
+                }
+                Button {
+                    showAcknowledgements = true
+                } label: {
+                    Label("Open Source Acknowledgements", systemImage: "doc.text")
+                }
+                Button {
+                    closeSettings()
+                    NotificationCenter.default.post(name: .openOnboarding, object: nil)
+                } label: {
+                    Label("Creator Setup Guide", systemImage: "sparkles")
+                }
+                Divider()
+                Button {
+                    NSWorkspace.shared.open(DanteAppLinks.supportURL)
+                } label: {
+                    Label("Dante Support", systemImage: "questionmark.circle")
+                }
+            } label: {
+                HStack(spacing: 9) {
+                    if let icon = NSImage(named: "AppIcon") {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .frame(width: 26, height: 26)
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    } else {
+                        Text("D")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 26, height: 26)
+                            .background(palette.accent, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    }
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(DanteAppLinks.appName)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(palette.textPrimary)
+                            .lineLimit(1)
+                        Text("v\(appVersionShort) · Studio")
+                            .font(.system(size: 10.5))
+                            .foregroundStyle(palette.textTertiary)
+                            .lineLimit(1)
+                    }
+
+                    Spacer(minLength: 4)
+
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundStyle(palette.textTertiary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+        }
+    }
+
+    private func sidebarNavRow(for tab: SettingsTab) -> some View {
+        let isSelected = !isSearching && selectedTab == tab
+        let isHovered = hoveredTab == tab
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.14)) {
+                searchQuery = ""
+                selectedTab = tab
+            }
+        } label: {
+            HStack(spacing: 9) {
+                Image(systemName: tab.icon)
+                    .font(.system(size: 12.5, weight: isSelected ? .medium : .regular))
+                    .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
+                    .frame(width: 16, alignment: .center)
+
+                Text(tab.label)
+                    .font(.system(size: 13, weight: isSelected ? .medium : .regular))
+                    .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+
+                Spacer(minLength: 4)
+
+                if let indicatorColor = liveIndicatorColor(for: tab) {
+                    Circle()
+                        .fill(indicatorColor)
+                        .frame(width: 6, height: 6)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6.5)
+            .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(
+                        isSelected
+                            ? palette.settingsSelectedSidebarBackground
+                            : (isHovered ? palette.surfaceHover.opacity(0.65) : Color.clear)
+                    )
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            hoveredTab = hovering ? tab : (hoveredTab == tab ? nil : hoveredTab)
+        }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func liveIndicatorColor(for tab: SettingsTab) -> Color? {
+        switch tab {
+        case .browser where settings.browserServerEnabled:
+            return palette.statusSuccess
+        case .director where settings.directorModeEnabled:
+            return palette.statusSuccess
+        case .obs where settings.obsWebSocketEnabled:
+            return TextreamService.shared.obsClient.state.isConnected
+                ? palette.statusSuccess
+                : palette.statusWarning
+        default:
+            return nil
+        }
+    }
+
+    // MARK: - Top Bar
+
+    private var settingsTopBar: some View {
+        HStack(spacing: 10) {
+            if !isSidebarVisible {
+                if isEmbeddedInWindow {
+                    Spacer().frame(width: 66)
+                }
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        isSidebarVisible = true
+                    }
+                } label: {
+                    Image(systemName: "sidebar.left")
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundStyle(palette.textSecondary)
+                        .frame(width: 26, height: 26)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Show Settings Sidebar")
+            }
+
+            // Active page pill matching reference header tab (`[⚙ General]`)
+            HStack(spacing: 6) {
+                Image(systemName: isSearching ? "magnifyingglass" : selectedTab.icon)
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(palette.textSecondary)
+                Text(isSearching ? "Search results" : selectedTab.label)
+                    .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(palette.textPrimary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5.5)
+            .background(
+                palette.elevatedSurface,
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+            )
+
+            Spacer()
+
+            if enableLivePreview && settings.overlayMode != .fullscreen {
+                Button {
+                    showLivePreview.toggle()
+                } label: {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(showLivePreview ? palette.accent : palette.textTertiary)
+                            .frame(width: 6, height: 6)
+                        Text(showLivePreview ? "Live Preview" : "Preview Off")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(showLivePreview ? palette.accent : palette.textSecondary)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        showLivePreview ? palette.accentSubtle : palette.elevatedSurface,
+                        in: Capsule()
+                    )
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(
+                                showLivePreview ? palette.accent.opacity(0.28) : palette.borderSubtle,
+                                lineWidth: 1
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("Toggle the live floating teleprompter preview")
+            }
+
+            Button {
+                closeSettings()
+            } label: {
+                Text("Done")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(palette.textPrimary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+                    .background(
+                        palette.elevatedSurface,
+                        in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(.escape, modifiers: [])
+            .help("Return to Studio (Esc)")
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 44)
+    }
+
+    // MARK: - Detail Pane
+
+    private var detailPane: some View {
+        GeometryReader { geo in
+            let horizontalPadding: CGFloat = geo.size.width > 760 ? 40 : 24
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 0) {
+                    if isSearching {
+                        searchResultsView
+                    } else {
+                        activeTabContent
+                    }
+                }
+                .frame(maxWidth: 680, alignment: .leading)
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, 34)
+                .padding(.bottom, 52)
+                .frame(maxWidth: .infinity, alignment: .center)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var activeTabContent: some View {
+        switch selectedTab {
+        case .general:      generalTab
+        case .appearance:   appearanceTab
+        case .teleprompter: teleprompterTab
+        case .reading:      readingTab
+        case .guidance:     guidanceTab
+        case .models:       modelsTab
+        case .external:     externalTab
+        case .browser:      browserTab
+        case .director:     directorTab
+        case .obs:          obsTab
+        case .shortcuts:    shortcutsTab
+        case .about:        aboutTab
+        }
+    }
+
+    // MARK: - Search Results View
+
+    private var searchResultsView: some View {
+        let results = filteredSearchResults
+        return VStack(alignment: .leading, spacing: 22) {
+            SettingsPageHeader(
+                title: "Search results",
+                subtitle: results.isEmpty
+                    ? "No settings matched \"\(searchQuery)\"."
+                    : "\(results.count) \(results.count == 1 ? "setting" : "settings") matching \"\(searchQuery)\".",
+                palette: palette
+            )
+
+            if results.isEmpty {
+                SettingsCard(palette: palette) {
+                    VStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundStyle(palette.textTertiary)
+                        Text("No matching settings")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(palette.textPrimary)
+                        Text("Try searching for Theme, Font, Notch, Smart Follow, OBS, Mirror, iCloud, or Reset.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(palette.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 36)
+                    .padding(.horizontal, 20)
+                }
+            } else {
+                SettingsCard(palette: palette) {
+                    ForEach(Array(results.enumerated()), id: \.element.id) { index, item in
+                        if index > 0 {
+                            SettingsRowDivider(palette: palette)
+                        }
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                selectedTab = item.tab
+                                searchQuery = ""
+                            }
+                        } label: {
+                            SettingsRow(
+                                title: item.title,
+                                subtitle: "\(item.tab.label) · \(item.section) — \(item.subtitle)",
+                                icon: item.icon,
+                                iconColor: palette.accent,
+                                palette: palette
+                            ) {
+                                HStack(spacing: 4) {
+                                    Text(item.tab.label)
+                                        .font(.system(size: 11.5, weight: .medium))
+                                        .foregroundStyle(palette.textSecondary)
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundStyle(palette.textTertiary)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - General Page
+
+    private var generalTab: some View {
+        let presetBinding = Binding<CreatorPresetID>(
+            get: { activeCreatorPresetID },
+            set: { newID in
+                let preset = CreatorPreset.preset(for: newID)
+                settings.apply(preset: preset)
+                library.updateActiveMetadata(targetWPM: preset.targetWPM, presetID: .some(preset.id))
+            }
+        )
+        let checklistVisibleBinding = Binding<Bool>(
+            get: { !settings.hasDismissedSetupChecklist },
+            set: { settings.hasDismissedSetupChecklist = !$0 }
+        )
+
+        return VStack(alignment: .leading, spacing: 26) {
+            SettingsPageHeader(
+                title: SettingsTab.general.label,
+                subtitle: SettingsTab.general.subtitle,
+                palette: palette
+            )
+
+            SettingsSection(title: "Studio workflow", palette: palette) {
+                SettingsRow(
+                    title: "Creator format preset",
+                    subtitle: "Quickly tune overlay position, pacing, and display behavior for your recording format.",
+                    palette: palette
+                ) {
+                    SettingsMenuPicker(
+                        options: CreatorPresetID.allCases,
+                        selection: presetBinding,
+                        minWidth: 168,
+                        palette: palette,
+                        iconForOption: { CreatorPreset.preset(for: $0).systemImage },
+                        labelForOption: { CreatorPreset.preset(for: $0).name }
+                    )
+                }
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsRow(
+                    title: "iCloud Script Sync",
+                    subtitle: "Automatically sync scripts and pages across Mac, iPhone, and iPad via iCloud.",
+                    palette: palette
+                ) {
+                    HStack(spacing: 10) {
+                        if settings.iCloudSyncEnabled {
+                            Button {
+                                Task { await library.syncWithCloud() }
+                            } label: {
+                                SettingsStatusPill(
+                                    label: library.syncStatus.label,
+                                    color: library.syncStatus == .syncing ? palette.accent : palette.statusSuccess,
+                                    palette: palette
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .help("Sync with iCloud now")
+                        }
+                        Toggle("", isOn: $settings.iCloudSyncEnabled)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .tint(palette.accent)
+                            .controlSize(.small)
+                            .accessibilityLabel("iCloud Script Sync")
+                    }
+                }
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Keep screen awake",
+                    subtitle: "Prevent display and system sleep while the teleprompter is active.",
+                    isOn: $settings.keepScreenAwake,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Show setup checklist",
+                    subtitle: "Display onboarding progress steps at the bottom of the studio sidebar.",
+                    isOn: checklistVisibleBinding,
+                    palette: palette
+                )
+            }
+
+            SettingsSection(title: "Live session", palette: palette) {
+                SettingsToggleRow(
+                    title: "Smart Retake recovery",
+                    subtitle: "Automatically rewind when you restart a sentence mid-take, or press ← to rewind manually.",
+                    isOn: $settings.smartRetakeEnabled,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Live pacing coach",
+                    subtitle: "Show real-time WPM and schedule delta against your script's target pace.",
+                    isOn: $settings.showPacingCoach,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Hide from screen sharing",
+                    subtitle: "Keep the teleprompter invisible during video calls and desktop recordings.",
+                    isOn: $settings.hideFromScreenShare,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Show elapsed time",
+                    subtitle: "Display a running session timer inside the teleprompter header.",
+                    isOn: $settings.showElapsedTime,
+                    palette: palette
+                )
+            }
+        }
+    }
+
+    // MARK: - Appearance Page
 
     private var appearanceTab: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 14) {
-                // App Theme (System / Light / Dark)
-                Text("App Theme")
-                    .font(.system(size: 13, weight: .medium))
+        VStack(alignment: .leading, spacing: 26) {
+            SettingsPageHeader(
+                title: SettingsTab.appearance.label,
+                subtitle: SettingsTab.appearance.subtitle,
+                palette: palette
+            )
 
-                HStack(spacing: 8) {
-                    ForEach(AppAppearance.allCases) { appearance in
-                        let isSelected = settings.appAppearance == appearance
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                settings.appAppearance = appearance
-                            }
-                        } label: {
-                            VStack(spacing: 6) {
-                                Image(systemName: appearance.systemImage)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(isSelected ? palette.accent : palette.textPrimary)
-                                Text(appearance.label)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(isSelected ? palette.accent : palette.textSecondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 11)
-                            .background(
-                                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                    .fill(isSelected ? palette.accentSubtle : palette.surface)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                    .strokeBorder(isSelected ? palette.accent.opacity(0.6) : palette.borderSubtle, lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
+            SettingsSection(palette: palette) {
+                SettingsRow(
+                    title: "Mode",
+                    subtitle: "Follow macOS System appearance, or lock Dante to Light or Dark.",
+                    palette: palette
+                ) {
+                    SettingsVisualModePicker(selection: $settings.appAppearance, palette: palette)
                 }
 
-                Divider()
+                if enableLivePreview && settings.overlayMode != .fullscreen {
+                    SettingsRowDivider(palette: palette)
 
-                // Font Family
-                Text("Font")
-                    .font(.system(size: 13, weight: .medium))
-
-                HStack(spacing: 8) {
-                    ForEach(FontFamilyPreset.allCases) { preset in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                settings.fontFamilyPreset = preset
-                            }
-                        } label: {
-                            VStack(spacing: 6) {
-                                Text("Ag")
-                                    .font(Font(preset.font(size: 16)))
-                                    .foregroundStyle(settings.fontFamilyPreset == preset ? Color.accentColor : .primary)
-                                Text(preset.label)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(settings.fontFamilyPreset == preset ? Color.accentColor : .secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(settings.fontFamilyPreset == preset ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.05))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .strokeBorder(settings.fontFamilyPreset == preset ? Color.accentColor.opacity(0.4) : Color.clear, lineWidth: 1.5)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                // Text Size
-                Text("Size")
-                    .font(.system(size: 13, weight: .medium))
-
-                HStack(spacing: 8) {
-                    ForEach(FontSizePreset.allCases) { preset in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                settings.fontSizePreset = preset
-                            }
-                        } label: {
-                            VStack(spacing: 6) {
-                                Text("Ag")
-                                    .font(Font(settings.fontFamilyPreset.font(size: preset.pointSize * 0.7)))
-                                    .foregroundStyle(settings.fontSizePreset == preset ? Color.accentColor : .primary)
-                                Text(preset.label)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(settings.fontSizePreset == preset ? Color.accentColor : .secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(settings.fontSizePreset == preset ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.05))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .strokeBorder(settings.fontSizePreset == preset ? Color.accentColor.opacity(0.4) : Color.clear, lineWidth: 1.5)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                Divider()
-
-                // Highlight Color
-                Text("Highlight Color")
-                    .font(.system(size: 13, weight: .medium))
-
-                HStack(spacing: 8) {
-                    ForEach(FontColorPreset.allCases) { preset in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                settings.fontColorPreset = preset
-                            }
-                        } label: {
-                            VStack(spacing: 6) {
-                                Circle()
-                                    .fill(preset.color)
-                                    .frame(width: 22, height: 22)
-                                    .overlay(
-                                        Circle()
-                                            .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
-                                    )
-                                    .overlay(
-                                        settings.fontColorPreset == preset
-                                            ? Image(systemName: "checkmark")
-                                                .font(.system(size: 10, weight: .bold))
-                                                .foregroundStyle(preset == .white ? .black : .white)
-                                            : nil
-                                    )
-                                Text(preset.label)
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundStyle(settings.fontColorPreset == preset ? .primary : .secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(settings.fontColorPreset == preset ? preset.color.opacity(0.1) : Color.primary.opacity(0.05))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .strokeBorder(settings.fontColorPreset == preset ? preset.color.opacity(0.4) : Color.clear, lineWidth: 1.5)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                // Cue Color
-                Text("Cue Color")
-                    .font(.system(size: 13, weight: .medium))
-
-                HStack(spacing: 8) {
-                    ForEach(FontColorPreset.allCases) { preset in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                settings.cueColorPreset = preset
-                            }
-                        } label: {
-                            VStack(spacing: 6) {
-                                Circle()
-                                    .fill(preset.color)
-                                    .frame(width: 22, height: 22)
-                                    .overlay(
-                                        Circle()
-                                            .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
-                                    )
-                                    .overlay(
-                                        settings.cueColorPreset == preset
-                                            ? Image(systemName: "checkmark")
-                                                .font(.system(size: 10, weight: .bold))
-                                                .foregroundStyle(preset == .white ? .black : .white)
-                                            : nil
-                                    )
-                                Text(preset.label)
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundStyle(settings.cueColorPreset == preset ? .primary : .secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(settings.cueColorPreset == preset ? preset.color.opacity(0.1) : Color.primary.opacity(0.05))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .strokeBorder(settings.cueColorPreset == preset ? preset.color.opacity(0.4) : Color.clear, lineWidth: 1.5)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                // Cue Brightness
-                Text("Cue Brightness")
-                    .font(.system(size: 13, weight: .medium))
-
-                Picker("", selection: $settings.cueBrightness) {
-                    ForEach(CueBrightness.allCases) { brightness in
-                        Text(brightness.label).tag(brightness)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-
-                Divider()
-
-                // Dimensions
-                Text("Dimensions")
-                    .font(.system(size: 13, weight: .medium))
-
-                VStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("Width")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text("\(Int(settings.notchWidth))px")
-                                .font(.system(size: 11, weight: .regular, design: .monospaced))
-                                .foregroundStyle(.tertiary)
-                        }
-                        Slider(
-                            value: $settings.notchWidth,
-                            in: NotchSettings.minWidth...NotchSettings.maxWidth,
-                            step: 10
-                        )
-                    }
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("Height")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text("\(Int(settings.textAreaHeight))px")
-                                .font(.system(size: 11, weight: .regular, design: .monospaced))
-                                .foregroundStyle(.tertiary)
-                        }
-                        Slider(
-                            value: $settings.textAreaHeight,
-                            in: NotchSettings.minHeight...NotchSettings.maxHeight,
-                            step: 10
-                        )
-                    }
+                    SettingsToggleRow(
+                        title: "Live overlay preview",
+                        subtitle: "Keep a live teleprompter preview visible on screen while customizing settings.",
+                        isOn: $showLivePreview,
+                        palette: palette
+                    )
                 }
             }
-            .padding(16)
+
+            SettingsSection(
+                title: "Typography",
+                subtitle: "Choose the teleprompter font family and point size for comfortable lens reading.",
+                palette: palette
+            ) {
+                SettingsFontCardGrid(
+                    selection: $settings.fontFamilyPreset,
+                    highlightColor: settings.fontColorPreset.color,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsRow(
+                    title: "Text size",
+                    subtitle: "Controls the active reading scale inside the teleprompter.",
+                    palette: palette
+                ) {
+                    SettingsSegmentedPill(
+                        options: FontSizePreset.allCases,
+                        selection: $settings.fontSizePreset,
+                        palette: palette,
+                        labelForOption: { "\($0.label) · \(Int($0.pointSize))pt" }
+                    )
+                }
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsInlinePrompterPreview(
+                    fontFamily: settings.fontFamilyPreset,
+                    fontSize: settings.fontSizePreset,
+                    highlightColor: settings.fontColorPreset,
+                    cueColor: settings.cueColorPreset,
+                    cueBrightness: settings.cueBrightness,
+                    palette: palette
+                )
+                .padding(14)
+            }
+
+            SettingsSection(
+                title: "Colors",
+                subtitle: "Customize spoken highlight ink and [bracketed] stage direction visibility.",
+                palette: palette
+            ) {
+                SettingsColorSwatchRow(
+                    title: "Highlight color",
+                    subtitle: "Active ink color for tracked and highlighted script words.",
+                    selection: $settings.fontColorPreset,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsColorSwatchRow(
+                    title: "Stage cue color",
+                    subtitle: "Accent color for [bracketed] delivery cues and stage directions.",
+                    selection: $settings.cueColorPreset,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsRow(
+                    title: "Cue brightness",
+                    subtitle: "Balance stage cues so they guide delivery without distracting from spoken lines.",
+                    palette: palette
+                ) {
+                    SettingsSegmentedPill(
+                        options: CueBrightness.allCases,
+                        selection: $settings.cueBrightness,
+                        palette: palette,
+                        labelForOption: \.label
+                    )
+                }
+            }
         }
     }
 
-    // MARK: - Guidance Tab
-
-    private var guidanceTab: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            VStack(alignment: .leading, spacing: 14) {
-                Picker("", selection: $settings.listeningMode) {
-                    ForEach(ListeningMode.allCases) { mode in
-                        Text(mode.label).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-
-                Text(settings.listeningMode.description)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-
-                if settings.listeningMode == .wordTracking {
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "waveform.path.ecg")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
-                            .padding(.top, 1)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Smart Follow Active")
-                                .font(.system(size: 11, weight: .semibold))
-                            Text("Automatically recovers when you ad-lib, pause, skip a paragraph, or re-read a line.")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
-
-                    Divider()
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Engine")
-                            .font(.system(size: 13, weight: .medium))
-                        Picker("", selection: $settings.speechEngine) {
-                            ForEach(SpeechEngine.allCases) { engine in
-                                Text(engine.label).tag(engine)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        Text(settings.speechEngine.description)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Divider()
-
-                    if settings.speechEngine == .local {
-                        LocalModelSettingsSection(settings: settings)
-                    }
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Speech Language")
-                            .font(.system(size: 13, weight: .medium))
-                        Picker("", selection: $settings.speechLocale) {
-                            ForEach(SFSpeechRecognizer.supportedLocales().sorted(by: { $0.identifier < $1.identifier }), id: \.identifier) { locale in
-                                Text(Locale.current.localizedString(forIdentifier: locale.identifier) ?? locale.identifier)
-                                    .tag(locale.identifier)
-                            }
-                        }
-                        .labelsHidden()
-                        if settings.speechEngine == .local {
-                            Text("Guidance uses the selected language when supported. Some models detect the spoken language in Test Guidance.")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    HStack {
-                        Spacer()
-                        Button {
-                            guidanceTestEngine = settings.speechEngine
-                        } label: {
-                            Label("Test Guidance", systemImage: "waveform")
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(isPrompterActive)
-                        .help(isPrompterActive
-                              ? "Stop the active teleprompter before testing guidance."
-                              : "Listen with the selected engine and show its transcription.")
-                    }
-                }
-
-                if settings.listeningMode != .classic {
-                    Divider()
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Microphone")
-                            .font(.system(size: 13, weight: .medium))
-                        Picker("", selection: $settings.selectedMicUID) {
-                            Text("System Default").tag("")
-                            ForEach(availableMics) { mic in
-                                Text(mic.name).tag(mic.uid)
-                            }
-                        }
-                        .labelsHidden()
-                    }
-                }
-
-                if settings.listeningMode != .wordTracking {
-                    Divider()
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Scroll Speed")
-                                .font(.system(size: 13, weight: .medium))
-                            Spacer()
-                            Text(String(format: "%.1f words/s", settings.scrollSpeed))
-                                .font(.system(size: 12, weight: .regular, design: .monospaced))
-                                .foregroundStyle(.secondary)
-                        }
-                        Slider(
-                            value: $settings.scrollSpeed,
-                            in: 0.5...8,
-                            step: 0.5
-                        )
-                        HStack {
-                            Text("Slower")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.tertiary)
-                            Spacer()
-                            Text("Faster")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .onAppear { availableMics = AudioInputDevice.allInputDevices() }
-    }
-
-    @State private var availableMics: [AudioInputDevice] = []
-
-    private var isPrompterActive: Bool {
-        let service = TextreamService.shared
-        let recognizer = service.overlayController.speechRecognizer
-        return service.overlayController.isShowing
-            || service.directorIsReading
-            || recognizer.isListening
-            || recognizer.isStarting
-    }
-
-    // MARK: - Reading Tab
-
-    private var readingTab: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 14) {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("Reading Position")
-                            .font(.system(size: 13, weight: .medium))
-                        Spacer()
-                        Picker("Reading Position", selection: $settings.readingPosition) {
-                            ForEach(ReadingPosition.allCases) { position in
-                                Text(position.label).tag(position)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .frame(width: 190)
-                    }
-
-                    Text("Near Top keeps the previous line visible above the active line.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-
-                Divider()
-
-                Toggle(isOn: $settings.showParagraphDividers) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Show Paragraph Dividers")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Separate source line breaks with extra space and three centered dots.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                Toggle(isOn: $settings.showLastSpokenWords) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Show Last Spoken Words")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Display recently recognized words while using Word Tracking.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                Toggle(isOn: $settings.smartRetakeEnabled) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Smart Retake Recovery")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Automatically rewind when you restart a sentence mid-take, or press ← to rewind manually.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                Toggle(isOn: $settings.showPacingCoach) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Live Pacing Coach")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Show real-time WPM and schedule delta against your script's target pace.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                Toggle(isOn: $settings.iCloudSyncEnabled) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("iCloud Script Sync")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Automatically sync your scripts and pages across Mac, iPhone, and iPad via iCloud.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                Toggle(isOn: $settings.keepScreenAwake) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Keep Screen Awake")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Prevent display and system sleep while the teleprompter is active.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-            }
-            .padding(16)
-        }
-    }
-
-    // MARK: - Teleprompter Tab
-
-    @State private var overlayScreens: [NSScreen] = []
+    // MARK: - Teleprompter Page
 
     private var teleprompterTab: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 14) {
-                // Overlay mode picker
-                Picker("", selection: $settings.overlayMode) {
-                    ForEach(OverlayMode.allCases) { mode in
-                        Text(mode.label).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+        let widthBinding = Binding<Double>(
+            get: { Double(settings.notchWidth) },
+            set: { settings.notchWidth = CGFloat($0) }
+        )
+        let heightBinding = Binding<Double>(
+            get: { Double(settings.textAreaHeight) },
+            set: { settings.textAreaHeight = CGFloat($0) }
+        )
 
-                Text(settings.overlayMode.description)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+        return VStack(alignment: .leading, spacing: 26) {
+            SettingsPageHeader(
+                title: SettingsTab.teleprompter.label,
+                subtitle: SettingsTab.teleprompter.subtitle,
+                palette: palette
+            )
+
+            SettingsSection(title: "Overlay mode", palette: palette) {
+                SettingsRow(
+                    title: "Presentation style",
+                    subtitle: settings.overlayMode.description,
+                    icon: settings.overlayMode.icon,
+                    iconColor: palette.accent,
+                    palette: palette
+                ) {
+                    SettingsMenuPicker(
+                        options: OverlayMode.allCases,
+                        selection: $settings.overlayMode,
+                        minWidth: 164,
+                        palette: palette,
+                        iconForOption: \.icon,
+                        labelForOption: \.label
+                    )
+                }
 
                 if settings.overlayMode == .pinned {
-                    Divider()
+                    SettingsRowDivider(palette: palette)
 
-                    Text("Display")
-                        .font(.system(size: 13, weight: .medium))
-
-                    Picker("", selection: $settings.notchDisplayMode) {
-                        ForEach(NotchDisplayMode.allCases) { mode in
-                            Text(mode.label).tag(mode)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-
-                    Text(settings.notchDisplayMode.description)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-
-                    if settings.notchDisplayMode == .fixedDisplay {
-                        displayPicker(
-                            screens: overlayScreens,
-                            selectedID: $settings.pinnedScreenID,
-                            onRefresh: { refreshOverlayScreens() }
+                    SettingsRow(
+                        title: "Display placement",
+                        subtitle: settings.notchDisplayMode.description,
+                        icon: "display",
+                        palette: palette
+                    ) {
+                        SettingsSegmentedPill(
+                            options: NotchDisplayMode.allCases,
+                            selection: $settings.notchDisplayMode,
+                            palette: palette,
+                            labelForOption: \.label
                         )
                     }
 
-                    Divider()
+                    SettingsRowDivider(palette: palette)
 
-                    Toggle(isOn: $settings.overlayTransparency) {
-                        Text("Transparency")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-
-                    Text("Makes the overlay see-through so desktop content shows through.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                    SettingsToggleRow(
+                        title: "Overlay transparency",
+                        subtitle: "Makes the notch overlay translucent so desktop content remains visible behind it.",
+                        icon: "square.on.square.intersection.dashed",
+                        isOn: $settings.overlayTransparency,
+                        palette: palette
+                    )
 
                     if settings.overlayTransparency {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text("Amount")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text("\(Int(settings.overlayTransparencyOpacity * 100))%")
-                                    .font(.system(size: 11, weight: .regular, design: .monospaced))
-                                    .foregroundStyle(.tertiary)
-                            }
-                            Slider(
-                                value: $settings.overlayTransparencyOpacity,
-                                in: 0.2...0.95,
-                                step: 0.05
-                            )
-                            HStack {
-                                Text("More transparent")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.tertiary)
-                                Spacer()
-                                Text("Less transparent")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.tertiary)
-                            }
-                        }
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        SettingsRowDivider(palette: palette)
+
+                        SettingsSliderRow(
+                            title: "Transparency amount",
+                            valueLabel: "\(Int(settings.overlayTransparencyOpacity * 100))%",
+                            value: $settings.overlayTransparencyOpacity,
+                            range: 0.2...0.95,
+                            step: 0.05,
+                            leadingLabel: "More transparent",
+                            trailingLabel: "Less transparent",
+                            palette: palette
+                        )
                     }
                 }
 
                 if settings.overlayMode == .floating {
-                    Divider()
+                    SettingsRowDivider(palette: palette)
 
-                    Toggle(isOn: $settings.followCursorWhenUndocked) {
-                        Text("Follow Cursor")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
+                    SettingsToggleRow(
+                        title: "Follow cursor",
+                        subtitle: "Keep the floating window anchored smoothly beside your cursor.",
+                        icon: "cursorarrow.motionlines",
+                        isOn: $settings.followCursorWhenUndocked,
+                        palette: palette
+                    )
 
-                    Text("The window follows your cursor and sticks to its bottom-right.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                    SettingsRowDivider(palette: palette)
 
-                    Divider()
-
-                    Toggle(isOn: $settings.floatingGlassEffect) {
-                        Text("Glass Effect")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
+                    SettingsToggleRow(
+                        title: "Glass effect",
+                        subtitle: "Use translucent frosted glass backing for the floating teleprompter window.",
+                        icon: "sparkles.rectangle.stack",
+                        isOn: $settings.floatingGlassEffect,
+                        palette: palette
+                    )
 
                     if settings.floatingGlassEffect {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text("Opacity")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text("\(Int(settings.glassOpacity * 100))%")
-                                    .font(.system(size: 11, weight: .regular, design: .monospaced))
-                                    .foregroundStyle(.tertiary)
-                            }
-                            Slider(
-                                value: $settings.glassOpacity,
-                                in: 0.0...0.6,
-                                step: 0.05
-                            )
-                        }
+                        SettingsRowDivider(palette: palette)
+
+                        SettingsSliderRow(
+                            title: "Glass opacity",
+                            valueLabel: "\(Int(settings.glassOpacity * 100))%",
+                            value: $settings.glassOpacity,
+                            range: 0.0...0.6,
+                            step: 0.05,
+                            leadingLabel: "Clearer",
+                            trailingLabel: "More solid",
+                            palette: palette
+                        )
                     }
                 }
 
                 if settings.overlayMode == .fullscreen {
-                    Divider()
+                    SettingsRowDivider(palette: palette)
 
-                    Text("Display")
-                        .font(.system(size: 13, weight: .medium))
-
-                    displayPicker(
-                        screens: overlayScreens,
-                        selectedID: $settings.fullscreenScreenID,
-                        onRefresh: { refreshOverlayScreens() }
-                    )
-
-                    HStack(spacing: 6) {
-                        Image(systemName: "escape")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text("Press Esc to stop the teleprompter.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.primary.opacity(0.04))
-                    )
-                }
-
-                Divider()
-
-                // Options
-                Toggle(isOn: $settings.showElapsedTime) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Elapsed Time")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Display a running timer while the teleprompter is active.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                Toggle(isOn: $settings.hideFromScreenShare) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Hide from Screen Sharing")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Hide the overlay from screen recordings and video calls.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                Divider()
-
-                // Pagination
-                Text("Pagination")
-                    .font(.system(size: 13, weight: .semibold))
-
-                Toggle(isOn: $settings.autoNextPage) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Auto Next Page")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Automatically advance to the next page after a countdown.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.checkbox)
-
-                if settings.autoNextPage {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Countdown")
-                            .font(.system(size: 13))
-                        Picker("Countdown", selection: $settings.autoNextPageDelay) {
-                            Text("Instant").tag(0)
-                            Text("1 second").tag(1)
-                            Text("3 seconds").tag(3)
-                            Text("5 seconds").tag(5)
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
+                    SettingsRow(
+                        title: "Exit shortcut",
+                        subtitle: "Press Escape at any time to dismiss the fullscreen teleprompter.",
+                        icon: "escape",
+                        palette: palette
+                    ) {
+                        DanteKeycapBadge(label: "Esc", palette: palette)
                     }
                 }
             }
-            .padding(16)
-        }
-        .onAppear { refreshOverlayScreens() }
-    }
 
-    // MARK: - External Tab
-
-    @State private var availableScreens: [NSScreen] = []
-
-    private var externalTab: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Show the teleprompter on an external display or Sidecar iPad.")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-
-            Picker("", selection: $settings.externalDisplayMode) {
-                ForEach(ExternalDisplayMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-
-            Text(settings.externalDisplayMode.description)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-
-            if settings.externalDisplayMode == .mirror {
-                Divider()
-
-                Text("Mirror Axis")
-                    .font(.system(size: 13, weight: .medium))
-
-                Picker("", selection: $settings.mirrorAxis) {
-                    ForEach(MirrorAxis.allCases) { axis in
-                        Text(axis.label).tag(axis)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-
-                Text(settings.mirrorAxis.description)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-            }
-
-            if settings.externalDisplayMode != .off {
-                Divider()
-
-                Text("Target Display")
-                    .font(.system(size: 13, weight: .medium))
-
-                displayPicker(
-                    screens: availableScreens,
-                    selectedID: $settings.externalScreenID,
-                    onRefresh: { refreshScreens() },
-                    emptyMessage: "No external displays detected. Connect a display or enable Sidecar."
-                )
-            }
-            Spacer()
-        }
-        .padding(16)
-        .onAppear { refreshScreens() }
-    }
-
-    // MARK: - Remote Tab
-
-    @State private var localIP: String = BrowserServer.localIPAddress() ?? "localhost"
-    @State private var showAdvanced: Bool = false
-
-    private var browserTab: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Scan the QR code or open the URL with your iPhone, Android or TV browser on the same Wi-Fi network.")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-
-            Toggle(isOn: $settings.browserServerEnabled) {
-                Text("Enable Remote Connection")
-                    .font(.system(size: 13, weight: .medium))
-            }
-            .toggleStyle(.switch)
-            .controlSize(.small)
-
-            if settings.browserServerEnabled {
-                Divider()
-
-                let url = "http://\(localIP):\(settings.browserServerPort)"
-
-                if let qrImage = generateQRCode(from: url) {
-                    HStack {
-                        Spacer()
-                        Image(nsImage: qrImage)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 120, height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                        Spacer()
-                    }
-                }
-
-                HStack(spacing: 10) {
-                    Text(url)
-                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color.accentColor)
-                        .textSelection(.enabled)
-
-                    Button {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(url, forType: .string)
-                    } label: {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.08))
-                )
-
-                DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Port")
-                                .font(.system(size: 13, weight: .medium))
-                            HStack(spacing: 8) {
-                                TextField("Port", text: Binding(
-                                    get: { String(settings.browserServerPort) },
-                                    set: { str in
-                                        if let val = UInt16(str), val >= 1024, val < UInt16.max {
-                                            settings.browserServerPort = val
-                                        }
-                                    }
-                                ))
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 80)
-
-                                Text("Restart required after change")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.tertiary)
-
-                                Spacer()
-
-                                Button("Restart") {
-                                    TextreamService.shared.browserServer.stop()
-                                    TextreamService.shared.browserServer.start()
-                                    localIP = BrowserServer.localIPAddress() ?? "localhost"
-                                }
-                                .controlSize(.small)
-                                .buttonStyle(.bordered)
-                            }
-                        }
-
-                        HStack(spacing: 6) {
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                            Text("Uses ports \(String(settings.browserServerPort)) (HTTP) and \(String(settings.browserServerPort + 1)) (WebSocket).")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.top, 8)
-                }
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-            }
-
-        }
-        .padding(16)
-        }
-        .onAppear { localIP = BrowserServer.localIPAddress() ?? "localhost" }
-    }
-
-    // MARK: - Director Tab
-
-    @State private var directorLocalIP: String = BrowserServer.localIPAddress() ?? "localhost"
-    @State private var showDirectorAdvanced: Bool = false
-
-    private var directorTab: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Director Mode lets a remote person control your teleprompter script in real-time via a web browser. The editor will be disabled while active.")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-
-            Toggle(isOn: $settings.directorModeEnabled) {
-                Text("Enable Director Mode")
-                    .font(.system(size: 13, weight: .medium))
-            }
-            .toggleStyle(.switch)
-            .controlSize(.small)
-
-            if settings.directorModeEnabled {
-                Divider()
-
-                let url = "http://\(directorLocalIP):\(settings.directorServerPort)"
-                let pairingCode = TextreamService.shared.directorServer.pairingCode
-
-                if let qrImage = generateQRCode(from: url) {
-                    HStack {
-                        Spacer()
-                        Image(nsImage: qrImage)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 120, height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                        Spacer()
-                    }
-                }
-
-                HStack(spacing: 10) {
-                    Text(url)
-                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color.accentColor)
-                        .textSelection(.enabled)
-
-                    Button {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(url, forType: .string)
-                    } label: {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.08))
-                )
-
-                if !pairingCode.isEmpty {
-                    HStack(spacing: 10) {
-                        Image(systemName: "iphone.radiowaves.left.and.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("iOS Studio Remote PIN")
-                                .font(.system(size: 12, weight: .semibold))
-                            Text("Discovered automatically via Bonjour on the same Wi-Fi.")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Text(pairingCode)
-                            .font(.system(size: 15, weight: .bold, design: .monospaced))
-                            .foregroundStyle(Color.accentColor)
-                            .textSelection(.enabled)
+            if (settings.overlayMode == .pinned && settings.notchDisplayMode == .fixedDisplay)
+                || settings.overlayMode == .fullscreen {
+                SettingsSection(
+                    title: "Target display",
+                    subtitle: settings.overlayMode == .fullscreen
+                        ? "Select which screen displays the fullscreen teleprompter."
+                        : "Select the display where the notch teleprompter remains pinned.",
+                    palette: palette,
+                    trailing: {
                         Button {
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(pairingCode, forType: .string)
+                            refreshOverlayScreens()
                         } label: {
-                            Image(systemName: "doc.on.doc")
-                                .font(.system(size: 11, weight: .medium))
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 10.5, weight: .medium))
+                                Text("Refresh")
+                                    .font(.system(size: 11.5, weight: .medium))
+                            }
+                            .foregroundStyle(palette.textSecondary)
                         }
                         .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
                     }
-                    .padding(10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.primary.opacity(0.04))
+                ) {
+                    displaySelectionRows(
+                        screens: overlayScreens,
+                        selectedID: settings.overlayMode == .fullscreen
+                            ? $settings.fullscreenScreenID
+                            : $settings.pinnedScreenID,
+                        emptyMessage: "No displays found. Click Refresh to rescan connected screens."
+                    )
+                }
+            }
+
+            SettingsSection(
+                title: "Dimensions",
+                subtitle: "Adjust the reading window geometry beneath your Mac's camera lens.",
+                palette: palette
+            ) {
+                SettingsSliderRow(
+                    title: "Width",
+                    subtitle: "Horizontal width of the teleprompter viewport.",
+                    valueLabel: "\(Int(settings.notchWidth)) px",
+                    value: widthBinding,
+                    range: Double(NotchSettings.minWidth)...Double(NotchSettings.maxWidth),
+                    step: 10,
+                    leadingLabel: "\(Int(NotchSettings.minWidth)) px",
+                    trailingLabel: "\(Int(NotchSettings.maxWidth)) px",
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsSliderRow(
+                    title: "Text area height",
+                    subtitle: "Vertical height available for script lines inside the overlay.",
+                    valueLabel: "\(Int(settings.textAreaHeight)) px",
+                    value: heightBinding,
+                    range: Double(NotchSettings.minHeight)...Double(NotchSettings.maxHeight),
+                    step: 10,
+                    leadingLabel: "\(Int(NotchSettings.minHeight)) px",
+                    trailingLabel: "\(Int(NotchSettings.maxHeight)) px",
+                    palette: palette
+                )
+            }
+
+            SettingsSection(title: "Privacy & pagination", palette: palette) {
+                SettingsToggleRow(
+                    title: "Hide from screen sharing",
+                    subtitle: "Exclude the teleprompter overlay from screen recordings and video calls.",
+                    icon: "eye.slash",
+                    isOn: $settings.hideFromScreenShare,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Elapsed time",
+                    subtitle: "Show a live timer while reading.",
+                    icon: "timer",
+                    isOn: $settings.showElapsedTime,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Auto next page",
+                    subtitle: "Automatically advance to the next script page after a brief countdown.",
+                    icon: "doc.on.doc",
+                    isOn: $settings.autoNextPage,
+                    palette: palette
+                )
+
+                if settings.autoNextPage {
+                    SettingsRowDivider(palette: palette)
+
+                    SettingsRow(
+                        title: "Page advance countdown",
+                        subtitle: "Wait duration before flipping to the next page automatically.",
+                        palette: palette
+                    ) {
+                        SettingsSegmentedPill(
+                            options: AutoAdvanceDelayOption.allCases,
+                            selection: Binding(
+                                get: { AutoAdvanceDelayOption(seconds: settings.autoNextPageDelay) },
+                                set: { settings.autoNextPageDelay = $0.rawValue }
+                            ),
+                            palette: palette,
+                            labelForOption: \.label
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Reading Page
+
+    private var readingTab: some View {
+        VStack(alignment: .leading, spacing: 26) {
+            SettingsPageHeader(
+                title: SettingsTab.reading.label,
+                subtitle: SettingsTab.reading.subtitle,
+                palette: palette
+            )
+
+            SettingsSection(title: "Layout & alignment", palette: palette) {
+                SettingsRow(
+                    title: "Reading position",
+                    subtitle: "Near Top keeps the active line closest to the camera lens with the previous line visible above.",
+                    icon: "text.alignleft",
+                    palette: palette
+                ) {
+                    SettingsSegmentedPill(
+                        options: ReadingPosition.allCases,
+                        selection: $settings.readingPosition,
+                        palette: palette,
+                        labelForOption: \.label
                     )
                 }
 
-                HStack(spacing: 6) {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                    Text("Word tracking is forced when the director starts reading.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
+                SettingsRowDivider(palette: palette)
 
-                DisclosureGroup("Advanced", isExpanded: $showDirectorAdvanced) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Port")
-                                .font(.system(size: 13, weight: .medium))
-                            HStack(spacing: 8) {
-                                TextField("Port", text: Binding(
-                                    get: { String(settings.directorServerPort) },
-                                    set: { str in
-                                        if let val = UInt16(str), val >= 1024, val < UInt16.max {
-                                            settings.directorServerPort = val
-                                        }
-                                    }
-                                ))
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 80)
+                SettingsToggleRow(
+                    title: "Show paragraph dividers",
+                    subtitle: "Separate source line breaks with extra breathing space and three centered dots.",
+                    icon: "line.3.horizontal",
+                    isOn: $settings.showParagraphDividers,
+                    palette: palette
+                )
 
-                                Text("Restart required after change")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.tertiary)
+                SettingsRowDivider(palette: palette)
 
-                                Spacer()
-
-                                Button("Restart") {
-                                    TextreamService.shared.directorServer.stop()
-                                    TextreamService.shared.directorServer.start()
-                                    directorLocalIP = BrowserServer.localIPAddress() ?? "localhost"
-                                }
-                                .controlSize(.small)
-                                .buttonStyle(.bordered)
-                            }
-                        }
-
-                        HStack(spacing: 6) {
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                            Text("Uses ports \(String(settings.directorServerPort)) (HTTP) and \(String(settings.directorServerPort + 1)) (WebSocket).")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.top, 8)
-                }
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-            }
-
-            Divider()
-
-            // OBS Studio WebSocket v5 Integration
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Label("OBS Studio WebSocket v5", systemImage: "record.circle")
-                        .font(.system(size: 13, weight: .semibold))
-                    Spacer()
-                    let obsState = TextreamService.shared.obsClient.state
-                    Text(obsState.label)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(obsState.isConnected ? Color.green : .secondary)
-                }
-
-                Text("Automatically start and stop the teleprompter when OBS Studio starts or stops recording.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-
-                Toggle(isOn: $settings.obsWebSocketEnabled) {
-                    Text("Connect to OBS WebSocket")
-                        .font(.system(size: 13, weight: .medium))
-                }
-                .toggleStyle(.switch)
-                .controlSize(.small)
-
-                if settings.obsWebSocketEnabled {
-                    HStack(spacing: 8) {
-                        TextField("Host", text: $settings.obsHost)
-                            .textFieldStyle(.roundedBorder)
-                        TextField("Port", text: Binding(
-                            get: { String(settings.obsPort) },
-                            set: { str in
-                                if let val = UInt16(str), val > 0 {
-                                    settings.obsPort = val
-                                }
-                            }
-                        ))
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 72)
-                    }
-
-                    HStack(spacing: 8) {
-                        SecureField("OBS WebSocket Password (optional)", text: $settings.obsPassword)
-                            .textFieldStyle(.roundedBorder)
-                        Button("Reconnect") {
-                            TextreamService.shared.updateOBSConnection()
-                        }
-                        .controlSize(.small)
-                        .buttonStyle(.bordered)
-                    }
-
-                    Toggle(isOn: $settings.obsAutoStartTeleprompter) {
-                        Text("Auto-start teleprompter on OBS Record Start")
-                            .font(.system(size: 12))
-                    }
-                    .toggleStyle(.checkbox)
-
-                    Toggle(isOn: $settings.obsAutoStopTeleprompter) {
-                        Text("Auto-stop teleprompter on OBS Record Stop")
-                            .font(.system(size: 12))
-                    }
-                    .toggleStyle(.checkbox)
-                }
-            }
-
-            Divider()
-
-            // Hands-Free Clickers, Foot Pedals & Controllers
-            VStack(alignment: .leading, spacing: 6) {
-                Label("Clickers, Foot Pedals & Controllers", systemImage: "gamecontroller")
-                    .font(.system(size: 13, weight: .semibold))
-                Text("Presenter clickers, USB/Bluetooth foot pedals, and game controllers work automatically during live sessions:")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("• Space / Period / F13 / Button A — Play or Pause")
-                    Text("• Left Arrow / F14 / Button B — Rewind Sentence (Smart Retake)")
-                    Text("• Page Down / Right Arrow / F17 — Next Page   • Page Up / F16 — Previous Page")
-                    Text("• Up / Down Arrows — Speed ±0.5 wps   • M / F15 / Button X — Drop NLE Marker")
-                }
-                .font(.system(size: 10.5, design: .monospaced))
-                .foregroundStyle(.secondary)
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.primary.opacity(0.04))
+                SettingsToggleRow(
+                    title: "Show last spoken words",
+                    subtitle: "Display recently recognized words at the bottom while using Word Tracking.",
+                    icon: "captions.bubble",
+                    isOn: $settings.showLastSpokenWords,
+                    palette: palette
                 )
             }
 
-        }
-        .padding(16)
-        }
-        .onAppear { directorLocalIP = BrowserServer.localIPAddress() ?? "localhost" }
-    }
-
-    // MARK: - Shared Components
-
-    private func displayPicker(
-        screens: [NSScreen],
-        selectedID: Binding<UInt32>,
-        onRefresh: @escaping () -> Void,
-        emptyMessage: String? = nil
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if screens.isEmpty, let emptyMessage {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.orange)
-                    Text(emptyMessage)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.orange.opacity(0.08))
+            SettingsSection(title: "Smart coaching & recovery", palette: palette) {
+                SettingsToggleRow(
+                    title: "Smart Retake recovery",
+                    subtitle: "Automatically rewind when you restart a sentence mid-take, or press ← manually.",
+                    icon: "arrow.counterclockwise",
+                    isOn: $settings.smartRetakeEnabled,
+                    palette: palette
                 )
-            } else {
-                ForEach(screens, id: \.displayID) { screen in
-                    Button {
-                        selectedID.wrappedValue = screen.displayID
-                    } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "display")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(selectedID.wrappedValue == screen.displayID ? Color.accentColor : .secondary)
-                                .frame(width: 24)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(screen.displayName)
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(selectedID.wrappedValue == screen.displayID ? Color.accentColor : .primary)
-                                Text("\(Int(screen.frame.width))×\(Int(screen.frame.height))")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            if selectedID.wrappedValue == screen.displayID {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(Color.accentColor)
-                            }
-                        }
-                        .padding(10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(selectedID.wrappedValue == screen.displayID ? Color.accentColor.opacity(0.1) : Color.primary.opacity(0.04))
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
 
-            Button(action: onRefresh) {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 10, weight: .semibold))
-                    Text("Refresh")
-                        .font(.system(size: 11, weight: .medium))
-                }
-                .foregroundStyle(.secondary)
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Live pacing coach",
+                    subtitle: "Track live words-per-minute and schedule delta against your script's target pace.",
+                    icon: "gauge.with.needle",
+                    isOn: $settings.showPacingCoach,
+                    palette: palette
+                )
+
+                SettingsRowDivider(palette: palette)
+
+                SettingsToggleRow(
+                    title: "Keep screen awake",
+                    subtitle: "Prevent macOS from dimming or sleeping the display during long reads.",
+                    icon: "sun.max",
+                    isOn: $settings.keepScreenAwake,
+                    palette: palette
+                )
             }
-            .buttonStyle(.plain)
         }
     }
 
-    // MARK: - QR Code
+    // MARK: - Actions & Helpers
 
-    private func generateQRCode(from string: String) -> NSImage? {
-        let context = CIContext()
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = Data(string.utf8)
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let scale = 10.0
-        let scaled = ciImage.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
-        guard let cgImage = context.createCGImage(scaled, from: scaled.extent) else { return nil }
-        return NSImage(cgImage: cgImage, size: NSSize(width: scaled.extent.width, height: scaled.extent.height))
+    func closeSettings() {
+        if let onClose {
+            onClose()
+        } else {
+            dismiss()
+        }
     }
 
-    // MARK: - Helpers
-
-    private func resetAllSettings() {
-        settings.notchWidth = NotchSettings.defaultWidth
-        settings.textAreaHeight = NotchSettings.defaultHeight
-        settings.speechLocale = NotchSettings.defaultLocale
-        settings.fontSizePreset = .lg
-        settings.fontFamilyPreset = .sans
-        settings.fontColorPreset = .white
-        settings.cueColorPreset = .white
-        settings.cueBrightness = .dim
-        settings.overlayMode = .pinned
-        settings.notchDisplayMode = .followMouse
-        settings.pinnedScreenID = 0
-        settings.floatingGlassEffect = false
-        settings.glassOpacity = 0.15
-        settings.overlayTransparency = false
-        settings.overlayTransparencyOpacity = 0.85
-        settings.followCursorWhenUndocked = false
-        settings.fullscreenScreenID = 0
-        settings.externalDisplayMode = .off
-        settings.externalScreenID = 0
-        settings.mirrorAxis = .horizontal
-        settings.listeningMode = .wordTracking
-        settings.scrollSpeed = 3
-        settings.showElapsedTime = true
-        settings.hideFromScreenShare = true
-        settings.keepScreenAwake = false
-        settings.readingPosition = .centered
-        settings.showParagraphDividers = false
-        settings.showLastSpokenWords = true
-        settings.selectedMicUID = ""
-        settings.autoNextPage = false
-        settings.autoNextPageDelay = 3
-        settings.browserServerEnabled = false
-        settings.browserServerPort = 7373
-        settings.directorModeEnabled = false
-        settings.directorServerPort = 7575
+    private func syncPreviewVisibility() {
+        guard shouldRenderOverlayPreview else {
+            previewController.hide()
+            return
+        }
+        previewController.show(settings: settings)
+        if settings.followCursorWhenUndocked && settings.overlayMode == .floating {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                previewController.animateToCursor(settings: settings)
+            }
+        }
     }
 
-    private func refreshScreens() {
+    private func loadSupportedLocalesIfNeeded() async {
+        guard supportedLocales.isEmpty else { return }
+        let locales = await Task.detached(priority: .userInitiated) {
+            let current = Locale.current
+            return SFSpeechRecognizer.supportedLocales().sorted { lhs, rhs in
+                let left = current.localizedString(forIdentifier: lhs.identifier) ?? lhs.identifier
+                let right = current.localizedString(forIdentifier: rhs.identifier) ?? rhs.identifier
+                return left.localizedStandardCompare(right) == .orderedAscending
+            }
+        }.value
+        guard !Task.isCancelled else { return }
+        supportedLocales = locales
+    }
+
+    func refreshMicrophones() {
+        availableMics = AudioInputDevice.allInputDevices()
+    }
+
+    func refreshScreens() {
         availableScreens = NSScreen.screens.filter { $0 != NSScreen.main }
         if settings.externalScreenID == 0, let first = availableScreens.first {
             settings.externalScreenID = first.displayID
         }
     }
 
-    private func refreshOverlayScreens() {
+    func refreshOverlayScreens() {
         overlayScreens = NSScreen.screens
         if settings.pinnedScreenID == 0, let main = NSScreen.main {
             settings.pinnedScreenID = main.displayID
@@ -1907,3 +1673,28 @@ struct SettingsView: View {
         }
     }
 }
+
+// MARK: - Auto Advance Delay Option
+
+private enum AutoAdvanceDelayOption: Int, CaseIterable, Identifiable {
+    case instant = 0
+    case oneSecond = 1
+    case threeSeconds = 3
+    case fiveSeconds = 5
+
+    var id: Int { rawValue }
+
+    init(seconds: Int) {
+        self = AutoAdvanceDelayOption(rawValue: seconds) ?? .threeSeconds
+    }
+
+    var label: String {
+        switch self {
+        case .instant:      return "Instant"
+        case .oneSecond:    return "1s"
+        case .threeSeconds: return "3s"
+        case .fiveSeconds:  return "5s"
+        }
+    }
+}
+

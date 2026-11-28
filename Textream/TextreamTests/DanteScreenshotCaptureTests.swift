@@ -207,16 +207,33 @@ final class DanteScreenshotCaptureTests: XCTestCase {
             item.appearance.applyToApplication()
             let palette = DantePalette(colorScheme: item.scheme)
 
-            // 1. Settings -> Director / Studio Integrations (Pairing PIN + OBS WebSocket v5 + Hardware Controls)
-            let settingsShot = SettingsView(settings: settings, initialTab: .director)
+            // 1. Modernized Settings Workspace Screenshots (General, Appearance, Guidance, Director, OBS, About)
+            let settingsTabs: [(name: String, tab: SettingsTab)] = [
+                ("macos-settings-general-\(item.suffix).png", .general),
+                ("macos-settings-appearance-\(item.suffix).png", .appearance),
+                ("macos-settings-guidance-\(item.suffix).png", .guidance),
+                ("macos-studio-integrations-\(item.suffix).png", .director),
+                ("macos-settings-obs-\(item.suffix).png", .obs),
+                ("macos-settings-about-\(item.suffix).png", .about)
+            ]
+            for tabShot in settingsTabs {
+                let settingsView = SettingsView(
+                    settings: settings,
+                    initialTab: tabShot.tab,
+                    isEmbeddedInWindow: false,
+                    enableLivePreview: false
+                )
                 .preferredColorScheme(item.scheme)
-                .frame(width: 680, height: 640)
-            let settingsPNG = try renderPNG(
-                view: settingsShot,
-                size: NSSize(width: 680, height: 640),
-                appearanceName: item.scheme == .dark ? .darkAqua : .aqua
-            )
-            try settingsPNG.write(to: outputDir.appendingPathComponent("macos-studio-integrations-\(item.suffix).png"))
+                .frame(width: 1180, height: 740)
+
+                let settingsPNG = try renderPNG(
+                    view: settingsView,
+                    size: NSSize(width: 1180, height: 740),
+                    appearanceName: item.scheme == .dark ? .darkAqua : .aqua
+                )
+                try settingsPNG.write(to: outputDir.appendingPathComponent(tabShot.name))
+                XCTAssertGreaterThan(settingsPNG.count, 10_000, "Screenshot \(tabShot.name) unexpectedly small")
+            }
 
             // 2. Post-Take Analytics & Instant .SRT / FCPXML Export Card
             let summaryStage = ZStack {

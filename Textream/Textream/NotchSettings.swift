@@ -126,6 +126,17 @@ enum FontColorPreset: String, CaseIterable, Identifiable {
         case .orange: return "rgb(255,158,10)"
         }
     }
+
+    var hexString: String {
+        switch self {
+        case .white:  return "#FFFFFF"
+        case .yellow: return "#FFD60A"
+        case .green:  return "#33D64A"
+        case .blue:   return "#4F8CFF"
+        case .pink:   return "#FF6191"
+        case .orange: return "#FF9E0A"
+        }
+    }
 }
 
 // MARK: - Cue Brightness
@@ -654,5 +665,57 @@ class NotchSettings {
         self.obsPassword = UserDefaults.standard.string(forKey: "dante.mac.obsPassword") ?? ""
         self.obsAutoStartTeleprompter = UserDefaults.standard.object(forKey: "dante.mac.obsAutoStartTeleprompter") as? Bool ?? true
         self.obsAutoStopTeleprompter = UserDefaults.standard.object(forKey: "dante.mac.obsAutoStopTeleprompter") as? Bool ?? true
+    }
+
+    /// Restores every user-configurable preference to its factory default.
+    func resetToDefaults() {
+        notchWidth = Self.defaultWidth
+        textAreaHeight = Self.defaultHeight
+        speechLocale = Self.defaultLocale
+        fontSizePreset = .lg
+        fontFamilyPreset = .sans
+        fontColorPreset = .white
+        cueColorPreset = .white
+        cueBrightness = .dim
+        overlayMode = .pinned
+        notchDisplayMode = .followMouse
+        pinnedScreenID = 0
+        floatingGlassEffect = false
+        glassOpacity = 0.15
+        overlayTransparency = false
+        overlayTransparencyOpacity = 0.85
+        followCursorWhenUndocked = false
+        fullscreenScreenID = 0
+        externalDisplayMode = .off
+        externalScreenID = 0
+        mirrorAxis = .horizontal
+        listeningMode = .wordTracking
+        speechEngine = .apple
+        localModelFilename = ""
+        scrollSpeed = 3
+        showElapsedTime = true
+        hideFromScreenShare = true
+        keepScreenAwake = false
+        readingPosition = .centered
+        showParagraphDividers = false
+        showLastSpokenWords = true
+        selectedMicUID = ""
+        autoNextPage = false
+        autoNextPageDelay = 3
+        browserServerEnabled = false
+        browserServerPort = 7373
+        directorModeEnabled = false
+        directorServerPort = 7575
+        appAppearance = .system
+        hasDismissedSetupChecklist = false
+        smartRetakeEnabled = true
+        showPacingCoach = true
+        iCloudSyncEnabled = true
+        obsWebSocketEnabled = false
+        obsHost = "127.0.0.1"
+        obsPort = 4455
+        obsPassword = ""
+        obsAutoStartTeleprompter = true
+        obsAutoStopTeleprompter = true
     }
 }
