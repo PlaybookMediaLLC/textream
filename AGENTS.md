@@ -80,10 +80,12 @@ For every pull request:
   - Resolution & frame rate: **1920 × 1080 at 30 fps** by default.
   - Duration: Concise, typically **30–120 seconds** for a straightforward change; split larger implementations into multiple focused recordings.
   - **No** background music, promotional language, unnecessary transitions, or decorative animations.
-- **Text-to-Speech (TTS):**
-  - Default local provider: **Kokoro ONNX** (`kokoro-onnx`, local neural TTS).
-  - Local fallbacks when Kokoro is unavailable: macOS `say` (Darwin) or `espeak-ng` (Linux).
-  - Optional approved cloud TTS fallback (`openai` via `OPENAI_API_KEY`) only when explicitly requested via `--tts-provider`.
+- **Text-to-Speech (TTS) & Human Voice Quality:**
+  - Narration MUST sound like a natural, calm human engineer — never robotic, clipped, or rushed.
+  - Default local provider: full-precision **FP32 Kokoro ONNX** (`kokoro-v1.0.onnx` via `kokoro-onnx`) with natural blended neural voice (`af_heart:0.65+af_bella:0.35`), calm conversational pace (`0.98`), natural sentence/clause pauses, spoken acronym normalization (keeping captions verbatim), and broadcast `-16 LUFS` audio mastering.
+  - Local fallback on macOS: enhanced/neural `macos-say` voices.
+  - Optional approved cloud neural TTS fallback (`openai` `gpt-4o-mini-tts` via `OPENAI_API_KEY`) only when explicitly requested via `--tts-provider openai`.
+  - Robotic `espeak-ng` is **never** selected automatically and is rejected by `pr-video-evidence` CI unless an explicit `tts.fallback_reason` is documented.
 - **Narration standards:**
   - Explain: (1) what was broken or missing, (2) what changed, (3) how the new behavior works, (4) what happens on user interaction, (5) which acceptance criteria are being demonstrated, and (6) any limitations or outstanding concerns.
   - Strictly describe **observed behavior**. Never claim an operation succeeded unless verified.

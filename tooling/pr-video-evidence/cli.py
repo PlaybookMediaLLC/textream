@@ -52,7 +52,13 @@ from evidence import (  # noqa: E402
     scan_for_secrets,
 )
 from playwright_capture import capture_storyboard_with_playwright  # noqa: E402
-from tts import TTSEngine, doctor_tts_status  # noqa: E402
+from tts import (  # noqa: E402
+    DEFAULT_KOKORO_PRECISION,
+    DEFAULT_KOKORO_SPEED,
+    ROBOTIC_PROVIDERS,
+    TTSEngine,
+    doctor_tts_status,
+)
 from validator import (  # noqa: E402
     ValidationResult,
     git_changed_files,
@@ -210,6 +216,30 @@ def _load_review_report(path: Path | None, commit_sha: str, repository: str) -> 
     }
 
 
+def _validate_tts_fallback(tts_engine: TTSEngine, fallback_reason: str | None) -> None:
+    """Fail fast before capture/render if robotic espeak-ng lacks a valid fallback reason."""
+    if tts_engine.provider in ROBOTIC_PROVIDERS:
+        reason = (fallback_reason or "").strip()
+        if len(reason) < 12:
+            raise ValueError(
+                "Explicit robotic fallback ('espeak-ng') requires --tts-fallback-reason "
+                "with a clear explanation (>=12 chars) so downstream validation can pass."
+            )
+
+
+def _tts_metadata(tts_engine: TTSEngine, fallback_reason: str | None = None) -> dict[str, Any]:
+    meta: dict[str, Any] = {
+        "provider": tts_engine.provider,
+        "voice": tts_engine.voice,
+        "precision": tts_engine.precision if tts_engine.provider == "kokoro" else "native",
+        "human_grade": tts_engine.human_grade,
+    }
+    clean_reason = (fallback_reason or "").strip()
+    if clean_reason and tts_engine.provider in ROBOTIC_PROVIDERS:
+        meta["fallback_reason"] = clean_reason
+    return meta
+
+
 def _scan_generated_artifacts(manifest: dict[str, Any], *text_paths: Path, extra_text: str = "") -> None:
     blobs = [json.dumps(manifest), extra_text]
     for path in text_paths:
@@ -297,7 +327,13 @@ def cmd_record(args: argparse.Namespace) -> int:
     if not beats:
         raise ValueError(f"Scenario {scenario_path} must contain at least one beat")
 
-    tts_engine = TTSEngine(provider=args.tts_provider, voice=args.voice, speed=args.speed)
+    tts_engine = TTSEngine(
+        provider=args.tts_provider,
+        voice=args.voice,
+        speed=args.speed,
+        precision=args.kokoro_precision,
+    )
+    _validate_tts_fallback(tts_engine, args.tts_fallback_reason)
     synthesized = []
     for idx, beat in enumerate(beats):
         wav_path = work_dir / f"beat_{idx + 1:02d}.wav"
@@ -464,7 +500,7 @@ def cmd_record(args: argparse.Namespace) -> int:
             "size_bytes": probe.size_bytes,
             "sha256": probe.sha256,
         },
-        tts={"provider": tts_engine.provider, "voice": tts_engine.voice},
+        tts=_tts_metadata(tts_engine, args.tts_fallback_reason),
         artifacts={
             "raw_video": str(capture.raw_video_path),
             "trace": str(capture.trace_path),
@@ -507,7 +543,7 @@ def cmd_record(args: argparse.Namespace) -> int:
                 "markdown": str(md_path),
                 "review_frames": [str(p) for p in review_frames],
                 "probe": probe.__dict__,
-                "tts": {"provider": tts_engine.provider, "voice": tts_engine.voice},
+                "tts": _tts_metadata(tts_engine, args.tts_fallback_reason),
                 "assertions_passed": len(assertion_results) - len(failed_assertions),
                 "assertions_total": len(assertion_results),
             },
@@ -554,7 +590,13 @@ def cmd_narrate(args: argparse.Namespace) -> int:
     if not beats:
         raise ValueError(f"Scenario {scenario_path} must contain at least one beat")
 
-    tts_engine = TTSEngine(provider=args.tts_provider, voice=args.voice, speed=args.speed)
+    tts_engine = TTSEngine(
+        provider=args.tts_provider,
+        voice=args.voice,
+        speed=args.speed,
+        precision=args.kokoro_precision,
+    )
+    _validate_tts_fallback(tts_engine, args.tts_fallback_reason)
 
     cues: list[CaptionCue] = []
     cursor_s = 0.25
@@ -663,7 +705,7 @@ def cmd_narrate(args: argparse.Namespace) -> int:
             "size_bytes": probe.size_bytes,
             "sha256": probe.sha256,
         },
-        tts={"provider": tts_engine.provider, "voice": tts_engine.voice},
+        tts=_tts_metadata(tts_engine, args.tts_fallback_reason),
         artifacts={
             "raw_video": str(input_video),
             "transcript": str(transcript_path),
@@ -692,6 +734,8 @@ def cmd_narrate(args: argparse.Namespace) -> int:
                 "manifest": str(manifest_path),
                 "markdown": str(md_path),
                 "review_frames": [str(p) for p in review_frames],
+                "probe": probe.__dict__,
+                "tts": _tts_metadata(tts_engine, args.tts_fallback_reason),
                 "assertions_passed": len(assertion_results) - len(failed_assertions),
                 "assertions_total": len(assertion_results),
             },
@@ -784,8 +828,10 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--scenario", required=True, help="Path to storyboard scenario JSON")
         p.add_argument("--output-dir", default=".pr-evidence/latest", help="Output directory (gitignored)")
         p.add_argument("--tts-provider", default="auto", choices=["auto", "kokoro", "macos-say", "espeak-ng", "openai"])
-        p.add_argument("--voice", default=None, help="Optional TTS voice override")
-        p.add_argument("--speed", type=float, default=1.03, help="TTS speaking speed multiplier")
+        p.add_argument("--voice", default=None, help="Optional TTS voice or Kokoro blend (e.g. af_heart:0.65+af_bella:0.35)")
+        p.add_argument("--kokoro-precision", default=DEFAULT_KOKORO_PRECISION, choices=["fp32", "int8"], help="Kokoro ONNX model precision (default: fp32)")
+        p.add_argument("--tts-fallback-reason", default=None, help="Required explanation if emergency robotic espeak-ng fallback is used")
+        p.add_argument("--speed", type=float, default=DEFAULT_KOKORO_SPEED, help="TTS speaking speed multiplier (default: 0.98)")
         p.add_argument("--width", type=int, default=DEFAULT_WIDTH)
         p.add_argument("--height", type=int, default=DEFAULT_HEIGHT)
         p.add_argument("--fps", type=int, default=DEFAULT_FPS)

@@ -460,6 +460,222 @@ class PRVideoEvidenceValidatorTests(unittest.TestCase):
         self.assertIn(".pr-evidence/", gitignore)
         self.assertIn("__pycache__/", gitignore)
 
+    def test_human_narration_quality_and_anti_robotic_guards(self) -> None:
+        import struct
+        import wave
+
+        # 1. Empirically G2P-verified spoken normalization preserves native Kokoro terms
+        #    (AI, API/APIs, URL/URLs, UI/UIs, macOS, iOS, ../support.html) while fixing real pitfalls
+        spoken = tts.prepare_speech_text(
+            "Verify Local AI Models, macOS & iOS APIs, URLs, UIs, ../support.html, PR CLI, CLIs, "
+            "HTTP 404, H.264, AAC, 1920x1080 ONNX TTS."
+        )
+        self.assertIn("Local AI Models", spoken)
+        self.assertIn("macOS", spoken)
+        self.assertIn("APIs", spoken)
+        self.assertIn("URLs", spoken)
+        self.assertIn("UIs", spoken)
+        self.assertIn("../support.html", spoken)
+        self.assertIn("pull request", spoken)
+        self.assertIn("C L I", spoken)
+        self.assertIn("C L eyes", spoken)
+        self.assertIn("HTTP four oh four", spoken)
+        self.assertIn("H two sixty four", spoken)
+        self.assertIn("A.A.C.", spoken)
+        self.assertIn("ten eighty P", spoken)
+        self.assertIn("onyx", spoken)
+        self.assertIn("text to speech", spoken)
+        # OpenAI skips Kokoro-specific phonetic hacks
+        openai_spoken = tts.prepare_speech_text("Verify ONNX AAC -> HTTP 404", provider="openai")
+        self.assertEqual(openai_spoken, "Verify ONNX AAC to HTTP 404")
+
+        # 2. Voice blend parsing rejects empty names, non-finite weights, and non-positive weights
+        blend = tts.parse_voice_blend("af_heart:0.65+af_bella:0.35")
+        self.assertEqual(len(blend), 2)
+        self.assertEqual(blend[0][0], "af_heart")
+        self.assertAlmostEqual(sum(w for _, w in blend), 1.0)
+        for bad_spec in ("", "af_heart:0", "af_heart:-1", "af_heart:nan", "af_heart:inf", ":0.5", "af_heart:abc"):
+            with self.subTest(bad_spec=bad_spec), self.assertRaises(ValueError):
+                tts.parse_voice_blend(bad_spec)
+
+        # 3. _resolve_kokoro_voice_input preserves float32 dtype & errors clearly on unknown voice
+        class _FakeFloatArray:
+            def __init__(self, vals: list[float], dtype: str = "float32"):
+                self.vals = vals
+                self.dtype = dtype
+
+            def __mul__(self, scalar: float):
+                return _FakeFloatArray([v * scalar for v in self.vals], dtype="float64")
+
+            def __add__(self, other: "_FakeFloatArray"):
+                return _FakeFloatArray([a + b for a, b in zip(self.vals, other.vals)], dtype="float64")
+
+            def astype(self, dtype: str, copy: bool = False):
+                return _FakeFloatArray(list(self.vals), dtype=dtype)
+
+        class _StubKokoro:
+            def __init__(self):
+                self.styles = {
+                    "af_heart": _FakeFloatArray([2.0, 2.0, 2.0, 2.0]),
+                    "af_bella": _FakeFloatArray([4.0, 4.0, 4.0, 4.0]),
+                }
+
+            def get_voice_style(self, name: str):
+                return self.styles[name]
+
+        with mock.patch.object(tts, "_kokoro_available", return_value=(True, "cached")):
+            eng_blend = tts.TTSEngine(provider="kokoro", voice="af_heart:0.5+af_bella:0.5")
+            vec = eng_blend._resolve_kokoro_voice_input(_StubKokoro())
+            self.assertEqual(vec.dtype, "float32")
+            self.assertAlmostEqual(float(vec.vals[0]), 3.0)
+
+            eng_unknown = tts.TTSEngine(provider="kokoro", voice="af_heart:0.5+missing_voice:0.5")
+            with self.assertRaises(ValueError):
+                eng_unknown._resolve_kokoro_voice_input(_StubKokoro())
+
+            with self.assertRaises(ValueError):
+                tts.TTSEngine(provider="kokoro", precision="fp16")
+
+        # 4. _synthesize_kokoro filters 0.6+ kwargs for older kokoro-onnx versions & synthesize keeps verbatim text
+        captured_calls: list[tuple[str, dict]] = []
+
+        class _LegacyKokoro:
+            def create(self, text, voice, speed=1.0, lang="en-us"):
+                captured_calls.append((text, {"voice": voice, "speed": speed, "lang": lang}))
+                return [0] * 2400, 24000
+
+        class _FakeSoundfile:
+            @staticmethod
+            def write(path_str, samples, sample_rate, subtype="PCM_16"):
+                with wave.open(path_str, "wb") as wf:
+                    wf.setnchannels(1)
+                    wf.setsampwidth(2)
+                    wf.setframerate(sample_rate)
+                    wf.writeframes(struct.pack("<" + "h" * len(samples), *samples))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out_wav = Path(tmp) / "seg.wav"
+            with (
+                mock.patch.object(tts, "_kokoro_available", return_value=(True, "cached")),
+                mock.patch.dict(sys.modules, {"soundfile": _FakeSoundfile()}),
+            ):
+                eng_legacy = tts.TTSEngine(provider="kokoro", voice="af_heart")
+                eng_legacy._kokoro_instance = _LegacyKokoro()
+                seg = eng_legacy.synthesize("Check HTTP 404 on ONNX.", out_wav, index=0)
+            self.assertEqual(seg.text, "Check HTTP 404 on ONNX.")
+            self.assertEqual(captured_calls[0][0], "Check HTTP four oh four on onyx.")
+            self.assertEqual(seg.precision, "fp32")
+            self.assertTrue(seg.human_grade)
+            self.assertTrue(out_wav.exists())
+
+            # 5. _master_voice_wav handles both normal (0.3s) and very short (0.02s) clips cleanly via real ffmpeg
+            for dur_samples in (7200, 480):
+                raw = Path(tmp) / f"raw_{dur_samples}.wav"
+                mastered = Path(tmp) / f"mastered_{dur_samples}.wav"
+                with wave.open(str(raw), "wb") as wf:
+                    wf.setnchannels(1)
+                    wf.setsampwidth(2)
+                    wf.setframerate(24000)
+                    wf.writeframes(struct.pack("<" + "h" * dur_samples, *([8000] * dur_samples)))
+                tts.TTSEngine._master_voice_wav(raw, mastered)
+                self.assertGreater(tts.wav_duration_seconds(mastered), 0.0)
+
+            # 6. allow_download=False never calls urlopen even on corrupt cache
+            corrupt = Path(tmp) / "corrupt.onnx"
+            corrupt.write_bytes(b"corrupted")
+            with mock.patch.object(tts.urllib.request, "urlopen") as mock_open:
+                with self.assertRaises(RuntimeError):
+                    tts._download_if_missing(
+                        "https://example.invalid/model.onnx",
+                        corrupt,
+                        expected_sha256="0" * 64,
+                        allow_download=False,
+                    )
+                mock_open.assert_not_called()
+
+            # 7. OpenAI tts-1 omits `instructions` while gpt-4o-mini-tts includes it
+            for model_name, expect_instr in (("gpt-4o-mini-tts", True), ("tts-1", False)):
+                with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "dummy", "OPENAI_TTS_MODEL": model_name}):
+                    eng_oa = tts.TTSEngine(provider="openai")
+                    sent_body: dict = {}
+
+                    class _FakeResp(io.BytesIO):
+                        def __enter__(self):
+                            return self
+
+                        def __exit__(self, *args):
+                            return False
+
+                    def _fake_urlopen(req, timeout=60):
+                        sent_body.update(json.loads(req.data.decode("utf-8")))
+                        return _FakeResp(b"RIFF")
+
+                    with mock.patch.object(tts.urllib.request, "urlopen", side_effect=_fake_urlopen):
+                        eng_oa._synthesize_openai("Hello world", Path(tmp) / f"{model_name}.wav")
+                    self.assertEqual("instructions" in sent_body, expect_instr)
+
+        # 8. Auto provider prefers cached int8 when allow_download=False & fp32 uncached; refuses robotic espeak-ng
+        def _fake_avail(precision="fp32", allow_download=True):
+            return (precision == "int8", "cached int8" if precision == "int8" else "missing")
+
+        with mock.patch.object(tts, "_kokoro_available", side_effect=_fake_avail):
+            eng_offline = tts.TTSEngine(provider="auto", precision="fp32", allow_download=False)
+            self.assertEqual(eng_offline.provider, "kokoro")
+            self.assertEqual(eng_offline.precision, "int8")
+
+        with (
+            mock.patch.object(tts, "_kokoro_available", return_value=(False, "missing")),
+            mock.patch.object(tts.platform, "system", return_value="Linux"),
+            mock.patch.object(tts.shutil, "which", side_effect=lambda x: "/usr/bin/espeak-ng" if x == "espeak-ng" else None),
+        ):
+            with self.assertRaises(RuntimeError) as ctx:
+                tts.TTSEngine(provider="auto")
+            self.assertIn("robotic espeak-ng", str(ctx.exception))
+
+            # CLI fail-fast guard & _tts_metadata sanitization
+            eng_rob = tts.TTSEngine(provider="espeak-ng")
+            with self.assertRaises(ValueError):
+                cli._validate_tts_fallback(eng_rob, "   ")
+            cli._validate_tts_fallback(eng_rob, "Offline air-gapped runner without cached weights")
+            meta_rob = cli._tts_metadata(eng_rob, "  Offline air-gapped runner  ")
+            self.assertEqual(meta_rob["fallback_reason"], "Offline air-gapped runner")
+            self.assertFalse(meta_rob["human_grade"])
+
+        # 9. Validator blocks undocumented espeak / human_grade=False / non-string fallback_reason,
+        #    and round-trips new tts metadata cleanly through PR markdown
+        sha = "a" * 40
+        manifest = _sample_manifest(commit_sha=sha)
+        manifest["tts"] = {
+            "provider": "kokoro",
+            "voice": "af_heart:0.65+af_bella:0.35",
+            "precision": "fp32",
+            "human_grade": True,
+        }
+        md = render_pr_markdown(manifest)
+        self.assertTrue(validate_pr_body(md, expected_sha=sha).passed)
+
+        for bad_tts in (
+            {"provider": "espeak-ng", "voice": "en-us"},
+            {"provider": "espeak", "voice": "en-us"},
+            {"provider": "custom", "voice": "x", "human_grade": False},
+            {"provider": "espeak-ng", "voice": "en-us", "fallback_reason": ["not", "a", "string"]},
+        ):
+            with self.subTest(bad_tts=bad_tts):
+                m_bad = _sample_manifest(commit_sha=sha)
+                m_bad["tts"] = bad_tts
+                res_bad = validate_manifest(m_bad, expected_sha=sha)
+                self.assertFalse(res_bad.passed)
+
+        manifest["tts"] = {
+            "provider": "espeak-ng",
+            "voice": "en-us",
+            "human_grade": False,
+            "fallback_reason": "Offline air-gapped runner without cached Kokoro weights.",
+        }
+        ok_warn = validate_manifest(manifest, expected_sha=sha)
+        self.assertTrue(ok_warn.passed, ok_warn.errors)
+        self.assertTrue(any("Robotic fallback TTS" in w for w in ok_warn.warnings))
+
 
 if __name__ == "__main__":
     unittest.main()
