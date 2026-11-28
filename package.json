@@ -1,0 +1,10 @@
+{
+  "name": "dante-for-creators-devx",
+  "private": true,
+  "description": "DevX command entrypoints for Dante for Creators (PlaybookMediaLLC/textream)",
+  "scripts": {
+    "devx:video-evidence": "python3 -B tooling/pr-video-evidence/cli.py",
+    "devx:video-evidence:doctor": "python3 -B tooling/pr-video-evidence/cli.py doctor",
+    "devx:video-evidence:validate": "python3 -B tooling/pr-video-evidence/cli.py validate"
+  }
+}

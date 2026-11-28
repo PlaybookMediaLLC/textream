@@ -1,0 +1,121 @@
+{
+  "name": "dante-docs-site-verification",
+  "application_route": "/ -> /docs/ -> /support.html -> /nonexistent-route (404)",
+  "server": {
+    "type": "static",
+    "directory": "docs",
+    "health_path": "/"
+  },
+  "test_commands": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_*.py' -v",
+      "platform": "any"
+    },
+    {
+      "command": "xcodebuild test -project Textream/Textream.xcodeproj -scheme Textream -destination 'platform=macOS' -only-testing:TextreamTests CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM=\"\" CODE_SIGN_STYLE=Manual",
+      "platform": "darwin",
+      "skip_reason": "Requires macOS/Xcode host; verified on GitHub Actions macOS runners."
+    }
+  ],
+  "known_limitations": [],
+  "beats": [
+    {
+      "acceptance_criterion": "AC-1: Isolated Dante for Creators web application serves live from the current branch with zero broken assets",
+      "route": "/",
+      "action": "goto",
+      "target": "header h1",
+      "expected_result": "Landing page renders Dante for Creators heading and primary navigation",
+      "assertion": {
+        "type": "text_contains",
+        "selector": "header h1",
+        "expected": "Stay on script",
+        "description": "Hero headline renders on isolated live server"
+      },
+      "annotation": {
+        "label": "Live Dante for Creators landing page (isolated server)",
+        "spotlight": false,
+        "zoom": 1.0
+      },
+      "narration": "This verification recording exercises the actual Dante for Creators web surface running from the current branch on an isolated local server. The landing page loads cleanly with the primary headline and navigation bar verified by DOM assertions."
+    },
+    {
+      "acceptance_criterion": "AC-2: Real user click navigation opens the Creator Guide with synchronized cursor and highlight annotations",
+      "route": "/",
+      "action": "click",
+      "target": ".btn-primary",
+      "expect_navigation": true,
+      "post_action_target": "header h1",
+      "expected_result": "Clicking Read the Creator Guide navigates to /docs/ and renders Creator Guide",
+      "assertion": {
+        "type": "text_contains",
+        "selector": "header h1",
+        "expected": "Creator Guide",
+        "description": "Primary CTA navigates to /docs/ Creator Guide"
+      },
+      "annotation": {
+        "label": "Click CTA -> Navigate to /docs/ Creator Guide",
+        "spotlight": true,
+        "zoom": 1.0
+      },
+      "narration": "Clicking the primary Creator Guide button with a tracked cursor and click indicator navigates directly to the live documentation route. The assertion confirms the Creator Guide heading renders with zero console or page errors."
+    },
+    {
+      "acceptance_criterion": "AC-3: Restrained zoom highlights Smart Follow and Remote/Director technical documentation accurately",
+      "route": "/docs/",
+      "action": "scroll",
+      "scroll_y": 540,
+      "target": "main section:nth-of-type(3)",
+      "expected_result": "Smart Follow & Local AI Models section is visible and highlighted cleanly",
+      "assertion": {
+        "type": "text_contains",
+        "selector": "main section:nth-of-type(3)",
+        "expected": "Local Model",
+        "description": "Smart Follow and Local AI Models documentation renders accurately"
+      },
+      "annotation": {
+        "label": "Restrained zoom: Smart Follow & Local AI Models",
+        "spotlight": true,
+        "zoom": 1.14
+      },
+      "narration": "Scrolling to the Smart Follow and Local AI Models section applies a restrained zoom and post-zoom bounding box highlight. The spotlight and annotation frame the documentation accurately while synchronized captions match the narration."
+    },
+    {
+      "acceptance_criterion": "AC-4: Secondary navigation reaches Support & Troubleshooting cleanly",
+      "route": "/docs/",
+      "action": "click",
+      "target": ".nav-links a[href='../support.html']",
+      "expect_navigation": true,
+      "post_action_target": "h1",
+      "expected_result": "Support page loads with troubleshooting guidance",
+      "assertion": {
+        "type": "url_contains",
+        "expected": "support.html",
+        "description": "Navigation bar reaches support.html"
+      },
+      "annotation": {
+        "label": "Support & Troubleshooting route verified",
+        "spotlight": false,
+        "zoom": 1.0
+      },
+      "narration": "Following the Support link in the top navigation bar loads the Support and Troubleshooting page. Both the URL assertion and DOM checks pass while preserving the Playwright trace and raw video footage."
+    },
+    {
+      "acceptance_criterion": "AC-5: Error-state edge case — nonexistent route returns HTTP 404 deterministically",
+      "route": "/nonexistent-route-verification-check",
+      "action": "goto",
+      "target": "body",
+      "expected_result": "Server returns HTTP 404 Not Found without crashing",
+      "assertion": {
+        "type": "http_status",
+        "expected": 404,
+        "description": "Missing route returns deterministic HTTP 404 status"
+      },
+      "annotation": {
+        "label": "Error-state check: HTTP 404 handled cleanly",
+        "spotlight": false,
+        "zoom": 1.0
+      },
+      "narration": "Finally, requesting an invalid route verifies error-state behavior. The isolated server returns HTTP 404 deterministically without unhandled exceptions, completing all acceptance checks for this commit."
+    }
+  ]
+}
