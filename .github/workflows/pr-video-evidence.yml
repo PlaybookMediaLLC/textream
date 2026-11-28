@@ -1,0 +1,70 @@
+name: PR Video Evidence
+
+# Validates narrated PR video evidence availability, exact commit SHA freshness,
+# required metadata, independent review sign-off, applicable test results, secret
+# redaction, and absence of committed binary recording artifacts.
+#
+# Job name `pr-video-evidence` is prepared for use as a required GitHub branch
+# protection check once tested and explicitly approved by repository maintainers.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-video-evidence-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-video-evidence:
+    name: pr-video-evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run PR video evidence tooling unit tests
+        run: python3 -B -m unittest discover -s tests -p 'test_pr_video_evidence.py' -v
+
+      - name: Validate PR video evidence manifest, commit freshness & binary-artifact guard
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: origin/${{ github.event.pull_request.base.ref }}
+        run: |
+          BODY_FILE="$(mktemp)"
+          trap 'rm -f "$BODY_FILE"' EXIT
+          printf '%s' "$PR_BODY" > "$BODY_FILE"
+
+          set +e
+          RESULT="$(python3 -B tooling/pr-video-evidence/cli.py validate \
+            --pr-body-file "$BODY_FILE" \
+            --expected-sha "$HEAD_SHA" \
+            --base-ref "$BASE_REF")"
+          STATUS=$?
+          set -e
+
+          echo "$RESULT"
+          {
+            echo "## PR Video Evidence Validation (\`${HEAD_SHA:0:8}\`)"
+            echo ""
+            echo '```json'
+            if [ -n "$RESULT" ]; then
+              echo "$RESULT"
+            else
+              echo '{"passed": false, "errors": ["Validator exited without JSON output"]}'
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::pr-video-evidence verification failed for commit $HEAD_SHA. Keep PR in draft until narrated evidence, independent review, and tests pass for the head commit."
+            exit "$STATUS"
+          fi

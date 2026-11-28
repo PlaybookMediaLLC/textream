@@ -43,3 +43,13 @@ Pods/
 
 # Agent screenshots
 docs/ss/
+
+# PR narrated video evidence (never commit binary recordings or traces)
+.pr-evidence/
+artifacts/pr-evidence/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+
