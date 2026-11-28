@@ -146,10 +146,25 @@ struct SettingsSearchItem: Identifiable, Hashable, Sendable {
     let subtitle: String
     let keywords: [String]
     let icon: String
+    private let searchableText: String
 
-    func matches(tokens: [String]) -> Bool {
-        guard !tokens.isEmpty else { return true }
-        let searchable = [
+    init(
+        id: String,
+        tab: SettingsTab,
+        section: String,
+        title: String,
+        subtitle: String,
+        keywords: [String],
+        icon: String
+    ) {
+        self.id = id
+        self.tab = tab
+        self.section = section
+        self.title = title
+        self.subtitle = subtitle
+        self.keywords = keywords
+        self.icon = icon
+        self.searchableText = [
             title,
             subtitle,
             section,
@@ -158,8 +173,11 @@ struct SettingsSearchItem: Identifiable, Hashable, Sendable {
         ]
         .joined(separator: " ")
         .lowercased()
+    }
 
-        return tokens.allSatisfy { searchable.contains($0) }
+    func matches(tokens: [String]) -> Bool {
+        guard !tokens.isEmpty else { return true }
+        return tokens.allSatisfy { searchableText.contains($0) }
     }
 }
 
@@ -170,9 +188,9 @@ enum SettingsSearchIndex {
             id: "general.preset",
             tab: .general,
             section: "Studio workflow",
-            title: "Quick Creator Preset",
+            title: "Creator format preset",
             subtitle: "Apply recommended teleprompter settings for YouTube, Shorts, Podcasts, or Keynotes.",
-            keywords: ["preset", "youtube", "shorts", "reels", "tiktok", "podcast", "keynote", "template"],
+            keywords: ["preset", "format", "youtube", "shorts", "reels", "tiktok", "podcast", "keynote", "template"],
             icon: "sparkles"
         ),
         SettingsSearchItem(
@@ -567,3 +585,47 @@ enum SettingsSearchIndex {
         return SettingsTab.allCases.filter { matchedSet.contains($0) }
     }
 }
+
+// MARK: - Network Port & Host Validation
+
+enum SettingsNetworkValidator {
+    static let validLANPortRange: ClosedRange<Int> = 1024...65534
+    static let validOBSPortRange: ClosedRange<Int> = 1...65535
+
+    /// Parses a LAN server port (`1024...65534`, reserving `port + 1` for WebSocket).
+    static func parseLANPort(_ text: String) -> UInt16? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let value = Int(trimmed), validLANPortRange.contains(value) else { return nil }
+        return UInt16(value)
+    }
+
+    /// Parses an OBS WebSocket server port (`1...65535`).
+    static func parseOBSPort(_ text: String) -> UInt16? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let value = Int(trimmed), validOBSPortRange.contains(value) else { return nil }
+        return UInt16(value)
+    }
+
+    /// Each LAN server binds both `port` (HTTP) and `port + 1` (WebSocket).
+    static func lanPortsCollide(_ portA: UInt16, _ portB: UInt16) -> Bool {
+        abs(Int(portA) - Int(portB)) <= 1
+    }
+
+    /// Trims whitespace and rejects embedded schemes, paths, or spaces for OBS host input.
+    static func sanitizeOBSHost(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "127.0.0.1" }
+        guard !trimmed.contains("://"),
+              !trimmed.contains("/"),
+              !trimmed.contains(where: { $0.isWhitespace }) else {
+            return nil
+        }
+        return trimmed
+    }
+
+    static func isLoopbackHost(_ host: String) -> Bool {
+        let lower = host.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return lower.isEmpty || lower == "127.0.0.1" || lower == "localhost" || lower == "::1"
+    }
+}
+

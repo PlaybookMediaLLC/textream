@@ -6,9 +6,12 @@
 //
 
 import AppKit
-import CoreImage.CIFilterBuiltins
-import Speech
 import SwiftUI
+
+struct LocalizedSpeechLocale: Identifiable, Hashable, Sendable {
+    let id: String
+    let displayName: String
+}
 
 extension SettingsView {
 
@@ -34,6 +37,7 @@ extension SettingsView {
                         options: ListeningMode.allCases,
                         selection: $settings.listeningMode,
                         minWidth: 152,
+                        accessibilityTitle: "Listening mode",
                         palette: palette,
                         iconForOption: \.icon,
                         labelForOption: \.label
@@ -91,46 +95,34 @@ extension SettingsView {
                         if supportedLocales.isEmpty {
                             ProgressView()
                                 .controlSize(.small)
+                                .accessibilityLabel("Loading speech languages")
                         } else {
                             Menu {
-                                ForEach(supportedLocales, id: \.identifier) { locale in
+                                ForEach(supportedLocales) { locale in
                                     Button {
-                                        settings.speechLocale = locale.identifier
+                                        settings.speechLocale = locale.id
                                     } label: {
                                         HStack {
-                                            Text(localizedLocaleName(locale.identifier))
-                                            if settings.speechLocale == locale.identifier {
+                                            Text(locale.displayName)
+                                            if settings.speechLocale == locale.id {
                                                 Image(systemName: "checkmark")
                                             }
                                         }
                                     }
                                 }
                             } label: {
-                                HStack(spacing: 8) {
-                                    Text(localizedLocaleName(settings.speechLocale))
-                                        .font(.system(size: 12.5, weight: .medium))
-                                        .foregroundStyle(palette.textPrimary)
-                                        .lineLimit(1)
-                                    Spacer(minLength: 4)
-                                    Image(systemName: "chevron.down")
-                                        .font(.system(size: 9.5, weight: .semibold))
-                                        .foregroundStyle(palette.textTertiary)
-                                }
-                                .padding(.horizontal, 11)
-                                .padding(.vertical, 6)
-                                .frame(minWidth: 168, maxWidth: 220)
-                                .background(
-                                    palette.elevatedSurface,
-                                    in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                                SettingsDropdownPillLabel(
+                                    text: selectedLocaleDisplayName,
+                                    minWidth: 160,
+                                    maxWidth: 220,
+                                    palette: palette
                                 )
                             }
                             .menuStyle(.borderlessButton)
                             .menuIndicator(.hidden)
                             .fixedSize()
+                            .accessibilityLabel("Speech language")
+                            .accessibilityValue(selectedLocaleDisplayName)
                         }
                     }
 
@@ -150,109 +142,95 @@ extension SettingsView {
                             isDisabled: isPrompterActive,
                             palette: palette
                         ) {
-                            guidanceTestEngine = settings.speechEngine
+                            activeSheet = .guidanceTest(settings.speechEngine)
                         }
                     }
                 }
             }
 
-            if settings.listeningMode != .classic || settings.listeningMode != .wordTracking {
-                SettingsSection(
-                    title: "Audio & pacing",
-                    palette: palette,
-                    trailing: {
-                        if settings.listeningMode != .classic {
-                            Button {
-                                refreshMicrophones()
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "arrow.clockwise")
-                                        .font(.system(size: 10.5, weight: .medium))
-                                    Text("Refresh")
-                                        .font(.system(size: 11.5, weight: .medium))
-                                }
-                                .foregroundStyle(palette.textSecondary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                ) {
+            SettingsSection(
+                title: "Audio & pacing",
+                palette: palette,
+                trailing: {
                     if settings.listeningMode != .classic {
-                        SettingsRow(
-                            title: "Microphone input",
-                            subtitle: "Select the audio device used for voice tracking and dictation.",
-                            icon: "mic",
-                            palette: palette
-                        ) {
-                            Menu {
+                        Button {
+                            refreshMicrophones()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 10.5, weight: .medium))
+                                Text("Refresh")
+                                    .font(.system(size: 11.5, weight: .medium))
+                            }
+                            .foregroundStyle(palette.textSecondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Refresh microphones")
+                    }
+                }
+            ) {
+                if settings.listeningMode != .classic {
+                    SettingsRow(
+                        title: "Microphone input",
+                        subtitle: "Select the audio device used for voice tracking and dictation.",
+                        icon: "mic",
+                        palette: palette
+                    ) {
+                        Menu {
+                            Button {
+                                settings.selectedMicUID = ""
+                            } label: {
+                                HStack {
+                                    Text("System Default")
+                                    if settings.selectedMicUID.isEmpty {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            ForEach(availableMics) { mic in
                                 Button {
-                                    settings.selectedMicUID = ""
+                                    settings.selectedMicUID = mic.uid
                                 } label: {
                                     HStack {
-                                        Text("System Default")
-                                        if settings.selectedMicUID.isEmpty {
+                                        Text(mic.name)
+                                        if settings.selectedMicUID == mic.uid {
                                             Image(systemName: "checkmark")
                                         }
                                     }
                                 }
-                                ForEach(availableMics) { mic in
-                                    Button {
-                                        settings.selectedMicUID = mic.uid
-                                    } label: {
-                                        HStack {
-                                            Text(mic.name)
-                                            if settings.selectedMicUID == mic.uid {
-                                                Image(systemName: "checkmark")
-                                            }
-                                        }
-                                    }
-                                }
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Text(selectedMicrophoneName)
-                                        .font(.system(size: 12.5, weight: .medium))
-                                        .foregroundStyle(palette.textPrimary)
-                                        .lineLimit(1)
-                                    Spacer(minLength: 4)
-                                    Image(systemName: "chevron.down")
-                                        .font(.system(size: 9.5, weight: .semibold))
-                                        .foregroundStyle(palette.textTertiary)
-                                }
-                                .padding(.horizontal, 11)
-                                .padding(.vertical, 6)
-                                .frame(minWidth: 168, maxWidth: 220)
-                                .background(
-                                    palette.elevatedSurface,
-                                    in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                        .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                                )
                             }
-                            .menuStyle(.borderlessButton)
-                            .menuIndicator(.hidden)
-                            .fixedSize()
+                        } label: {
+                            SettingsDropdownPillLabel(
+                                text: selectedMicrophoneName,
+                                minWidth: 160,
+                                maxWidth: 220,
+                                palette: palette
+                            )
                         }
+                        .menuStyle(.borderlessButton)
+                        .menuIndicator(.hidden)
+                        .fixedSize()
+                        .accessibilityLabel("Microphone input")
+                        .accessibilityValue(selectedMicrophoneName)
                     }
+                }
 
-                    if settings.listeningMode != .classic && settings.listeningMode != .wordTracking {
-                        SettingsRowDivider(palette: palette)
-                    }
+                if settings.listeningMode != .classic && settings.listeningMode != .wordTracking {
+                    SettingsRowDivider(palette: palette)
+                }
 
-                    if settings.listeningMode != .wordTracking {
-                        SettingsSliderRow(
-                            title: "Scroll speed",
-                            subtitle: "Target reading rate used in Classic and Voice-Activated scrolling modes.",
-                            valueLabel: String(format: "%.1f wps", settings.scrollSpeed),
-                            value: $settings.scrollSpeed,
-                            range: 0.5...8.0,
-                            step: 0.5,
-                            leadingLabel: "Slower (0.5 wps)",
-                            trailingLabel: "Faster (8.0 wps)",
-                            palette: palette
-                        )
-                    }
+                if settings.listeningMode != .wordTracking {
+                    SettingsSliderRow(
+                        title: "Scroll speed",
+                        subtitle: "Target reading rate used in Classic and Voice-Activated scrolling modes.",
+                        valueLabel: String(format: "%.1f wps", settings.scrollSpeed),
+                        value: $settings.scrollSpeed,
+                        range: 0.5...8.0,
+                        step: 0.5,
+                        leadingLabel: "Slower (0.5 wps)",
+                        trailingLabel: "Faster (8.0 wps)",
+                        palette: palette
+                    )
                 }
             }
         }
@@ -260,8 +238,16 @@ extension SettingsView {
 
     private var localModelSummaryRow: some View {
         let installed = modelStore.model(named: settings.localModelFilename)
-        let subtitle = installed.map { "\($0.displayName) (\($0.sizeMB) MB) — runs 100% on this Mac." }
-            ?? "No local model installed yet. Open Speech Models to download from Hugging Face."
+        let hasAnyInstalled = !modelStore.models.isEmpty
+        let subtitle: String
+        if let installed {
+            subtitle = "\(installed.displayName) (\(installed.sizeMB) MB) — runs 100% on this Mac."
+        } else if hasAnyInstalled {
+            subtitle = "\(modelStore.models.count) local model(s) installed. Choose one to enable offline tracking."
+        } else {
+            subtitle = "No local model installed yet. Open Speech Models to download from Hugging Face."
+        }
+
         return SettingsRow(
             title: "Active local model",
             subtitle: subtitle,
@@ -270,7 +256,7 @@ extension SettingsView {
             palette: palette
         ) {
             HStack(spacing: 8) {
-                if !modelStore.models.isEmpty {
+                if hasAnyInstalled {
                     Menu {
                         ForEach(modelStore.models) { model in
                             Button {
@@ -285,33 +271,22 @@ extension SettingsView {
                             }
                         }
                     } label: {
-                        HStack(spacing: 6) {
-                            Text(installed?.displayName ?? "Select model")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(palette.textPrimary)
-                                .lineLimit(1)
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(palette.textTertiary)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5.5)
-                        .background(
-                            palette.elevatedSurface,
-                            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                        SettingsDropdownPillLabel(
+                            text: installed?.displayName ?? "Select model…",
+                            minWidth: 132,
+                            maxWidth: 190,
+                            palette: palette
                         )
                     }
                     .menuStyle(.borderlessButton)
                     .menuIndicator(.hidden)
                     .fixedSize()
+                    .accessibilityLabel("Active local speech model")
+                    .accessibilityValue(installed?.displayName ?? "None selected")
                 }
 
                 SettingsActionButton("Manage…", palette: palette) {
-                    showModelManager = true
+                    activeSheet = .modelManager
                 }
             }
         }
@@ -326,6 +301,7 @@ extension SettingsView {
             .compactMap { if case .failed(let msg) = $0.value { return msg } else { return nil } }
             .first
         let installedModel = modelStore.model(named: settings.localModelFilename)
+        let hasAnyModels = !modelStore.models.isEmpty
 
         return VStack(alignment: .leading, spacing: 26) {
             SettingsPageHeader(
@@ -336,8 +312,8 @@ extension SettingsView {
 
             SettingsSection(title: "Engine & hardware", palette: palette) {
                 SettingsRow(
-                    title: "Use on-device speech engine",
-                    subtitle: "Switch Word Tracking to run locally on your Mac so audio never leaves this device.",
+                    title: "Speech engine",
+                    subtitle: "Switch Word Tracking to Local Model so audio never leaves this Mac.",
                     icon: "lock.shield",
                     iconColor: settings.speechEngine == .local ? palette.accent : palette.textSecondary,
                     palette: palette
@@ -375,7 +351,7 @@ extension SettingsView {
                 palette: palette,
                 trailing: {
                     SettingsActionButton("Manage Models…", icon: "plus", isProminent: true, palette: palette) {
-                        showModelManager = true
+                        activeSheet = .modelManager
                     }
                 }
             ) {
@@ -384,7 +360,8 @@ extension SettingsView {
                     subtitle: localModelStatusText(
                         activeDownloads: activeDownloads,
                         failure: firstFailure,
-                        installed: installedModel
+                        installed: installedModel,
+                        hasAnyModels: hasAnyModels
                     ),
                     icon: "waveform",
                     iconColor: localModelStatusColor(
@@ -395,9 +372,11 @@ extension SettingsView {
                     palette: palette
                 ) {
                     SettingsStatusPill(
-                        label: activeDownloads > 0
-                            ? "\(Int(modelDownloads.overallProgress * 100))%"
-                            : (installedModel != nil ? "Ready" : "Not installed"),
+                        label: localModelStatusBadge(
+                            activeDownloads: activeDownloads,
+                            installed: installedModel,
+                            hasAnyModels: hasAnyModels
+                        ),
                         color: localModelStatusColor(
                             activeDownloads: activeDownloads,
                             failure: firstFailure,
@@ -407,7 +386,7 @@ extension SettingsView {
                     )
                 }
 
-                if !modelStore.models.isEmpty {
+                if hasAnyModels {
                     SettingsRowDivider(palette: palette)
 
                     SettingsRow(
@@ -429,31 +408,18 @@ extension SettingsView {
                                 }
                             }
                         } label: {
-                            HStack(spacing: 8) {
-                                Text(installedModel?.displayName ?? "Select a model…")
-                                    .font(.system(size: 12.5, weight: .medium))
-                                    .foregroundStyle(palette.textPrimary)
-                                    .lineLimit(1)
-                                Spacer(minLength: 4)
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 9.5, weight: .semibold))
-                                    .foregroundStyle(palette.textTertiary)
-                            }
-                            .padding(.horizontal, 11)
-                            .padding(.vertical, 6)
-                            .frame(minWidth: 180)
-                            .background(
-                                palette.elevatedSurface,
-                                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                            SettingsDropdownPillLabel(
+                                text: installedModel?.displayName ?? "Select a model…",
+                                minWidth: 160,
+                                maxWidth: 220,
+                                palette: palette
                             )
                         }
                         .menuStyle(.borderlessButton)
                         .menuIndicator(.hidden)
                         .fixedSize()
+                        .accessibilityLabel("Selected local speech model")
+                        .accessibilityValue(installedModel?.displayName ?? "None selected")
                     }
                 }
 
@@ -536,6 +502,7 @@ extension SettingsView {
                             .foregroundStyle(palette.textSecondary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Refresh external displays")
                     }
                 ) {
                     displaySelectionRows(
@@ -552,6 +519,19 @@ extension SettingsView {
 
     var browserTab: some View {
         let remoteURL = "http://\(localIP):\(settings.browserServerPort)"
+        let parsedPort = SettingsNetworkValidator.parseLANPort(browserPortDraft)
+        let hasCollision = parsedPort.map {
+            settings.directorModeEnabled && SettingsNetworkValidator.lanPortsCollide($0, settings.directorServerPort)
+        } ?? false
+        let portValidationMessage: String? = {
+            if parsedPort == nil {
+                return "Enter a port between 1024 and 65534."
+            }
+            if hasCollision {
+                return "Port collides with Director (\(settings.directorServerPort)–\(settings.directorServerPort + 1))."
+            }
+            return nil
+        }()
 
         return VStack(alignment: .leading, spacing: 26) {
             SettingsPageHeader(
@@ -570,8 +550,12 @@ extension SettingsView {
                 ) {
                     HStack(spacing: 12) {
                         SettingsStatusPill(
-                            label: settings.browserServerEnabled ? "Running" : "Off",
-                            color: settings.browserServerEnabled ? palette.statusSuccess : palette.textTertiary,
+                            label: settings.browserServerEnabled
+                                ? (service.browserServer.isRunning ? "Running" : "Starting")
+                                : "Off",
+                            color: settings.browserServerEnabled
+                                ? (service.browserServer.isRunning ? palette.statusSuccess : palette.statusWarning)
+                                : palette.textTertiary,
                             palette: palette
                         )
                         Toggle("", isOn: $settings.browserServerEnabled)
@@ -592,7 +576,12 @@ extension SettingsView {
                         icon: "link",
                         palette: palette
                     ) {
-                        SettingsCopyablePill(value: remoteURL, accentValue: true, palette: palette)
+                        SettingsCopyablePill(
+                            value: remoteURL,
+                            accentValue: true,
+                            accessibilityContext: "Remote URL",
+                            palette: palette
+                        )
                     }
 
                     SettingsRowDivider(palette: palette)
@@ -613,27 +602,26 @@ extension SettingsView {
                 ) {
                     SettingsRow(
                         title: "Server port",
-                        subtitle: "Restart the server after changing the port number (1024–65534).",
+                        subtitle: portValidationMessage ?? "Click Restart after changing the port number (1024–65534).",
                         icon: "network",
+                        iconColor: portValidationMessage != nil ? palette.statusDanger : nil,
                         palette: palette
                     ) {
                         HStack(spacing: 8) {
-                            TextField("Port", text: Binding(
-                                get: { String(settings.browserServerPort) },
-                                set: { str in
-                                    if let val = UInt16(str), val >= 1024, val < UInt16.max {
-                                        settings.browserServerPort = val
-                                    }
-                                }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 12.5, design: .monospaced))
-                            .frame(width: 82)
+                            TextField("7373", text: $browserPortDraft)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(size: 12.5, design: .monospaced))
+                                .frame(width: 82)
+                                .accessibilityLabel("Remote server port")
+                                .onSubmit { commitBrowserPortAndRestart() }
 
-                            SettingsActionButton("Restart", icon: "arrow.clockwise", palette: palette) {
-                                TextreamService.shared.browserServer.stop()
-                                TextreamService.shared.browserServer.start()
-                                localIP = BrowserServer.localIPAddress() ?? "localhost"
+                            SettingsActionButton(
+                                "Restart",
+                                icon: "arrow.clockwise",
+                                isDisabled: parsedPort == nil || hasCollision,
+                                palette: palette
+                            ) {
+                                commitBrowserPortAndRestart()
                             }
                         }
                     }
@@ -646,8 +634,23 @@ extension SettingsView {
 
     var directorTab: some View {
         let directorURL = "http://\(directorLocalIP):\(settings.directorServerPort)"
-        let pairingCode = TextreamService.shared.directorServer.pairingCode
-        let obsState = TextreamService.shared.obsClient.state
+        let activePIN = directorPairingCode.isEmpty
+            ? service.directorServer.pairingCode
+            : directorPairingCode
+        let obsState = service.obsClient.state
+        let parsedPort = SettingsNetworkValidator.parseLANPort(directorPortDraft)
+        let hasCollision = parsedPort.map {
+            settings.browserServerEnabled && SettingsNetworkValidator.lanPortsCollide($0, settings.browserServerPort)
+        } ?? false
+        let portValidationMessage: String? = {
+            if parsedPort == nil {
+                return "Enter a port between 1024 and 65534."
+            }
+            if hasCollision {
+                return "Port collides with Remote (\(settings.browserServerPort)–\(settings.browserServerPort + 1))."
+            }
+            return nil
+        }()
 
         return VStack(alignment: .leading, spacing: 26) {
             SettingsPageHeader(
@@ -666,8 +669,12 @@ extension SettingsView {
                 ) {
                     HStack(spacing: 12) {
                         SettingsStatusPill(
-                            label: settings.directorModeEnabled ? "Active" : "Off",
-                            color: settings.directorModeEnabled ? palette.statusSuccess : palette.textTertiary,
+                            label: settings.directorModeEnabled
+                                ? (service.directorServer.isRunning ? "Active" : "Starting")
+                                : "Off",
+                            color: settings.directorModeEnabled
+                                ? (service.directorServer.isRunning ? palette.statusSuccess : palette.statusWarning)
+                                : palette.textTertiary,
                             palette: palette
                         )
                         Toggle("", isOn: $settings.directorModeEnabled)
@@ -688,10 +695,15 @@ extension SettingsView {
                         icon: "globe",
                         palette: palette
                     ) {
-                        SettingsCopyablePill(value: directorURL, accentValue: true, palette: palette)
+                        SettingsCopyablePill(
+                            value: directorURL,
+                            accentValue: true,
+                            accessibilityContext: "Director URL",
+                            palette: palette
+                        )
                     }
 
-                    if !pairingCode.isEmpty {
+                    if !activePIN.isEmpty {
                         SettingsRowDivider(palette: palette)
 
                         SettingsRow(
@@ -701,7 +713,13 @@ extension SettingsView {
                             iconColor: palette.accent,
                             palette: palette
                         ) {
-                            SettingsCopyablePill(value: pairingCode, accentValue: true, palette: palette)
+                            SettingsCopyablePill(
+                                value: activePIN,
+                                accentValue: true,
+                                isSensitive: true,
+                                accessibilityContext: "iOS Studio Remote PIN",
+                                palette: palette
+                            )
                         }
                     }
 
@@ -723,27 +741,26 @@ extension SettingsView {
                 ) {
                     SettingsRow(
                         title: "Director server port",
-                        subtitle: "Restart the Director server after updating the port (1024–65534).",
+                        subtitle: portValidationMessage ?? "Click Restart after updating the port (1024–65534). Generates a fresh pairing PIN.",
                         icon: "network",
+                        iconColor: portValidationMessage != nil ? palette.statusDanger : nil,
                         palette: palette
                     ) {
                         HStack(spacing: 8) {
-                            TextField("Port", text: Binding(
-                                get: { String(settings.directorServerPort) },
-                                set: { str in
-                                    if let val = UInt16(str), val >= 1024, val < UInt16.max {
-                                        settings.directorServerPort = val
-                                    }
-                                }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 12.5, design: .monospaced))
-                            .frame(width: 82)
+                            TextField("7575", text: $directorPortDraft)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(size: 12.5, design: .monospaced))
+                                .frame(width: 82)
+                                .accessibilityLabel("Director server port")
+                                .onSubmit { commitDirectorPortAndRestart() }
 
-                            SettingsActionButton("Restart", icon: "arrow.clockwise", palette: palette) {
-                                TextreamService.shared.directorServer.stop()
-                                TextreamService.shared.directorServer.start()
-                                directorLocalIP = BrowserServer.localIPAddress() ?? "localhost"
+                            SettingsActionButton(
+                                "Restart",
+                                icon: "arrow.clockwise",
+                                isDisabled: parsedPort == nil || hasCollision,
+                                palette: palette
+                            ) {
+                                commitDirectorPortAndRestart()
                             }
                         }
                     }
@@ -793,7 +810,22 @@ extension SettingsView {
     // MARK: - OBS Studio Page
 
     var obsTab: some View {
-        let obsState = TextreamService.shared.obsClient.state
+        let obsState = service.obsClient.state
+        let sanitizedHost = SettingsNetworkValidator.sanitizeOBSHost(obsHostDraft)
+        let parsedOBSPort = SettingsNetworkValidator.parseOBSPort(obsPortDraft)
+        let hostIsRemote = sanitizedHost.map { !SettingsNetworkValidator.isLoopbackHost($0) } ?? false
+        let endpointValidationMessage: String? = {
+            if sanitizedHost == nil {
+                return "Enter a hostname or IP address without a scheme (e.g., 127.0.0.1)."
+            }
+            if parsedOBSPort == nil {
+                return "Enter a valid TCP port between 1 and 65535."
+            }
+            if hostIsRemote {
+                return "Uses unencrypted ws:// on your local network. Use only on a trusted studio LAN."
+            }
+            return nil
+        }()
 
         return VStack(alignment: .leading, spacing: 26) {
             SettingsPageHeader(
@@ -830,45 +862,53 @@ extension SettingsView {
 
                     SettingsRow(
                         title: "Server host & port",
-                        subtitle: "Use 127.0.0.1 for OBS running on this Mac, or enter a studio machine's LAN IP.",
+                        subtitle: endpointValidationMessage
+                            ?? "Use 127.0.0.1 for OBS running on this Mac, or a trusted studio LAN IP.",
                         icon: "server.rack",
+                        iconColor: (sanitizedHost == nil || parsedOBSPort == nil)
+                            ? palette.statusDanger
+                            : (hostIsRemote ? palette.statusWarning : nil),
                         palette: palette
                     ) {
                         HStack(spacing: 8) {
-                            TextField("127.0.0.1", text: $settings.obsHost)
+                            TextField("127.0.0.1", text: $obsHostDraft)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(size: 12.5, design: .monospaced))
-                                .frame(width: 144)
+                                .frame(width: 136)
+                                .accessibilityLabel("OBS server host")
+                                .onSubmit { commitOBSConnection() }
 
-                            TextField("4455", text: Binding(
-                                get: { String(settings.obsPort) },
-                                set: { str in
-                                    if let val = UInt16(str), val > 0 {
-                                        settings.obsPort = val
-                                    }
-                                }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 12.5, design: .monospaced))
-                            .frame(width: 68)
+                            TextField("4455", text: $obsPortDraft)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(size: 12.5, design: .monospaced))
+                                .frame(width: 68)
+                                .accessibilityLabel("OBS server port")
+                                .onSubmit { commitOBSConnection() }
                         }
                     }
 
                     SettingsRowDivider(palette: palette)
 
                     SettingsRow(
-                        title: "Authentication password",
-                        subtitle: "Optional WebSocket password configured in OBS Studio.",
+                        title: "Password",
+                        subtitle: "Optional OBS WebSocket authentication password.",
                         icon: "key",
                         palette: palette
                     ) {
                         HStack(spacing: 8) {
                             SecureField("Optional", text: $settings.obsPassword)
                                 .textFieldStyle(.roundedBorder)
-                                .frame(width: 164)
+                                .frame(width: 152)
+                                .accessibilityLabel("OBS WebSocket password")
+                                .onSubmit { commitOBSConnection() }
 
-                            SettingsActionButton("Reconnect", icon: "arrow.clockwise", palette: palette) {
-                                TextreamService.shared.updateOBSConnection()
+                            SettingsActionButton(
+                                "Reconnect",
+                                icon: "arrow.clockwise",
+                                isDisabled: sanitizedHost == nil || parsedOBSPort == nil,
+                                palette: palette
+                            ) {
+                                commitOBSConnection()
                             }
                         }
                     }
@@ -936,7 +976,7 @@ extension SettingsView {
                 shortcutBindingRow(
                     title: "Next page",
                     subtitle: "Advance to the following script page or slide note.",
-                    icon: "arrow.right.doc.on.clipboard",
+                    icon: "arrow.right.square",
                     keys: ["PgDn", "→", "F17"]
                 )
                 SettingsRowDivider(palette: palette)
@@ -951,7 +991,7 @@ extension SettingsView {
                     title: "Adjust scroll speed",
                     subtitle: "Fine-tune scrolling speed in ±0.5 words/sec increments.",
                     icon: "speedometer",
-                    keys: ["↑", "↓"]
+                    keys: ["↑", "↓", "F18", "F19"]
                 )
                 SettingsRowDivider(palette: palette)
                 shortcutBindingRow(
@@ -959,6 +999,13 @@ extension SettingsView {
                     subtitle: "Stamp a timestamped marker for Final Cut Pro / DaVinci / Premiere export.",
                     icon: "bookmark",
                     keys: ["M", "F15", "Btn X"]
+                )
+                SettingsRowDivider(palette: palette)
+                shortcutBindingRow(
+                    title: "Stop live teleprompter",
+                    subtitle: "Dismiss the active overlay and return to the studio workspace.",
+                    icon: "escape",
+                    keys: ["Esc"]
                 )
             }
 
@@ -992,8 +1039,8 @@ extension SettingsView {
                 )
                 SettingsRowDivider(palette: palette)
                 shortcutBindingRow(
-                    title: "Open settings",
-                    subtitle: "Toggle the Settings workspace.",
+                    title: "Toggle settings",
+                    subtitle: "Open or close the Settings workspace.",
                     icon: "gearshape",
                     keys: ["⌘,"]
                 )
@@ -1038,7 +1085,11 @@ extension SettingsView {
                     subtitle: "Copy for support diagnostics and bug reports.",
                     palette: palette
                 ) {
-                    SettingsCopyablePill(value: appVersionLabel, palette: palette)
+                    SettingsCopyablePill(
+                        value: appVersionLabel,
+                        accessibilityContext: "app version",
+                        palette: palette
+                    )
                 }
 
                 SettingsRowDivider(palette: palette)
@@ -1064,7 +1115,7 @@ extension SettingsView {
                     palette: palette
                 ) {
                     SettingsActionButton("View Licenses", palette: palette) {
-                        showAcknowledgements = true
+                        activeSheet = .acknowledgements
                     }
                 }
 
@@ -1077,47 +1128,16 @@ extension SettingsView {
                     palette: palette
                 ) {
                     HStack(spacing: 8) {
-                        Link(destination: DanteAppLinks.supportURL) {
-                            HStack(spacing: 4) {
-                                Text("Support")
-                                Image(systemName: "arrow.up.right")
-                                    .font(.system(size: 10, weight: .semibold))
-                            }
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(palette.textPrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5.5)
-                            .background(
-                                palette.elevatedSurface,
-                                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
-
-                        Link(destination: DanteAppLinks.privacyURL) {
-                            HStack(spacing: 4) {
-                                Text("Privacy")
-                                Image(systemName: "arrow.up.right")
-                                    .font(.system(size: 10, weight: .semibold))
-                            }
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(palette.textPrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5.5)
-                            .background(
-                                palette.elevatedSurface,
-                                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
+                        SettingsExternalLinkPill(
+                            title: "Support",
+                            destination: DanteAppLinks.supportURL,
+                            palette: palette
+                        )
+                        SettingsExternalLinkPill(
+                            title: "Privacy",
+                            destination: DanteAppLinks.privacyURL,
+                            palette: palette
+                        )
                     }
                 }
             }
@@ -1128,15 +1148,18 @@ extension SettingsView {
                     subtitle: "Restore every appearance, teleprompter, speech, and studio integration option to factory defaults.",
                     palette: palette
                 ) {
-                    Button("Reset all settings") {
+                    Button(role: .destructive) {
                         showResetConfirmation = true
+                    } label: {
+                        Text("Reset all settings")
+                            .font(.system(size: 12.5, weight: .medium))
+                            .foregroundStyle(palette.statusDanger)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(palette.statusDanger)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .contentShape(Rectangle())
+                    .fixedSize()
                 }
             }
         }
@@ -1156,6 +1179,7 @@ extension SettingsView {
                     DanteKeycapBadge(label: key, palette: palette)
                 }
             }
+            .fixedSize()
         }
     }
 
@@ -1204,42 +1228,68 @@ extension SettingsView {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("\(screen.displayName), \(Int(screen.frame.width)) by \(Int(screen.frame.height))")
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
     }
 
     func qrCodeSectionRow(title: String, subtitle: String, url: String) -> some View {
         SettingsRow(title: title, subtitle: subtitle, icon: "qrcode", palette: palette) {
-            if let qrImage = generateQRCode(from: url) {
-                Image(nsImage: qrImage)
-                    .interpolation(.none)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 86, height: 86)
-                    .padding(6)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                    )
-            }
+            SettingsQRCodeView(url: url, size: 86, palette: palette)
         }
     }
 
-    func generateQRCode(from string: String) -> NSImage? {
-        let context = CIContext()
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = Data(string.utf8)
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let scale = 10.0
-        let scaled = ciImage.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
-        guard let cgImage = context.createCGImage(scaled, from: scaled.extent) else { return nil }
-        return NSImage(cgImage: cgImage, size: NSSize(width: scaled.extent.width, height: scaled.extent.height))
+    private func commitBrowserPortAndRestart() {
+        guard let port = SettingsNetworkValidator.parseLANPort(browserPortDraft) else { return }
+        if settings.directorModeEnabled && SettingsNetworkValidator.lanPortsCollide(port, settings.directorServerPort) {
+            return
+        }
+        settings.browserServerPort = port
+        browserPortDraft = String(port)
+        service.browserServer.stop()
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(120))
+            if settings.browserServerEnabled {
+                service.browserServer.start()
+            }
+            localIP = BrowserServer.localIPAddress() ?? "localhost"
+        }
     }
 
-    private func localizedLocaleName(_ identifier: String) -> String {
-        Locale.current.localizedString(forIdentifier: identifier) ?? identifier
+    private func commitDirectorPortAndRestart() {
+        guard let port = SettingsNetworkValidator.parseLANPort(directorPortDraft) else { return }
+        if settings.browserServerEnabled && SettingsNetworkValidator.lanPortsCollide(port, settings.browserServerPort) {
+            return
+        }
+        settings.directorServerPort = port
+        directorPortDraft = String(port)
+        service.directorServer.stop()
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(120))
+            if settings.directorModeEnabled {
+                service.directorServer.start()
+            }
+            directorLocalIP = BrowserServer.localIPAddress() ?? "localhost"
+            directorPairingCode = service.directorServer.pairingCode
+        }
+    }
+
+    private func commitOBSConnection() {
+        guard let host = SettingsNetworkValidator.sanitizeOBSHost(obsHostDraft),
+              let port = SettingsNetworkValidator.parseOBSPort(obsPortDraft) else { return }
+        settings.obsHost = host
+        settings.obsPort = port
+        obsHostDraft = host
+        obsPortDraft = String(port)
+        service.updateOBSConnection()
+    }
+
+    private var selectedLocaleDisplayName: String {
+        if let match = supportedLocales.first(where: { $0.id == settings.speechLocale }) {
+            return match.displayName
+        }
+        return Locale.current.localizedString(forIdentifier: settings.speechLocale) ?? settings.speechLocale
     }
 
     private var selectedMicrophoneName: String {
@@ -1267,10 +1317,23 @@ extension SettingsView {
         return palette.textTertiary
     }
 
+    private func localModelStatusBadge(
+        activeDownloads: Int,
+        installed: LocalSpeechModel?,
+        hasAnyModels: Bool
+    ) -> String {
+        if activeDownloads > 0 {
+            return "\(Int(modelDownloads.overallProgress * 100))%"
+        }
+        if installed != nil { return "Ready" }
+        return hasAnyModels ? "Not selected" : "Not installed"
+    }
+
     private func localModelStatusText(
         activeDownloads: Int,
         failure: String?,
-        installed: LocalSpeechModel?
+        installed: LocalSpeechModel?,
+        hasAnyModels: Bool
     ) -> String {
         if activeDownloads > 0 {
             let pct = Int(modelDownloads.overallProgress * 100)
@@ -1283,6 +1346,9 @@ extension SettingsView {
         }
         if let installed {
             return "\(installed.displayName) ready (\(installed.sizeMB) MB)."
+        }
+        if hasAnyModels {
+            return "\(modelStore.models.count) local model(s) installed. Choose one below to activate offline tracking."
         }
         return "No on-device model installed. Click Manage Models to download from Hugging Face."
     }

@@ -3,7 +3,8 @@
 //  TextreamTests
 //
 //  Unit tests for the modernized Settings navigation catalog, live search index,
-//  palette tokens, color hex formatting, and comprehensive factory reset.
+//  network validation, palette tokens, color hex formatting, and isolated
+//  factory reset behavior.
 //
 
 import Foundation
@@ -61,7 +62,10 @@ final class SettingsModernizationTests: XCTestCase {
     }
 
     func testSearchIndexFindsExpectedSettingsAcrossAllCategories() {
-        let obsResults = SettingsSearchIndex.search("obs websocket")
+        let presetResults = SettingsSearchIndex.search("creator format")
+        XCTAssertTrue(presetResults.contains(where: { $0.id == "general.preset" }))
+
+        let obsResults = SettingsSearchIndex.search("OBS WebSocket")
         XCTAssertTrue(obsResults.contains(where: { $0.tab == .obs }))
 
         let dyslexiaResults = SettingsSearchIndex.search("dyslexia")
@@ -95,10 +99,45 @@ final class SettingsModernizationTests: XCTestCase {
         XCTAssertEqual(indexedTabs, Set(SettingsTab.allCases))
     }
 
+    // MARK: - Network Port & Host Validation
+
+    func testNetworkValidatorChecksPortsCollisionsAndOBSHosts() {
+        XCTAssertEqual(SettingsNetworkValidator.parseLANPort("7373"), 7373)
+        XCTAssertEqual(SettingsNetworkValidator.parseLANPort("1024"), 1024)
+        XCTAssertEqual(SettingsNetworkValidator.parseLANPort("65534"), 65534)
+        XCTAssertNil(SettingsNetworkValidator.parseLANPort("1023"))
+        XCTAssertNil(SettingsNetworkValidator.parseLANPort("65535"))
+        XCTAssertNil(SettingsNetworkValidator.parseLANPort(""))
+        XCTAssertNil(SettingsNetworkValidator.parseLANPort("abc"))
+
+        XCTAssertEqual(SettingsNetworkValidator.parseOBSPort("1"), 1)
+        XCTAssertEqual(SettingsNetworkValidator.parseOBSPort("4455"), 4455)
+        XCTAssertEqual(SettingsNetworkValidator.parseOBSPort("65535"), 65535)
+        XCTAssertNil(SettingsNetworkValidator.parseOBSPort("0"))
+        XCTAssertNil(SettingsNetworkValidator.parseOBSPort("65536"))
+
+        XCTAssertTrue(SettingsNetworkValidator.lanPortsCollide(7373, 7373))
+        XCTAssertTrue(SettingsNetworkValidator.lanPortsCollide(7373, 7374))
+        XCTAssertTrue(SettingsNetworkValidator.lanPortsCollide(7374, 7373))
+        XCTAssertFalse(SettingsNetworkValidator.lanPortsCollide(7373, 7375))
+
+        XCTAssertEqual(SettingsNetworkValidator.sanitizeOBSHost("  127.0.0.1 "), "127.0.0.1")
+        XCTAssertEqual(SettingsNetworkValidator.sanitizeOBSHost("   "), "127.0.0.1")
+        XCTAssertEqual(SettingsNetworkValidator.sanitizeOBSHost("studio-mac.local"), "studio-mac.local")
+        XCTAssertNil(SettingsNetworkValidator.sanitizeOBSHost("ws://127.0.0.1"))
+        XCTAssertNil(SettingsNetworkValidator.sanitizeOBSHost("127.0.0.1/path"))
+        XCTAssertNil(SettingsNetworkValidator.sanitizeOBSHost("bad host"))
+
+        XCTAssertTrue(SettingsNetworkValidator.isLoopbackHost("127.0.0.1"))
+        XCTAssertTrue(SettingsNetworkValidator.isLoopbackHost("localhost"))
+        XCTAssertTrue(SettingsNetworkValidator.isLoopbackHost("::1"))
+        XCTAssertFalse(SettingsNetworkValidator.isLoopbackHost("192.168.1.40"))
+    }
+
     // MARK: - Color Hex & Palette Tokens
 
     func testFontColorPresetsProvideValidHexStrings() {
-        let hexPattern = /^#[0-9A-F]{6}$/
+        let hexPattern = #/^#[0-9A-F]{6}$/#
         for preset in FontColorPreset.allCases {
             XCTAssertNotNil(
                 preset.hexString.wholeMatch(of: hexPattern),
@@ -116,29 +155,18 @@ final class SettingsModernizationTests: XCTestCase {
         XCTAssertNotEqual(light.settingsSelectedSidebarBackground, dark.settingsSelectedSidebarBackground)
     }
 
-    // MARK: - Comprehensive Factory Reset
+    // MARK: - Isolated Comprehensive Factory Reset & Port Persistence
 
-    func testResetToDefaultsRestoresAllPreferences() {
-        let settings = NotchSettings()
-        // Save originals so test leaves UserDefaults tidy
-        let originalAppearance = settings.appAppearance
-        let originalEngine = settings.speechEngine
-        let originalModel = settings.localModelFilename
-        let originalOBSHost = settings.obsHost
-        let originalOBSPort = settings.obsPort
-        let originalOBSPassword = settings.obsPassword
-        defer {
-            settings.resetToDefaults()
-            settings.appAppearance = originalAppearance
-            settings.speechEngine = originalEngine
-            settings.localModelFilename = originalModel
-            settings.obsHost = originalOBSHost
-            settings.obsPort = originalOBSPort
-            settings.obsPassword = originalOBSPassword
-        }
+    func testResetToDefaultsRestoresAllPreferencesInIsolatedSuite() throws {
+        let suiteName = "com.dante.tests.settings.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = NotchSettings(defaults: defaults, notifyServices: false)
 
         settings.notchWidth = 460
         settings.textAreaHeight = 320
+        settings.speechLocale = "fr-FR"
         settings.fontSizePreset = .xl
         settings.fontFamilyPreset = .dyslexia
         settings.fontColorPreset = .orange
@@ -146,12 +174,15 @@ final class SettingsModernizationTests: XCTestCase {
         settings.cueBrightness = .bright
         settings.overlayMode = .floating
         settings.notchDisplayMode = .fixedDisplay
+        settings.pinnedScreenID = 42
         settings.floatingGlassEffect = true
         settings.glassOpacity = 0.45
         settings.overlayTransparency = true
         settings.overlayTransparencyOpacity = 0.55
         settings.followCursorWhenUndocked = true
+        settings.fullscreenScreenID = 99
         settings.externalDisplayMode = .mirror
+        settings.externalScreenID = 77
         settings.mirrorAxis = .both
         settings.listeningMode = .classic
         settings.speechEngine = .local
@@ -166,23 +197,32 @@ final class SettingsModernizationTests: XCTestCase {
         settings.selectedMicUID = "fake-mic-uid"
         settings.autoNextPage = true
         settings.autoNextPageDelay = 5
+        settings.browserServerEnabled = true
         settings.browserServerPort = 8080
+        settings.directorModeEnabled = true
         settings.directorServerPort = 8181
         settings.appAppearance = .dark
         settings.hasDismissedSetupChecklist = true
+        settings.hasCompletedFirstSession = true
         settings.smartRetakeEnabled = false
         settings.showPacingCoach = false
         settings.iCloudSyncEnabled = false
+        settings.obsWebSocketEnabled = true
         settings.obsHost = "192.168.1.44"
-        settings.obsPort = 4466
+        settings.obsPort = 65535
         settings.obsPassword = "studio-test-secret"
         settings.obsAutoStartTeleprompter = false
         settings.obsAutoStopTeleprompter = false
+
+        // Verify max OBS port 65535 round-trips across reload before reset
+        let reloadedBeforeReset = NotchSettings(defaults: defaults, notifyServices: false)
+        XCTAssertEqual(reloadedBeforeReset.obsPort, 65535)
 
         settings.resetToDefaults()
 
         XCTAssertEqual(settings.notchWidth, NotchSettings.defaultWidth)
         XCTAssertEqual(settings.textAreaHeight, NotchSettings.defaultHeight)
+        XCTAssertEqual(settings.speechLocale, NotchSettings.defaultLocale)
         XCTAssertEqual(settings.fontSizePreset, .lg)
         XCTAssertEqual(settings.fontFamilyPreset, .sans)
         XCTAssertEqual(settings.fontColorPreset, .white)
@@ -190,12 +230,15 @@ final class SettingsModernizationTests: XCTestCase {
         XCTAssertEqual(settings.cueBrightness, .dim)
         XCTAssertEqual(settings.overlayMode, .pinned)
         XCTAssertEqual(settings.notchDisplayMode, .followMouse)
+        XCTAssertEqual(settings.pinnedScreenID, 0)
         XCTAssertFalse(settings.floatingGlassEffect)
         XCTAssertEqual(settings.glassOpacity, 0.15, accuracy: 0.001)
         XCTAssertFalse(settings.overlayTransparency)
         XCTAssertEqual(settings.overlayTransparencyOpacity, 0.85, accuracy: 0.001)
         XCTAssertFalse(settings.followCursorWhenUndocked)
+        XCTAssertEqual(settings.fullscreenScreenID, 0)
         XCTAssertEqual(settings.externalDisplayMode, .off)
+        XCTAssertEqual(settings.externalScreenID, 0)
         XCTAssertEqual(settings.mirrorAxis, .horizontal)
         XCTAssertEqual(settings.listeningMode, .wordTracking)
         XCTAssertEqual(settings.speechEngine, .apple)
@@ -216,6 +259,7 @@ final class SettingsModernizationTests: XCTestCase {
         XCTAssertEqual(settings.directorServerPort, 7575)
         XCTAssertEqual(settings.appAppearance, .system)
         XCTAssertFalse(settings.hasDismissedSetupChecklist)
+        XCTAssertTrue(settings.hasCompletedFirstSession, "Lifetime session milestone should be preserved")
         XCTAssertTrue(settings.smartRetakeEnabled)
         XCTAssertTrue(settings.showPacingCoach)
         XCTAssertTrue(settings.iCloudSyncEnabled)

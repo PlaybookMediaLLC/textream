@@ -165,8 +165,7 @@ final class DanteScreenshotCaptureTests: XCTestCase {
 
         defer {
             TextreamService.shared.directorServer.stop()
-            settings.directorModeEnabled = false
-            settings.obsWebSocketEnabled = false
+            settings.resetToDefaults()
         }
 
         let sampleRecord = TakeTranscriptRecord(
@@ -207,10 +206,27 @@ final class DanteScreenshotCaptureTests: XCTestCase {
             item.appearance.applyToApplication()
             let palette = DantePalette(colorScheme: item.scheme)
 
-            // 1. Modernized Settings Workspace Screenshots (General, Appearance, Guidance, Director, OBS, About)
+            // 1. Modernized Settings Workspace Screenshots (Embedded General + Appearance, Teleprompter, Guidance, Director, OBS, About)
+            let embeddedGeneralView = ContentView(
+                initialWorkspaceView: .editor,
+                initialShowQuickComposer: false,
+                initialShowSettings: true,
+                initialSettingsTab: .general
+            )
+            .preferredColorScheme(item.scheme)
+            .frame(width: 1180, height: 740)
+
+            let embeddedGeneralPNG = try renderPNG(
+                view: embeddedGeneralView,
+                size: NSSize(width: 1180, height: 740),
+                appearanceName: item.scheme == .dark ? .darkAqua : .aqua
+            )
+            try embeddedGeneralPNG.write(to: outputDir.appendingPathComponent("macos-settings-general-\(item.suffix).png"))
+            XCTAssertGreaterThan(embeddedGeneralPNG.count, 10_000, "Embedded General settings screenshot unexpectedly small")
+
             let settingsTabs: [(name: String, tab: SettingsTab)] = [
-                ("macos-settings-general-\(item.suffix).png", .general),
                 ("macos-settings-appearance-\(item.suffix).png", .appearance),
+                ("macos-settings-teleprompter-\(item.suffix).png", .teleprompter),
                 ("macos-settings-guidance-\(item.suffix).png", .guidance),
                 ("macos-studio-integrations-\(item.suffix).png", .director),
                 ("macos-settings-obs-\(item.suffix).png", .obs),
@@ -220,7 +236,7 @@ final class DanteScreenshotCaptureTests: XCTestCase {
                 let settingsView = SettingsView(
                     settings: settings,
                     initialTab: tabShot.tab,
-                    isEmbeddedInWindow: false,
+                    isEmbeddedInWindow: true,
                     enableLivePreview: false
                 )
                 .preferredColorScheme(item.scheme)

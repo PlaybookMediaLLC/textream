@@ -177,11 +177,11 @@ struct DantePalette: Sendable {
             : Color(red: 92.0 / 255.0, green: 92.0 / 255.0, blue: 100.0 / 255.0)
     }
 
-    /// Muted metadata / timestamps / shortcut hints (`#64646A` dark / `#8E8E96` light).
+    /// Muted metadata / timestamps / shortcut hints (`#86868F` dark / `#666670` light — WCAG AA).
     var textTertiary: Color {
         isDark
-            ? Color(red: 100.0 / 255.0, green: 100.0 / 255.0, blue: 106.0 / 255.0)
-            : Color(red: 142.0 / 255.0, green: 142.0 / 255.0, blue: 150.0 / 255.0)
+            ? Color(red: 134.0 / 255.0, green: 134.0 / 255.0, blue: 143.0 / 255.0)
+            : Color(red: 102.0 / 255.0, green: 102.0 / 255.0, blue: 112.0 / 255.0)
     }
 
     /// Signature cobalt blue primary action & indicator accent (`#456AF6` dark / `#3B5FEF` light).

@@ -369,219 +369,233 @@ enum ReadingPosition: String, CaseIterable, Identifiable {
 class NotchSettings {
     static let shared = NotchSettings()
 
+    @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let notifyServices: Bool
+
     var notchWidth: CGFloat {
-        didSet { UserDefaults.standard.set(Double(notchWidth), forKey: "notchWidth") }
+        didSet { defaults.set(Double(notchWidth), forKey: "notchWidth") }
     }
     var textAreaHeight: CGFloat {
-        didSet { UserDefaults.standard.set(Double(textAreaHeight), forKey: "textAreaHeight") }
+        didSet { defaults.set(Double(textAreaHeight), forKey: "textAreaHeight") }
     }
 
     var speechLocale: String {
-        didSet { UserDefaults.standard.set(speechLocale, forKey: "speechLocale") }
+        didSet { defaults.set(speechLocale, forKey: "speechLocale") }
     }
 
     var fontSizePreset: FontSizePreset {
-        didSet { UserDefaults.standard.set(fontSizePreset.rawValue, forKey: "fontSizePreset") }
+        didSet { defaults.set(fontSizePreset.rawValue, forKey: "fontSizePreset") }
     }
 
     var fontFamilyPreset: FontFamilyPreset {
-        didSet { UserDefaults.standard.set(fontFamilyPreset.rawValue, forKey: "fontFamilyPreset") }
+        didSet { defaults.set(fontFamilyPreset.rawValue, forKey: "fontFamilyPreset") }
     }
 
     var fontColorPreset: FontColorPreset {
-        didSet { UserDefaults.standard.set(fontColorPreset.rawValue, forKey: "fontColorPreset") }
+        didSet { defaults.set(fontColorPreset.rawValue, forKey: "fontColorPreset") }
     }
 
     var cueColorPreset: FontColorPreset {
-        didSet { UserDefaults.standard.set(cueColorPreset.rawValue, forKey: "cueColorPreset") }
+        didSet { defaults.set(cueColorPreset.rawValue, forKey: "cueColorPreset") }
     }
 
     var cueBrightness: CueBrightness {
-        didSet { UserDefaults.standard.set(cueBrightness.rawValue, forKey: "cueBrightness") }
+        didSet { defaults.set(cueBrightness.rawValue, forKey: "cueBrightness") }
     }
 
     var overlayMode: OverlayMode {
-        didSet { UserDefaults.standard.set(overlayMode.rawValue, forKey: "overlayMode") }
+        didSet { defaults.set(overlayMode.rawValue, forKey: "overlayMode") }
     }
 
     var notchDisplayMode: NotchDisplayMode {
-        didSet { UserDefaults.standard.set(notchDisplayMode.rawValue, forKey: "notchDisplayMode") }
+        didSet { defaults.set(notchDisplayMode.rawValue, forKey: "notchDisplayMode") }
     }
 
     var pinnedScreenID: UInt32 {
-        didSet { UserDefaults.standard.set(Int(pinnedScreenID), forKey: "pinnedScreenID") }
+        didSet { defaults.set(Int(pinnedScreenID), forKey: "pinnedScreenID") }
     }
 
     var floatingGlassEffect: Bool {
-        didSet { UserDefaults.standard.set(floatingGlassEffect, forKey: "floatingGlassEffect") }
+        didSet { defaults.set(floatingGlassEffect, forKey: "floatingGlassEffect") }
     }
 
     var glassOpacity: Double {
-        didSet { UserDefaults.standard.set(glassOpacity, forKey: "glassOpacity") }
+        didSet { defaults.set(glassOpacity, forKey: "glassOpacity") }
     }
 
     var overlayTransparency: Bool {
-        didSet { UserDefaults.standard.set(overlayTransparency, forKey: "overlayTransparency") }
+        didSet { defaults.set(overlayTransparency, forKey: "overlayTransparency") }
     }
 
     var overlayTransparencyOpacity: Double {
-        didSet { UserDefaults.standard.set(overlayTransparencyOpacity, forKey: "overlayTransparencyOpacity") }
+        didSet { defaults.set(overlayTransparencyOpacity, forKey: "overlayTransparencyOpacity") }
     }
 
     var followCursorWhenUndocked: Bool {
-        didSet { UserDefaults.standard.set(followCursorWhenUndocked, forKey: "followCursorWhenUndocked") }
+        didSet { defaults.set(followCursorWhenUndocked, forKey: "followCursorWhenUndocked") }
     }
 
     var externalDisplayMode: ExternalDisplayMode {
-        didSet { UserDefaults.standard.set(externalDisplayMode.rawValue, forKey: "externalDisplayMode") }
+        didSet { defaults.set(externalDisplayMode.rawValue, forKey: "externalDisplayMode") }
     }
 
     var externalScreenID: UInt32 {
-        didSet { UserDefaults.standard.set(Int(externalScreenID), forKey: "externalScreenID") }
+        didSet { defaults.set(Int(externalScreenID), forKey: "externalScreenID") }
     }
 
     var mirrorAxis: MirrorAxis {
-        didSet { UserDefaults.standard.set(mirrorAxis.rawValue, forKey: "mirrorAxis") }
+        didSet { defaults.set(mirrorAxis.rawValue, forKey: "mirrorAxis") }
     }
 
     var listeningMode: ListeningMode {
-        didSet { UserDefaults.standard.set(listeningMode.rawValue, forKey: "listeningMode") }
+        didSet { defaults.set(listeningMode.rawValue, forKey: "listeningMode") }
     }
 
     /// Which speech recognition engine drives Word Tracking.
     var speechEngine: SpeechEngine {
-        didSet { UserDefaults.standard.set(speechEngine.rawValue, forKey: "speechEngine") }
+        didSet { defaults.set(speechEngine.rawValue, forKey: "speechEngine") }
     }
 
     /// Filename of the selected custom model inside the local models directory.
     var localModelFilename: String {
-        didSet { UserDefaults.standard.set(localModelFilename, forKey: "localModelFilename") }
+        didSet { defaults.set(localModelFilename, forKey: "localModelFilename") }
     }
 
     /// Words per second for classic and silence-paused modes
     var scrollSpeed: Double {
-        didSet { UserDefaults.standard.set(scrollSpeed, forKey: "scrollSpeed") }
+        didSet { defaults.set(scrollSpeed, forKey: "scrollSpeed") }
     }
 
     var hideFromScreenShare: Bool {
-        didSet { UserDefaults.standard.set(hideFromScreenShare, forKey: "hideFromScreenShare") }
+        didSet { defaults.set(hideFromScreenShare, forKey: "hideFromScreenShare") }
     }
 
     var showElapsedTime: Bool {
-        didSet { UserDefaults.standard.set(showElapsedTime, forKey: "showElapsedTime") }
+        didSet { defaults.set(showElapsedTime, forKey: "showElapsedTime") }
     }
 
     var keepScreenAwake: Bool {
         didSet {
-            UserDefaults.standard.set(keepScreenAwake, forKey: "keepScreenAwake")
-            TextreamService.shared.updateKeepAwakeActivity(enabled: keepScreenAwake)
+            defaults.set(keepScreenAwake, forKey: "keepScreenAwake")
+            if notifyServices {
+                TextreamService.shared.updateKeepAwakeActivity(enabled: keepScreenAwake)
+            }
         }
     }
 
     var readingPosition: ReadingPosition {
-        didSet { UserDefaults.standard.set(readingPosition.rawValue, forKey: "readingPosition") }
+        didSet { defaults.set(readingPosition.rawValue, forKey: "readingPosition") }
     }
 
     var showParagraphDividers: Bool {
-        didSet { UserDefaults.standard.set(showParagraphDividers, forKey: "showParagraphDividers") }
+        didSet { defaults.set(showParagraphDividers, forKey: "showParagraphDividers") }
     }
 
     var showLastSpokenWords: Bool {
-        didSet { UserDefaults.standard.set(showLastSpokenWords, forKey: "showLastSpokenWords") }
+        didSet { defaults.set(showLastSpokenWords, forKey: "showLastSpokenWords") }
     }
 
     var selectedMicUID: String {
-        didSet { UserDefaults.standard.set(selectedMicUID, forKey: "selectedMicUID") }
+        didSet { defaults.set(selectedMicUID, forKey: "selectedMicUID") }
     }
 
     var autoNextPage: Bool {
-        didSet { UserDefaults.standard.set(autoNextPage, forKey: "autoNextPage") }
+        didSet { defaults.set(autoNextPage, forKey: "autoNextPage") }
     }
 
     var autoNextPageDelay: Int {
-        didSet { UserDefaults.standard.set(autoNextPageDelay, forKey: "autoNextPageDelay") }
+        didSet { defaults.set(autoNextPageDelay, forKey: "autoNextPageDelay") }
     }
 
     var fullscreenScreenID: UInt32 {
-        didSet { UserDefaults.standard.set(Int(fullscreenScreenID), forKey: "fullscreenScreenID") }
+        didSet { defaults.set(Int(fullscreenScreenID), forKey: "fullscreenScreenID") }
     }
 
     var browserServerEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(browserServerEnabled, forKey: "browserServerEnabled")
-            TextreamService.shared.updateBrowserServer()
+            defaults.set(browserServerEnabled, forKey: "browserServerEnabled")
+            if notifyServices {
+                TextreamService.shared.updateBrowserServer()
+            }
         }
     }
 
     var browserServerPort: UInt16 {
-        didSet { UserDefaults.standard.set(Int(browserServerPort), forKey: "browserServerPort") }
+        didSet { defaults.set(Int(browserServerPort), forKey: "browserServerPort") }
     }
 
     var directorModeEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(directorModeEnabled, forKey: "directorModeEnabled")
-            TextreamService.shared.updateDirectorServer()
+            defaults.set(directorModeEnabled, forKey: "directorModeEnabled")
+            if notifyServices {
+                TextreamService.shared.updateDirectorServer()
+            }
         }
     }
 
     var directorServerPort: UInt16 {
-        didSet { UserDefaults.standard.set(Int(directorServerPort), forKey: "directorServerPort") }
+        didSet { defaults.set(Int(directorServerPort), forKey: "directorServerPort") }
     }
 
     var appAppearance: AppAppearance {
         didSet {
-            UserDefaults.standard.set(appAppearance.rawValue, forKey: "dante.mac.appAppearance")
-            Task { @MainActor in
-                appAppearance.applyToApplication()
+            defaults.set(appAppearance.rawValue, forKey: "dante.mac.appAppearance")
+            if notifyServices {
+                let targetAppearance = appAppearance
+                Task { @MainActor in
+                    targetAppearance.applyToApplication()
+                }
             }
         }
     }
 
     var hasDismissedSetupChecklist: Bool {
-        didSet { UserDefaults.standard.set(hasDismissedSetupChecklist, forKey: "dante.mac.dismissedSetupChecklist") }
+        didSet { defaults.set(hasDismissedSetupChecklist, forKey: "dante.mac.dismissedSetupChecklist") }
     }
 
     var hasCompletedFirstSession: Bool {
-        didSet { UserDefaults.standard.set(hasCompletedFirstSession, forKey: "dante.mac.completedFirstSession") }
+        didSet { defaults.set(hasCompletedFirstSession, forKey: "dante.mac.completedFirstSession") }
     }
 
     var smartRetakeEnabled: Bool {
-        didSet { UserDefaults.standard.set(smartRetakeEnabled, forKey: "dante.mac.smartRetakeEnabled") }
+        didSet { defaults.set(smartRetakeEnabled, forKey: "dante.mac.smartRetakeEnabled") }
     }
 
     var showPacingCoach: Bool {
-        didSet { UserDefaults.standard.set(showPacingCoach, forKey: "dante.mac.showPacingCoach") }
+        didSet { defaults.set(showPacingCoach, forKey: "dante.mac.showPacingCoach") }
     }
 
     var iCloudSyncEnabled: Bool {
-        didSet { UserDefaults.standard.set(iCloudSyncEnabled, forKey: "dante.mac.iCloudSyncEnabled") }
+        didSet { defaults.set(iCloudSyncEnabled, forKey: "dante.mac.iCloudSyncEnabled") }
     }
 
     var obsWebSocketEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(obsWebSocketEnabled, forKey: "dante.mac.obsWebSocketEnabled")
-            TextreamService.shared.updateOBSConnection()
+            defaults.set(obsWebSocketEnabled, forKey: "dante.mac.obsWebSocketEnabled")
+            if notifyServices {
+                TextreamService.shared.updateOBSConnection()
+            }
         }
     }
 
     var obsHost: String {
-        didSet { UserDefaults.standard.set(obsHost, forKey: "dante.mac.obsHost") }
+        didSet { defaults.set(obsHost, forKey: "dante.mac.obsHost") }
     }
 
     var obsPort: UInt16 {
-        didSet { UserDefaults.standard.set(Int(obsPort), forKey: "dante.mac.obsPort") }
+        didSet { defaults.set(Int(obsPort), forKey: "dante.mac.obsPort") }
     }
 
     var obsPassword: String {
-        didSet { UserDefaults.standard.set(obsPassword, forKey: "dante.mac.obsPassword") }
+        didSet { defaults.set(obsPassword, forKey: "dante.mac.obsPassword") }
     }
 
     var obsAutoStartTeleprompter: Bool {
-        didSet { UserDefaults.standard.set(obsAutoStartTeleprompter, forKey: "dante.mac.obsAutoStartTeleprompter") }
+        didSet { defaults.set(obsAutoStartTeleprompter, forKey: "dante.mac.obsAutoStartTeleprompter") }
     }
 
     var obsAutoStopTeleprompter: Bool {
-        didSet { UserDefaults.standard.set(obsAutoStopTeleprompter, forKey: "dante.mac.obsAutoStopTeleprompter") }
+        didSet { defaults.set(obsAutoStopTeleprompter, forKey: "dante.mac.obsAutoStopTeleprompter") }
     }
 
     var font: NSFont {
@@ -598,76 +612,79 @@ class NotchSettings {
     static let minHeight: CGFloat = 100
     static let maxHeight: CGFloat = 400
 
-    init() {
-        let savedWidth = UserDefaults.standard.double(forKey: "notchWidth")
-        let savedHeight = UserDefaults.standard.double(forKey: "textAreaHeight")
+    init(defaults: UserDefaults = .standard, notifyServices: Bool = true) {
+        self.defaults = defaults
+        self.notifyServices = notifyServices
+        let savedWidth = defaults.double(forKey: "notchWidth")
+        let savedHeight = defaults.double(forKey: "textAreaHeight")
         self.notchWidth = savedWidth > 0 ? CGFloat(savedWidth) : Self.defaultWidth
         self.textAreaHeight = savedHeight > 0 ? CGFloat(savedHeight) : Self.defaultHeight
-        let preferredSpeechLocale = UserDefaults.standard.string(forKey: "speechLocale") ?? Self.defaultLocale
+        let preferredSpeechLocale = defaults.string(forKey: "speechLocale") ?? Self.defaultLocale
         self.speechLocale = SpeechLocaleSupport.closestSupportedLocale(to: preferredSpeechLocale)?.identifier
             ?? Self.defaultLocale
-        self.fontSizePreset = FontSizePreset(rawValue: UserDefaults.standard.string(forKey: "fontSizePreset") ?? "") ?? .lg
-        self.fontFamilyPreset = FontFamilyPreset(rawValue: UserDefaults.standard.string(forKey: "fontFamilyPreset") ?? "") ?? .sans
-        self.fontColorPreset = FontColorPreset(rawValue: UserDefaults.standard.string(forKey: "fontColorPreset") ?? "") ?? .white
-        self.cueColorPreset = FontColorPreset(rawValue: UserDefaults.standard.string(forKey: "cueColorPreset") ?? "") ?? .white
-        self.cueBrightness = CueBrightness(rawValue: UserDefaults.standard.string(forKey: "cueBrightness") ?? "") ?? .dim
-        self.overlayMode = OverlayMode(rawValue: UserDefaults.standard.string(forKey: "overlayMode") ?? "") ?? .pinned
-        self.notchDisplayMode = NotchDisplayMode(rawValue: UserDefaults.standard.string(forKey: "notchDisplayMode") ?? "") ?? .followMouse
-        let savedPinnedScreenID = UserDefaults.standard.integer(forKey: "pinnedScreenID")
-        self.pinnedScreenID = UInt32(savedPinnedScreenID)
-        self.floatingGlassEffect = UserDefaults.standard.object(forKey: "floatingGlassEffect") as? Bool ?? false
-        let savedOpacity = UserDefaults.standard.double(forKey: "glassOpacity")
+        self.fontSizePreset = FontSizePreset(rawValue: defaults.string(forKey: "fontSizePreset") ?? "") ?? .lg
+        self.fontFamilyPreset = FontFamilyPreset(rawValue: defaults.string(forKey: "fontFamilyPreset") ?? "") ?? .sans
+        self.fontColorPreset = FontColorPreset(rawValue: defaults.string(forKey: "fontColorPreset") ?? "") ?? .white
+        self.cueColorPreset = FontColorPreset(rawValue: defaults.string(forKey: "cueColorPreset") ?? "") ?? .white
+        self.cueBrightness = CueBrightness(rawValue: defaults.string(forKey: "cueBrightness") ?? "") ?? .dim
+        self.overlayMode = OverlayMode(rawValue: defaults.string(forKey: "overlayMode") ?? "") ?? .pinned
+        self.notchDisplayMode = NotchDisplayMode(rawValue: defaults.string(forKey: "notchDisplayMode") ?? "") ?? .followMouse
+        let savedPinnedScreenID = defaults.integer(forKey: "pinnedScreenID")
+        self.pinnedScreenID = UInt32(max(0, savedPinnedScreenID))
+        self.floatingGlassEffect = defaults.object(forKey: "floatingGlassEffect") as? Bool ?? false
+        let savedOpacity = defaults.double(forKey: "glassOpacity")
         self.glassOpacity = savedOpacity > 0 ? savedOpacity : 0.15
-        self.overlayTransparency = UserDefaults.standard.object(forKey: "overlayTransparency") as? Bool ?? false
-        let savedTransparencyOpacity = UserDefaults.standard.double(forKey: "overlayTransparencyOpacity")
+        self.overlayTransparency = defaults.object(forKey: "overlayTransparency") as? Bool ?? false
+        let savedTransparencyOpacity = defaults.double(forKey: "overlayTransparencyOpacity")
         self.overlayTransparencyOpacity = savedTransparencyOpacity > 0 ? savedTransparencyOpacity : 0.85
-        self.followCursorWhenUndocked = UserDefaults.standard.object(forKey: "followCursorWhenUndocked") as? Bool ?? false
-        self.externalDisplayMode = ExternalDisplayMode(rawValue: UserDefaults.standard.string(forKey: "externalDisplayMode") ?? "") ?? .off
-        let savedScreenID = UserDefaults.standard.integer(forKey: "externalScreenID")
-        self.externalScreenID = UInt32(savedScreenID)
-        self.mirrorAxis = MirrorAxis(rawValue: UserDefaults.standard.string(forKey: "mirrorAxis") ?? "") ?? .horizontal
-        self.listeningMode = ListeningMode(rawValue: UserDefaults.standard.string(forKey: "listeningMode") ?? "") ?? .wordTracking
-        self.speechEngine = SpeechEngine(rawValue: UserDefaults.standard.string(forKey: "speechEngine") ?? "") ?? .apple
-        self.localModelFilename = UserDefaults.standard.string(forKey: "localModelFilename") ?? ""
-        let savedSpeed = UserDefaults.standard.double(forKey: "scrollSpeed")
+        self.followCursorWhenUndocked = defaults.object(forKey: "followCursorWhenUndocked") as? Bool ?? false
+        self.externalDisplayMode = ExternalDisplayMode(rawValue: defaults.string(forKey: "externalDisplayMode") ?? "") ?? .off
+        let savedScreenID = defaults.integer(forKey: "externalScreenID")
+        self.externalScreenID = UInt32(max(0, savedScreenID))
+        self.mirrorAxis = MirrorAxis(rawValue: defaults.string(forKey: "mirrorAxis") ?? "") ?? .horizontal
+        self.listeningMode = ListeningMode(rawValue: defaults.string(forKey: "listeningMode") ?? "") ?? .wordTracking
+        self.speechEngine = SpeechEngine(rawValue: defaults.string(forKey: "speechEngine") ?? "") ?? .apple
+        self.localModelFilename = defaults.string(forKey: "localModelFilename") ?? ""
+        let savedSpeed = defaults.double(forKey: "scrollSpeed")
         self.scrollSpeed = savedSpeed > 0 ? savedSpeed : 3
-        self.hideFromScreenShare = UserDefaults.standard.object(forKey: "hideFromScreenShare") as? Bool ?? true
-        self.showElapsedTime = UserDefaults.standard.object(forKey: "showElapsedTime") as? Bool ?? true
-        self.keepScreenAwake = UserDefaults.standard.object(forKey: "keepScreenAwake") as? Bool ?? false
-        self.readingPosition = ReadingPosition(rawValue: UserDefaults.standard.string(forKey: "readingPosition") ?? "") ?? .centered
-        self.showParagraphDividers = UserDefaults.standard.object(forKey: "showParagraphDividers") as? Bool ?? false
-        self.showLastSpokenWords = UserDefaults.standard.object(forKey: "showLastSpokenWords") as? Bool ?? true
-        self.selectedMicUID = UserDefaults.standard.string(forKey: "selectedMicUID") ?? ""
-        self.autoNextPage = UserDefaults.standard.object(forKey: "autoNextPage") as? Bool ?? false
-        let savedDelay = UserDefaults.standard.integer(forKey: "autoNextPageDelay")
+        self.hideFromScreenShare = defaults.object(forKey: "hideFromScreenShare") as? Bool ?? true
+        self.showElapsedTime = defaults.object(forKey: "showElapsedTime") as? Bool ?? true
+        self.keepScreenAwake = defaults.object(forKey: "keepScreenAwake") as? Bool ?? false
+        self.readingPosition = ReadingPosition(rawValue: defaults.string(forKey: "readingPosition") ?? "") ?? .centered
+        self.showParagraphDividers = defaults.object(forKey: "showParagraphDividers") as? Bool ?? false
+        self.showLastSpokenWords = defaults.object(forKey: "showLastSpokenWords") as? Bool ?? true
+        self.selectedMicUID = defaults.string(forKey: "selectedMicUID") ?? ""
+        self.autoNextPage = defaults.object(forKey: "autoNextPage") as? Bool ?? false
+        let savedDelay = defaults.integer(forKey: "autoNextPageDelay")
         self.autoNextPageDelay = [0, 1, 3, 5].contains(savedDelay)
-            && UserDefaults.standard.object(forKey: "autoNextPageDelay") != nil
+            && defaults.object(forKey: "autoNextPageDelay") != nil
             ? savedDelay
             : 3
-        let savedFullscreenScreenID = UserDefaults.standard.integer(forKey: "fullscreenScreenID")
-        self.fullscreenScreenID = UInt32(savedFullscreenScreenID)
-        self.browserServerEnabled = UserDefaults.standard.object(forKey: "browserServerEnabled") as? Bool ?? false
-        let savedPort = UserDefaults.standard.integer(forKey: "browserServerPort")
+        let savedFullscreenScreenID = defaults.integer(forKey: "fullscreenScreenID")
+        self.fullscreenScreenID = UInt32(max(0, savedFullscreenScreenID))
+        self.browserServerEnabled = defaults.object(forKey: "browserServerEnabled") as? Bool ?? false
+        let savedPort = defaults.integer(forKey: "browserServerPort")
         self.browserServerPort = (1024..<Int(UInt16.max)).contains(savedPort) ? UInt16(savedPort) : 7373
-        self.directorModeEnabled = UserDefaults.standard.object(forKey: "directorModeEnabled") as? Bool ?? false
-        let savedDirectorPort = UserDefaults.standard.integer(forKey: "directorServerPort")
+        self.directorModeEnabled = defaults.object(forKey: "directorModeEnabled") as? Bool ?? false
+        let savedDirectorPort = defaults.integer(forKey: "directorServerPort")
         self.directorServerPort = (1024..<Int(UInt16.max)).contains(savedDirectorPort) ? UInt16(savedDirectorPort) : 7575
-        self.appAppearance = AppAppearance(rawValue: UserDefaults.standard.string(forKey: "dante.mac.appAppearance") ?? "") ?? .system
-        self.hasDismissedSetupChecklist = UserDefaults.standard.bool(forKey: "dante.mac.dismissedSetupChecklist")
-        self.hasCompletedFirstSession = UserDefaults.standard.bool(forKey: "dante.mac.completedFirstSession")
-        self.smartRetakeEnabled = UserDefaults.standard.object(forKey: "dante.mac.smartRetakeEnabled") as? Bool ?? true
-        self.showPacingCoach = UserDefaults.standard.object(forKey: "dante.mac.showPacingCoach") as? Bool ?? true
-        self.iCloudSyncEnabled = UserDefaults.standard.object(forKey: "dante.mac.iCloudSyncEnabled") as? Bool ?? true
-        self.obsWebSocketEnabled = UserDefaults.standard.bool(forKey: "dante.mac.obsWebSocketEnabled")
-        self.obsHost = UserDefaults.standard.string(forKey: "dante.mac.obsHost") ?? "127.0.0.1"
-        let savedOBSPort = UserDefaults.standard.integer(forKey: "dante.mac.obsPort")
-        self.obsPort = (1..<Int(UInt16.max)).contains(savedOBSPort) ? UInt16(savedOBSPort) : 4455
-        self.obsPassword = UserDefaults.standard.string(forKey: "dante.mac.obsPassword") ?? ""
-        self.obsAutoStartTeleprompter = UserDefaults.standard.object(forKey: "dante.mac.obsAutoStartTeleprompter") as? Bool ?? true
-        self.obsAutoStopTeleprompter = UserDefaults.standard.object(forKey: "dante.mac.obsAutoStopTeleprompter") as? Bool ?? true
+        self.appAppearance = AppAppearance(rawValue: defaults.string(forKey: "dante.mac.appAppearance") ?? "") ?? .system
+        self.hasDismissedSetupChecklist = defaults.bool(forKey: "dante.mac.dismissedSetupChecklist")
+        self.hasCompletedFirstSession = defaults.bool(forKey: "dante.mac.completedFirstSession")
+        self.smartRetakeEnabled = defaults.object(forKey: "dante.mac.smartRetakeEnabled") as? Bool ?? true
+        self.showPacingCoach = defaults.object(forKey: "dante.mac.showPacingCoach") as? Bool ?? true
+        self.iCloudSyncEnabled = defaults.object(forKey: "dante.mac.iCloudSyncEnabled") as? Bool ?? true
+        self.obsWebSocketEnabled = defaults.bool(forKey: "dante.mac.obsWebSocketEnabled")
+        self.obsHost = defaults.string(forKey: "dante.mac.obsHost") ?? "127.0.0.1"
+        let savedOBSPort = defaults.integer(forKey: "dante.mac.obsPort")
+        self.obsPort = (1...Int(UInt16.max)).contains(savedOBSPort) ? UInt16(savedOBSPort) : 4455
+        self.obsPassword = defaults.string(forKey: "dante.mac.obsPassword") ?? ""
+        self.obsAutoStartTeleprompter = defaults.object(forKey: "dante.mac.obsAutoStartTeleprompter") as? Bool ?? true
+        self.obsAutoStopTeleprompter = defaults.object(forKey: "dante.mac.obsAutoStopTeleprompter") as? Bool ?? true
     }
 
     /// Restores every user-configurable preference to its factory default.
+    /// Intentionally preserves lifetime onboarding milestone `hasCompletedFirstSession`.
     func resetToDefaults() {
         notchWidth = Self.defaultWidth
         textAreaHeight = Self.defaultHeight

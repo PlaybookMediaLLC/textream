@@ -4,10 +4,11 @@
 //
 //  Reusable modern Settings UI primitives: clean grouped cards, hairline row
 //  dividers, bordered dropdown pills, visual appearance thumbnails, color
-//  swatch + hex controls, copyable pills, and live prompt preview.
+//  swatch + hex controls, copyable pills, cached QR codes, and live prompt preview.
 //
 
 import AppKit
+import CoreImage.CIFilterBuiltins
 import SwiftUI
 
 // MARK: - Page Header
@@ -66,7 +67,7 @@ struct SettingsSection<Trailing: View, Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if title != nil || subtitle != nil {
+            if title != nil || subtitle != nil || Trailing.self != EmptyView.self {
                 HStack(alignment: .lastTextBaseline, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
                         if let title {
@@ -178,7 +179,7 @@ struct SettingsRow<Control: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 14) {
+        HStack(alignment: .center, spacing: 12) {
             if let icon {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -191,12 +192,14 @@ struct SettingsRow<Control: View>: View {
                         .font(.system(size: 13.5, weight: .medium))
                         .foregroundStyle(iconColor ?? palette.textSecondary)
                 }
+                .accessibilityHidden(true)
             }
 
             VStack(alignment: .leading, spacing: 2.5) {
                 Text(title)
                     .font(.system(size: 13.5, weight: .medium))
                     .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
@@ -205,8 +208,7 @@ struct SettingsRow<Control: View>: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-
-            Spacer(minLength: 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             control()
         }
@@ -268,12 +270,16 @@ struct SettingsMenuPicker<Option: Hashable & Identifiable>: View {
     let labelForOption: (Option) -> String
     let iconForOption: ((Option) -> String)?
     let minWidth: CGFloat
+    let maxWidth: CGFloat
+    let accessibilityTitle: String?
     let palette: DantePalette
 
     init(
         options: [Option],
         selection: Binding<Option>,
         minWidth: CGFloat = 132,
+        maxWidth: CGFloat = 220,
+        accessibilityTitle: String? = nil,
         palette: DantePalette,
         iconForOption: ((Option) -> String)? = nil,
         labelForOption: @escaping (Option) -> String
@@ -281,6 +287,8 @@ struct SettingsMenuPicker<Option: Hashable & Identifiable>: View {
         self.options = options
         self._selection = selection
         self.minWidth = minWidth
+        self.maxWidth = maxWidth
+        self.accessibilityTitle = accessibilityTitle
         self.palette = palette
         self.iconForOption = iconForOption
         self.labelForOption = labelForOption
@@ -305,36 +313,72 @@ struct SettingsMenuPicker<Option: Hashable & Identifiable>: View {
                 }
             }
         } label: {
-            HStack(spacing: 8) {
-                if let icon = iconForOption?(selection) {
-                    Image(systemName: icon)
-                        .font(.system(size: 11.5, weight: .medium))
-                        .foregroundStyle(palette.textSecondary)
-                }
-                Text(labelForOption(selection))
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(palette.textPrimary)
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 9.5, weight: .semibold))
-                    .foregroundStyle(palette.textTertiary)
-            }
-            .padding(.horizontal, 11)
-            .padding(.vertical, 6)
-            .frame(minWidth: minWidth)
-            .background(
-                palette.elevatedSurface,
-                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+            SettingsDropdownPillLabel(
+                text: labelForOption(selection),
+                icon: iconForOption?(selection),
+                minWidth: minWidth,
+                maxWidth: maxWidth,
+                palette: palette
             )
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
+        .accessibilityLabel(accessibilityTitle ?? labelForOption(selection))
+        .accessibilityValue(labelForOption(selection))
+    }
+}
+
+/// Shared bordered dropdown pill surface used across `SettingsMenuPicker` and custom menus.
+struct SettingsDropdownPillLabel: View {
+    let text: String
+    let icon: String?
+    let minWidth: CGFloat
+    let maxWidth: CGFloat
+    let palette: DantePalette
+
+    init(
+        text: String,
+        icon: String? = nil,
+        minWidth: CGFloat = 148,
+        maxWidth: CGFloat = 220,
+        palette: DantePalette
+    ) {
+        self.text = text
+        self.icon = icon
+        self.minWidth = minWidth
+        self.maxWidth = maxWidth
+        self.palette = palette
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let icon {
+                Image(systemName: icon)
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(palette.textSecondary)
+            }
+            Text(text)
+                .font(.system(size: 12.5, weight: .medium))
+                .foregroundStyle(palette.textPrimary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Spacer(minLength: 4)
+            Image(systemName: "chevron.down")
+                .font(.system(size: 9.5, weight: .semibold))
+                .foregroundStyle(palette.textTertiary)
+        }
+        .padding(.horizontal, 11)
+        .padding(.vertical, 6)
+        .frame(minWidth: minWidth, maxWidth: maxWidth)
+        .background(
+            palette.elevatedSurface,
+            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+        )
     }
 }
 
@@ -350,12 +394,13 @@ struct SettingsSegmentedPill<Option: Hashable & Identifiable>: View {
         HStack(spacing: 2) {
             ForEach(options) { option in
                 let isSelected = option == selection
+                let label = labelForOption(option)
                 Button {
                     withAnimation(.easeInOut(duration: 0.16)) {
                         selection = option
                     }
                 } label: {
-                    Text(labelForOption(option))
+                    Text(label)
                         .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
                         .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
                         .lineLimit(1)
@@ -377,6 +422,8 @@ struct SettingsSegmentedPill<Option: Hashable & Identifiable>: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(label)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
         .padding(3)
@@ -388,6 +435,7 @@ struct SettingsSegmentedPill<Option: Hashable & Identifiable>: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(palette.borderSubtle, lineWidth: 1)
         )
+        .fixedSize()
     }
 }
 
@@ -433,6 +481,7 @@ struct SettingsSliderRow: View {
                     Text(title)
                         .font(.system(size: 13.5, weight: .medium))
                         .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let subtitle, !subtitle.isEmpty {
                         Text(subtitle)
                             .font(.system(size: 12))
@@ -440,8 +489,7 @@ struct SettingsSliderRow: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-
-                Spacer(minLength: 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(valueLabel)
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
@@ -456,11 +504,14 @@ struct SettingsSliderRow: View {
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .strokeBorder(palette.borderSubtle, lineWidth: 1)
                     )
+                    .fixedSize()
             }
 
             VStack(spacing: 4) {
                 Slider(value: $value, in: range, step: step)
                     .tint(palette.accent)
+                    .accessibilityLabel(title)
+                    .accessibilityValue(valueLabel)
 
                 if leadingLabel != nil || trailingLabel != nil {
                     HStack {
@@ -483,12 +534,24 @@ struct SettingsSliderRow: View {
 struct SettingsCopyablePill: View {
     let value: String
     let accentValue: Bool
+    let isSensitive: Bool
+    let accessibilityContext: String
     let palette: DantePalette
-    @State private var didCopy = false
 
-    init(value: String, accentValue: Bool = false, palette: DantePalette) {
+    @State private var didCopy = false
+    @State private var resetTask: Task<Void, Never>?
+
+    init(
+        value: String,
+        accentValue: Bool = false,
+        isSensitive: Bool = false,
+        accessibilityContext: String = "value",
+        palette: DantePalette
+    ) {
         self.value = value
         self.accentValue = accentValue
+        self.isSensitive = isSensitive
+        self.accessibilityContext = accessibilityContext
         self.palette = palette
     }
 
@@ -502,12 +565,14 @@ struct SettingsCopyablePill: View {
                 .textSelection(.enabled)
 
             Button {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(value, forType: .string)
+                copyToPasteboard()
                 withAnimation(.easeInOut(duration: 0.15)) {
                     didCopy = true
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                resetTask?.cancel()
+                resetTask = Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(1500))
+                    guard !Task.isCancelled else { return }
                     withAnimation(.easeInOut(duration: 0.15)) {
                         didCopy = false
                     }
@@ -521,6 +586,7 @@ struct SettingsCopyablePill: View {
             }
             .buttonStyle(.plain)
             .help(didCopy ? "Copied" : "Copy to clipboard")
+            .accessibilityLabel(didCopy ? "Copied \(accessibilityContext)" : "Copy \(accessibilityContext)")
         }
         .padding(.leading, 10)
         .padding(.trailing, 6)
@@ -533,6 +599,75 @@ struct SettingsCopyablePill: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(palette.borderSubtle, lineWidth: 1)
         )
+        .onDisappear {
+            resetTask?.cancel()
+        }
+    }
+
+    private func copyToPasteboard() {
+        let pasteboard = NSPasteboard.general
+        if isSensitive {
+            pasteboard.prepareForNewContents(with: .currentHostOnly)
+            pasteboard.setString(value, forType: .string)
+            pasteboard.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
+            pasteboard.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"))
+        } else {
+            pasteboard.clearContents()
+            pasteboard.setString(value, forType: .string)
+        }
+    }
+}
+
+// MARK: - Cached QR Code View
+
+struct SettingsQRCodeView: View {
+    private static let ciContext = CIContext()
+
+    let url: String
+    let size: CGFloat
+    let palette: DantePalette
+
+    @State private var renderedImage: NSImage?
+
+    init(url: String, size: CGFloat = 86, palette: DantePalette) {
+        self.url = url
+        self.size = size
+        self.palette = palette
+    }
+
+    var body: some View {
+        Group {
+            if let renderedImage {
+                Image(nsImage: renderedImage)
+                    .interpolation(.none)
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: size, height: size)
+        .padding(6)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+        )
+        .accessibilityLabel("QR code for \(url)")
+        .task(id: url) {
+            renderedImage = Self.renderQRCode(from: url)
+        }
+    }
+
+    private static func renderQRCode(from string: String) -> NSImage? {
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = Data(string.utf8)
+        filter.correctionLevel = "M"
+        guard let ciImage = filter.outputImage else { return nil }
+        let scale = 10.0
+        let scaled = ciImage.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        guard let cgImage = ciContext.createCGImage(scaled, from: scaled.extent) else { return nil }
+        return NSImage(cgImage: cgImage, size: NSSize(width: scaled.extent.width, height: scaled.extent.height))
     }
 }
 
@@ -563,10 +698,11 @@ struct SettingsStatusPill: View {
             Capsule()
                 .strokeBorder(palette.borderSubtle, lineWidth: 1)
         )
+        .fixedSize()
     }
 }
 
-// MARK: - Action Button Style Helper
+// MARK: - Action & External Link Buttons
 
 struct SettingsActionButton: View {
     let title: String
@@ -596,7 +732,7 @@ struct SettingsActionButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        Button(role: isDestructive ? .destructive : nil, action: action) {
             HStack(spacing: 6) {
                 if let icon {
                     Image(systemName: icon)
@@ -604,6 +740,7 @@ struct SettingsActionButton: View {
                 }
                 Text(title)
                     .font(.system(size: 12.5, weight: .medium))
+                    .lineLimit(1)
             }
             .foregroundStyle(foregroundColor)
             .padding(.horizontal, 12)
@@ -617,6 +754,7 @@ struct SettingsActionButton: View {
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
+        .fixedSize()
     }
 
     private var foregroundColor: Color {
@@ -635,6 +773,36 @@ struct SettingsActionButton: View {
         if isProminent { return Color.clear }
         if isDestructive { return palette.statusDanger.opacity(0.28) }
         return palette.borderSubtle
+    }
+}
+
+struct SettingsExternalLinkPill: View {
+    let title: String
+    let destination: URL
+    let palette: DantePalette
+
+    var body: some View {
+        Link(destination: destination) {
+            HStack(spacing: 4) {
+                Text(title)
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(palette.textPrimary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5.5)
+            .background(
+                palette.elevatedSurface,
+                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
     }
 }
 
@@ -681,6 +849,7 @@ struct SettingsVisualModePicker: View {
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
+        .fixedSize()
     }
 
     @ViewBuilder
@@ -723,7 +892,8 @@ struct SettingsVisualModePicker: View {
             }
             .padding(.top, 9)
             .padding(.leading, 5)
-            .frame(width: 19, maxHeight: .infinity, alignment: .topLeading)
+            .frame(width: 19)
+            .frame(maxHeight: .infinity, alignment: .topLeading)
             .background(rail)
 
             VStack(alignment: .leading, spacing: 5) {
@@ -852,7 +1022,7 @@ struct SettingsColorSwatchRow: View {
                                 if isSelected {
                                     Image(systemName: "checkmark")
                                         .font(.system(size: 9.5, weight: .bold))
-                                        .foregroundStyle(preset == .white || preset == .yellow ? .black : .white)
+                                        .foregroundStyle(checkmarkColor(for: preset))
                                 }
                             }
                             .padding(2)
@@ -864,10 +1034,11 @@ struct SettingsColorSwatchRow: View {
                         .buttonStyle(.plain)
                         .help(preset.label)
                         .accessibilityLabel("\(title): \(preset.label)")
+                        .accessibilityAddTraits(isSelected ? .isSelected : [])
                     }
                 }
 
-                // Swatch + hex pill matching Screenshot 3's Colors card
+                // Active color swatch + monospaced hex badge
                 HStack(spacing: 6) {
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .fill(selection.color)
@@ -891,6 +1062,16 @@ struct SettingsColorSwatchRow: View {
                         .strokeBorder(palette.borderSubtle, lineWidth: 1)
                 )
             }
+            .fixedSize()
+        }
+    }
+
+    private func checkmarkColor(for preset: FontColorPreset) -> Color {
+        switch preset {
+        case .white, .yellow, .green, .orange:
+            return .black
+        case .blue, .pink:
+            return .white
         }
     }
 }
@@ -905,6 +1086,28 @@ struct SettingsInlinePrompterPreview: View {
     let cueBrightness: CueBrightness
     let palette: DantePalette
 
+    private var previewPointSize: CGFloat {
+        switch fontSize {
+        case .xs: return 13
+        case .sm: return 15
+        case .lg: return 18
+        case .xl: return 22
+        }
+    }
+
+    private var previewAttributedText: AttributedString {
+        var spoken = AttributedString("Clear communication begins ")
+        spoken.foregroundColor = highlightColor.color
+
+        var cue = AttributedString("[look at camera] ")
+        cue.foregroundColor = cueColor.color.opacity(cueBrightness.unreadOpacity)
+
+        var upcoming = AttributedString("when we slow down and connect.")
+        upcoming.foregroundColor = Color.white.opacity(0.42)
+
+        return spoken + cue + upcoming
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
@@ -913,25 +1116,18 @@ struct SettingsInlinePrompterPreview: View {
                     .frame(width: 6, height: 6)
                 Text("LIVE PROMPTER PREVIEW")
                     .font(.system(size: 9.5, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.55))
+                    .foregroundStyle(Color.white.opacity(0.6))
                     .tracking(0.6)
                 Spacer()
                 Text("\(fontFamily.label) · \(fontSize.label) (\(Int(fontSize.pointSize))pt)")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.45))
+                    .foregroundStyle(Color.white.opacity(0.5))
             }
 
-            (
-                Text("Clear communication begins ")
-                    .foregroundColor(highlightColor.color)
-                + Text("[look at camera] ")
-                    .foregroundColor(cueColor.color.opacity(cueBrightness.unreadOpacity))
-                + Text("when we slow down and connect.")
-                    .foregroundColor(Color.white.opacity(0.42))
-            )
-            .font(Font(fontFamily.font(size: min(fontSize.pointSize, 20), weight: .semibold)))
-            .lineSpacing(4)
-            .fixedSize(horizontal: false, vertical: true)
+            Text(previewAttributedText)
+                .font(Font(fontFamily.font(size: previewPointSize, weight: .semibold)))
+                .lineSpacing(4)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)

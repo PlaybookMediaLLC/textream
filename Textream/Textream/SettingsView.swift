@@ -9,7 +9,6 @@ import SwiftUI
 import AppKit
 import Speech
 import Combine
-import CoreImage.CIFilterBuiltins
 
 // MARK: - Preview Panel Controller
 
@@ -19,10 +18,18 @@ class NotchPreviewController {
     private var originalFrame: NSRect?
     private var cursorTimer: AnyCancellable?
     private var trackingSettings: NotchSettings?
+    private var animationToken: UInt64 = 0
+
+    func updateAppearance(_ appearance: AppAppearance) {
+        let nsAppearance = appearance.nsAppearance
+        hostingView?.appearance = nsAppearance
+        panel?.appearance = nsAppearance
+    }
 
     func show(settings: NotchSettings) {
-        // If panel already exists, just re-show it
+        // If panel already exists, refresh appearance and re-show it
         if let panel {
+            updateAppearance(settings.appAppearance)
             panel.orderFront(nil)
             return
         }
@@ -61,15 +68,19 @@ class NotchPreviewController {
     }
 
     func hide() {
+        animationToken &+= 1
+        stopCursorTracking()
         panel?.orderOut(nil)
     }
 
     func dismiss() {
+        animationToken &+= 1
         stopCursorTracking()
         panel?.orderOut(nil)
         panel = nil
         hostingView = nil
         originalFrame = nil
+        trackingSettings = nil
     }
 
     var isAtCursor: Bool { originalFrame != nil }
@@ -80,19 +91,23 @@ class NotchPreviewController {
             originalFrame = panel.frame
         }
         trackingSettings = settings
+        animationToken &+= 1
+        let expectedToken = animationToken
 
-        // Animate to cursor, then start continuous tracking
+        // Animate to cursor, then start continuous tracking only if not cancelled
         let target = cursorFrame(for: panel, settings: settings)
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.5
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             panel.animator().setFrame(target, display: true)
         }, completionHandler: { [weak self] in
-            self?.startCursorTracking()
+            guard let self, self.animationToken == expectedToken, self.panel != nil else { return }
+            self.startCursorTracking()
         })
     }
 
     func animateFromCursor() {
+        animationToken &+= 1
         stopCursorTracking()
         guard let panel, let originalFrame else { return }
         NSAnimationContext.runAnimationGroup { context in
@@ -191,6 +206,7 @@ struct NotchPreviewContent: View {
     @State private var cornerPhase: CGFloat = 0
     // Phase 2: detach from top (0=stuck to top, 1=moved down + rounded)
     @State private var offsetPhase: CGFloat = 0
+    @State private var modeTransitionTask: Task<Void, Never>?
 
     private var readingPreviewLayoutIdentity: String {
         [
@@ -335,13 +351,16 @@ struct NotchPreviewContent: View {
         }
         .preferredColorScheme(settings.appAppearance.colorScheme)
         .onChange(of: settings.overlayMode) { _, mode in
+            modeTransitionTask?.cancel()
             if mode == .floating {
                 // Phase 1: flatten corners while at top
                 withAnimation(.easeInOut(duration: 0.25)) {
                     cornerPhase = 1
                 }
                 // Phase 2: move down + round corners
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                modeTransitionTask = Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(250))
+                    guard !Task.isCancelled, settings.overlayMode == .floating else { return }
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                         offsetPhase = 1
                     }
@@ -352,7 +371,9 @@ struct NotchPreviewContent: View {
                     offsetPhase = 0
                 }
                 // Reverse Phase 2: restore concave corners
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                modeTransitionTask = Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(300))
+                    guard !Task.isCancelled, settings.overlayMode != .floating else { return }
                     withAnimation(.easeInOut(duration: 0.25)) {
                         cornerPhase = 0
                     }
@@ -363,6 +384,10 @@ struct NotchPreviewContent: View {
             let isFloating = settings.overlayMode == .floating
             cornerPhase = isFloating ? 1 : 0
             offsetPhase = isFloating ? 1 : 0
+        }
+        .onDisappear {
+            modeTransitionTask?.cancel()
+            modeTransitionTask = nil
         }
         .onReceive(scrollTimer) { _ in
             guard settings.listeningMode != .wordTracking else { return }
@@ -382,10 +407,30 @@ struct NotchPreviewContent: View {
     }
 }
 
+// MARK: - Modal Sheet Presentation Enum
+
+enum SettingsModalSheet: Identifiable {
+    case guidanceTest(SpeechEngine)
+    case modelManager
+    case acknowledgements
+
+    var id: String {
+        switch self {
+        case .guidanceTest(let engine): return "guidanceTest.\(engine.rawValue)"
+        case .modelManager:             return "modelManager"
+        case .acknowledgements:         return "acknowledgements"
+        }
+    }
+}
+
 // MARK: - Settings View
 
 struct SettingsView: View {
+    private static var cachedLocales: [LocalizedSpeechLocale] = []
+    private static var cachedLocaleIdentifier: String = ""
+
     @Bindable var settings: NotchSettings
+    @ObservedObject var service = TextreamService.shared
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
 
@@ -394,23 +439,29 @@ struct SettingsView: View {
     let onClose: (() -> Void)?
 
     @State private var previewController = NotchPreviewController()
+    @State private var previewCursorTask: Task<Void, Never>?
     @State var selectedTab: SettingsTab
     @State private var isSidebarVisible = true
     @State private var searchQuery = ""
     @State private var hoveredTab: SettingsTab?
+    @State private var hoveredSearchResultID: String?
     @State private var showLivePreview: Bool
     @State private var library = ScriptLibraryStore.shared
+    @FocusState private var isSearchFocused: Bool
 
     @State var showResetConfirmation = false
-    @State var showAcknowledgements = false
-    @State var showModelManager = false
-    @State var guidanceTestEngine: SpeechEngine?
+    @State var activeSheet: SettingsModalSheet?
     @State var availableMics: [AudioInputDevice] = []
-    @State var supportedLocales: [Locale] = []
+    @State var supportedLocales: [LocalizedSpeechLocale] = []
     @State var availableScreens: [NSScreen] = []
     @State var overlayScreens: [NSScreen] = []
-    @State var localIP: String = BrowserServer.localIPAddress() ?? "localhost"
-    @State var directorLocalIP: String = BrowserServer.localIPAddress() ?? "localhost"
+    @State var localIP: String = "localhost"
+    @State var directorLocalIP: String = "localhost"
+    @State var directorPairingCode: String = ""
+    @State var browserPortDraft: String = ""
+    @State var directorPortDraft: String = ""
+    @State var obsHostDraft: String = ""
+    @State var obsPortDraft: String = ""
     @State var modelStore = LocalSpeechModelStore.shared
     @State var modelDownloads = ModelDownloadManager.shared
 
@@ -427,6 +478,10 @@ struct SettingsView: View {
         self.onClose = onClose
         _selectedTab = State(initialValue: initialTab)
         _showLivePreview = State(initialValue: enableLivePreview)
+        _browserPortDraft = State(initialValue: String(settings.browserServerPort))
+        _directorPortDraft = State(initialValue: String(settings.directorServerPort))
+        _obsHostDraft = State(initialValue: settings.obsHost)
+        _obsPortDraft = State(initialValue: String(settings.obsPort))
     }
 
     var palette: DantePalette {
@@ -434,7 +489,6 @@ struct SettingsView: View {
     }
 
     var isPrompterActive: Bool {
-        let service = TextreamService.shared
         let recognizer = service.overlayController.speechRecognizer
         return service.overlayController.isShowing
             || service.directorIsReading
@@ -443,7 +497,7 @@ struct SettingsView: View {
     }
 
     var appVersionLabel: String {
-        let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.6.1"
+        let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         if let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String, !build.isEmpty {
             return "\(short) (\(build))"
         }
@@ -451,19 +505,11 @@ struct SettingsView: View {
     }
 
     private var appVersionShort: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.6.1"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     }
 
     private var isSearching: Bool {
         !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    private var filteredSearchResults: [SettingsSearchItem] {
-        SettingsSearchIndex.search(searchQuery)
-    }
-
-    private var matchingSidebarTabs: Set<SettingsTab> {
-        Set(SettingsSearchIndex.matchingTabs(for: searchQuery))
     }
 
     private var isRunningTests: Bool {
@@ -471,7 +517,13 @@ struct SettingsView: View {
     }
 
     private var shouldRenderOverlayPreview: Bool {
-        enableLivePreview && showLivePreview && !isRunningTests && settings.overlayMode != .fullscreen
+        enableLivePreview
+            && showLivePreview
+            && !isRunningTests
+            && !isPrompterActive
+            && activeSheet == nil
+            && !showResetConfirmation
+            && settings.overlayMode != .fullscreen
     }
 
     private var activeCreatorPresetID: CreatorPresetID {
@@ -481,9 +533,12 @@ struct SettingsView: View {
     // MARK: - Body
 
     var body: some View {
+        let currentSearchResults = isSearching ? SettingsSearchIndex.search(searchQuery) : []
+        let matchingTabs = isSearching ? Set(currentSearchResults.map(\.tab)) : Set(SettingsTab.allCases)
+
         HStack(spacing: 0) {
             if isSidebarVisible {
-                settingsSidebar
+                settingsSidebar(matchingTabs: matchingTabs, firstResult: currentSearchResults.first)
                     .frame(width: 236)
                     .background(palette.sidebarBackground)
                     .transition(.move(edge: .leading).combined(with: .opacity))
@@ -492,9 +547,9 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 settingsTopBar
 
-                // Rounded inner content pane matching sleek studio workspace aesthetic
+                // Rounded inner detail canvas framed cleanly inside the workspace shell
                 ZStack {
-                    detailPane
+                    detailPane(searchResults: currentSearchResults)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(palette.settingsCanvasBackground)
@@ -523,20 +578,45 @@ struct SettingsView: View {
         }
         .background(palette.sidebarBackground)
         .ignoresSafeArea(.container, edges: isEmbeddedInWindow ? .top : [])
-        .sheet(item: $guidanceTestEngine) { engine in
-            GuidanceTestSheet(engine: engine)
+        .background {
+            // Hidden Cmd+F shortcut to jump straight into Settings search
+            Button("") {
+                if !isSidebarVisible {
+                    withAnimation(.easeInOut(duration: 0.16)) {
+                        isSidebarVisible = true
+                    }
+                }
+                isSearchFocused = true
+            }
+            .keyboardShortcut("f", modifiers: .command)
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
         }
-        .sheet(isPresented: $showModelManager) {
-            ModelManagerSheet(settings: settings)
-        }
-        .sheet(isPresented: $showAcknowledgements) {
-            OpenSourceLicensesView()
+        .sheet(item: $activeSheet, onDismiss: {
+            modelStore.refresh()
+            ensureLocalModelSelection()
+            syncPreviewVisibility()
+        }) { sheet in
+            Group {
+                switch sheet {
+                case .guidanceTest(let engine):
+                    GuidanceTestSheet(engine: engine)
+                case .modelManager:
+                    ModelManagerSheet(settings: settings)
+                case .acknowledgements:
+                    OpenSourceLicensesView()
+                }
+            }
+            .preferredColorScheme(settings.appAppearance.colorScheme)
         }
         .alert("Reset All Settings?", isPresented: $showResetConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Reset", role: .destructive) {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     settings.resetToDefaults()
+                    syncNetworkDraftsFromSettings()
+                    directorPairingCode = ""
                 }
             }
         } message: {
@@ -549,22 +629,63 @@ struct SettingsView: View {
             refreshMicrophones()
             refreshScreens()
             refreshOverlayScreens()
-            localIP = BrowserServer.localIPAddress() ?? "localhost"
-            directorLocalIP = localIP
+            let detectedIP = BrowserServer.localIPAddress() ?? "localhost"
+            localIP = detectedIP
+            directorLocalIP = detectedIP
+            directorPairingCode = service.directorServer.pairingCode
+            syncNetworkDraftsFromSettings()
             modelStore.refresh()
+            ensureLocalModelSelection()
             syncPreviewVisibility()
         }
         .onDisappear {
+            previewCursorTask?.cancel()
+            previewCursorTask = nil
             previewController.dismiss()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
-            previewController.hide()
+            previewCursorTask?.cancel()
+            previewController.dismiss()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             syncPreviewVisibility()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
+            refreshScreens()
+            refreshOverlayScreens()
+            if shouldRenderOverlayPreview {
+                previewController.dismiss()
+                syncPreviewVisibility()
+            }
+        }
         .onChange(of: showLivePreview) { _, _ in
             syncPreviewVisibility()
+        }
+        .onChange(of: activeSheet?.id) { _, _ in
+            syncPreviewVisibility()
+        }
+        .onChange(of: showResetConfirmation) { _, _ in
+            syncPreviewVisibility()
+        }
+        .onChange(of: service.directorIsReading) { _, _ in
+            syncPreviewVisibility()
+        }
+        .onChange(of: settings.appAppearance) { _, newAppearance in
+            previewController.updateAppearance(newAppearance)
+        }
+        .onChange(of: settings.speechEngine) { _, engine in
+            if engine == .local {
+                modelStore.refresh()
+                ensureLocalModelSelection()
+            }
+        }
+        .onChange(of: settings.directorModeEnabled) { _, enabled in
+            directorPairingCode = enabled ? service.directorServer.pairingCode : ""
+        }
+        .onChange(of: settings.iCloudSyncEnabled) { _, enabled in
+            if enabled {
+                Task { await library.syncWithCloud() }
+            }
         }
         .onChange(of: settings.followCursorWhenUndocked) { _, follow in
             guard shouldRenderOverlayPreview else { return }
@@ -576,7 +697,8 @@ struct SettingsView: View {
         }
         .onChange(of: settings.overlayMode) { _, mode in
             if mode == .fullscreen || !shouldRenderOverlayPreview {
-                previewController.hide()
+                previewCursorTask?.cancel()
+                previewController.dismiss()
             } else {
                 previewController.show(settings: settings)
                 if mode == .floating && settings.followCursorWhenUndocked {
@@ -587,17 +709,16 @@ struct SettingsView: View {
             }
         }
         .onExitCommand {
-            if isSearching {
-                searchQuery = ""
-            } else {
-                closeSettings()
-            }
+            handleEscape()
         }
     }
 
     // MARK: - Sidebar
 
-    private var settingsSidebar: some View {
+    private func settingsSidebar(
+        matchingTabs: Set<SettingsTab>,
+        firstResult: SettingsSearchItem?
+    ) -> some View {
         VStack(spacing: 0) {
             if isEmbeddedInWindow {
                 // Keep clear of macOS window traffic lights in hidden-titlebar mode
@@ -625,6 +746,7 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Back to Studio (Esc)")
+                .accessibilityLabel("Back to Studio")
 
                 Spacer()
 
@@ -641,21 +763,33 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Hide Settings Sidebar")
+                .accessibilityLabel("Hide Settings Sidebar")
             }
             .padding(.horizontal, 10)
             .padding(.top, isEmbeddedInWindow ? 2 : 12)
             .padding(.bottom, 10)
 
-            // Search Field (`Q Search settings`)
+            // Live Search Field (`Q Search settings`)
             HStack(spacing: 7) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 11.5, weight: .medium))
                     .foregroundStyle(palette.textTertiary)
+                    .accessibilityHidden(true)
 
                 TextField("Search settings", text: $searchQuery)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12.5))
                     .foregroundStyle(palette.textPrimary)
+                    .focused($isSearchFocused)
+                    .accessibilityLabel("Search settings")
+                    .onSubmit {
+                        if let first = firstResult {
+                            withAnimation(.easeInOut(duration: 0.14)) {
+                                selectedTab = first.tab
+                                searchQuery = ""
+                            }
+                        }
+                    }
 
                 if isSearching {
                     Button {
@@ -667,6 +801,7 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
                     .help("Clear search")
+                    .accessibilityLabel("Clear search")
                 }
             }
             .padding(.horizontal, 9)
@@ -677,7 +812,7 @@ struct SettingsView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                    .strokeBorder(isSearchFocused ? palette.accent.opacity(0.6) : palette.borderSubtle, lineWidth: 1)
             )
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
@@ -687,7 +822,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(SettingsSidebarGroup.allCases) { group in
                         let visibleTabs = group.tabs.filter { tab in
-                            !isSearching || matchingSidebarTabs.contains(tab)
+                            !isSearching || matchingTabs.contains(tab)
                         }
                         if !visibleTabs.isEmpty {
                             if let title = group.title {
@@ -709,7 +844,7 @@ struct SettingsView: View {
                 .padding(.bottom, 16)
             }
 
-            // Bottom Brand & Info Footer (matching workspace footer aesthetic)
+            // Bottom Brand & Info Footer
             Rectangle()
                 .fill(palette.borderSubtle)
                 .frame(height: 1)
@@ -722,7 +857,7 @@ struct SettingsView: View {
                     Label("About & Reset", systemImage: "info.circle")
                 }
                 Button {
-                    showAcknowledgements = true
+                    activeSheet = .acknowledgements
                 } label: {
                     Label("Open Source Acknowledgements", systemImage: "doc.text")
                 }
@@ -776,12 +911,14 @@ struct SettingsView: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
+            .accessibilityLabel("\(DanteAppLinks.appName) menu")
         }
     }
 
     private func sidebarNavRow(for tab: SettingsTab) -> some View {
         let isSelected = !isSearching && selectedTab == tab
         let isHovered = hoveredTab == tab
+        let indicator = liveIndicator(for: tab)
 
         return Button {
             withAnimation(.easeInOut(duration: 0.14)) {
@@ -803,10 +940,11 @@ struct SettingsView: View {
 
                 Spacer(minLength: 4)
 
-                if let indicatorColor = liveIndicatorColor(for: tab) {
+                if let indicator {
                     Circle()
-                        .fill(indicatorColor)
+                        .fill(indicator.color)
                         .frame(width: 6, height: 6)
+                        .accessibilityHidden(true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -826,19 +964,21 @@ struct SettingsView: View {
         .onHover { hovering in
             hoveredTab = hovering ? tab : (hoveredTab == tab ? nil : hoveredTab)
         }
+        .accessibilityLabel(tab.label)
+        .accessibilityValue(indicator?.accessibilityLabel ?? "")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    private func liveIndicatorColor(for tab: SettingsTab) -> Color? {
+    private func liveIndicator(for tab: SettingsTab) -> (color: Color, accessibilityLabel: String)? {
         switch tab {
         case .browser where settings.browserServerEnabled:
-            return palette.statusSuccess
+            return (palette.statusSuccess, "Active")
         case .director where settings.directorModeEnabled:
-            return palette.statusSuccess
+            return (palette.statusSuccess, "Active")
         case .obs where settings.obsWebSocketEnabled:
-            return TextreamService.shared.obsClient.state.isConnected
-                ? palette.statusSuccess
-                : palette.statusWarning
+            return service.obsClient.state.isConnected
+                ? (palette.statusSuccess, "Connected")
+                : (palette.statusWarning, "Connecting")
         default:
             return nil
         }
@@ -866,17 +1006,32 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Show Settings Sidebar")
+                .accessibilityLabel("Show Settings Sidebar")
             }
 
-            // Active page pill matching reference header tab (`[⚙ General]`)
+            // Active page header pill
             HStack(spacing: 6) {
                 Image(systemName: isSearching ? "magnifyingglass" : selectedTab.icon)
                     .font(.system(size: 11.5, weight: .medium))
                     .foregroundStyle(palette.textSecondary)
-                Text(isSearching ? "Search results" : selectedTab.label)
+                Text(isSearching ? "Search: \(searchQuery)" : selectedTab.label)
                     .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(palette.textPrimary)
                     .lineLimit(1)
+                    .truncationMode(.tail)
+
+                if isSearching {
+                    Button {
+                        searchQuery = ""
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 9.5, weight: .semibold))
+                            .foregroundStyle(palette.textTertiary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Clear search")
+                    .accessibilityLabel("Clear search")
+                }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 5.5)
@@ -919,6 +1074,9 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Toggle the live floating teleprompter preview")
+                .accessibilityLabel("Live overlay preview")
+                .accessibilityValue(showLivePreview ? "On" : "Off")
+                .accessibilityAddTraits(showLivePreview ? .isSelected : [])
             }
 
             Button {
@@ -939,7 +1097,6 @@ struct SettingsView: View {
                     )
             }
             .buttonStyle(.plain)
-            .keyboardShortcut(.escape, modifiers: [])
             .help("Return to Studio (Esc)")
         }
         .padding(.horizontal, 14)
@@ -948,13 +1105,13 @@ struct SettingsView: View {
 
     // MARK: - Detail Pane
 
-    private var detailPane: some View {
+    private func detailPane(searchResults: [SettingsSearchItem]) -> some View {
         GeometryReader { geo in
             let horizontalPadding: CGFloat = geo.size.width > 760 ? 40 : 24
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
                     if isSearching {
-                        searchResultsView
+                        searchResultsView(results: searchResults)
                     } else {
                         activeTabContent
                     }
@@ -988,16 +1145,21 @@ struct SettingsView: View {
 
     // MARK: - Search Results View
 
-    private var searchResultsView: some View {
-        let results = filteredSearchResults
-        return VStack(alignment: .leading, spacing: 22) {
-            SettingsPageHeader(
-                title: "Search results",
-                subtitle: results.isEmpty
-                    ? "No settings matched \"\(searchQuery)\"."
-                    : "\(results.count) \(results.count == 1 ? "setting" : "settings") matching \"\(searchQuery)\".",
-                palette: palette
-            )
+    private func searchResultsView(results: [SettingsSearchItem]) -> some View {
+        VStack(alignment: .leading, spacing: 22) {
+            HStack(alignment: .top, spacing: 12) {
+                SettingsPageHeader(
+                    title: "Search results",
+                    subtitle: results.isEmpty
+                        ? "No settings matched \"\(searchQuery)\"."
+                        : "\(results.count) \(results.count == 1 ? "setting" : "settings") matching \"\(searchQuery)\".",
+                    palette: palette
+                )
+
+                SettingsActionButton("Clear search", icon: "xmark", palette: palette) {
+                    searchQuery = ""
+                }
+            }
 
             if results.isEmpty {
                 SettingsCard(palette: palette) {
@@ -1023,6 +1185,7 @@ struct SettingsView: View {
                         if index > 0 {
                             SettingsRowDivider(palette: palette)
                         }
+                        let isHovered = hoveredSearchResultID == item.id
                         Button {
                             withAnimation(.easeInOut(duration: 0.15)) {
                                 selectedTab = item.tab
@@ -1044,10 +1207,17 @@ struct SettingsView: View {
                                         .font(.system(size: 10, weight: .semibold))
                                         .foregroundStyle(palette.textTertiary)
                                 }
+                                .fixedSize()
                             }
+                            .background(isHovered ? palette.surfaceHover.opacity(0.65) : Color.clear)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .onHover { hovering in
+                            hoveredSearchResultID = hovering
+                                ? item.id
+                                : (hoveredSearchResultID == item.id ? nil : hoveredSearchResultID)
+                        }
                     }
                 }
             }
@@ -1087,6 +1257,7 @@ struct SettingsView: View {
                         options: CreatorPresetID.allCases,
                         selection: presetBinding,
                         minWidth: 168,
+                        accessibilityTitle: "Creator format preset",
                         palette: palette,
                         iconForOption: { CreatorPreset.preset(for: $0).systemImage },
                         labelForOption: { CreatorPreset.preset(for: $0).name }
@@ -1107,12 +1278,13 @@ struct SettingsView: View {
                             } label: {
                                 SettingsStatusPill(
                                     label: library.syncStatus.label,
-                                    color: library.syncStatus == .syncing ? palette.accent : palette.statusSuccess,
+                                    color: iCloudStatusColor(library.syncStatus),
                                     palette: palette
                                 )
                             }
                             .buttonStyle(.plain)
                             .help("Sync with iCloud now")
+                            .accessibilityLabel("iCloud Sync status: \(library.syncStatus.label)")
                         }
                         Toggle("", isOn: $settings.iCloudSyncEnabled)
                             .labelsHidden()
@@ -1226,14 +1398,14 @@ struct SettingsView: View {
 
                 SettingsRow(
                     title: "Text size",
-                    subtitle: "Controls the active reading scale inside the teleprompter.",
+                    subtitle: "Currently \(Int(settings.fontSizePreset.pointSize))pt inside the live teleprompter.",
                     palette: palette
                 ) {
                     SettingsSegmentedPill(
                         options: FontSizePreset.allCases,
                         selection: $settings.fontSizePreset,
                         palette: palette,
-                        labelForOption: { "\($0.label) · \(Int($0.pointSize))pt" }
+                        labelForOption: \.label
                     )
                 }
 
@@ -1320,6 +1492,7 @@ struct SettingsView: View {
                         options: OverlayMode.allCases,
                         selection: $settings.overlayMode,
                         minWidth: 164,
+                        accessibilityTitle: "Presentation style",
                         palette: palette,
                         iconForOption: \.icon,
                         labelForOption: \.label
@@ -1441,6 +1614,7 @@ struct SettingsView: View {
                             .foregroundStyle(palette.textSecondary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Refresh displays")
                     }
                 ) {
                     displaySelectionRows(
@@ -1497,7 +1671,7 @@ struct SettingsView: View {
                 SettingsRowDivider(palette: palette)
 
                 SettingsToggleRow(
-                    title: "Elapsed time",
+                    title: "Show elapsed time",
                     subtitle: "Show a live timer while reading.",
                     icon: "timer",
                     isOn: $settings.showElapsedTime,
@@ -1617,6 +1791,14 @@ struct SettingsView: View {
 
     // MARK: - Actions & Helpers
 
+    private func handleEscape() {
+        if isSearching {
+            searchQuery = ""
+        } else {
+            closeSettings()
+        }
+    }
+
     func closeSettings() {
         if let onClose {
             onClose()
@@ -1625,30 +1807,69 @@ struct SettingsView: View {
         }
     }
 
+    private func syncNetworkDraftsFromSettings() {
+        browserPortDraft = String(settings.browserServerPort)
+        directorPortDraft = String(settings.directorServerPort)
+        obsHostDraft = settings.obsHost
+        obsPortDraft = String(settings.obsPort)
+    }
+
+    private func ensureLocalModelSelection() {
+        guard !modelStore.models.isEmpty else { return }
+        if settings.localModelFilename.isEmpty || modelStore.model(named: settings.localModelFilename) == nil {
+            settings.localModelFilename = modelStore.models[0].filename
+        }
+    }
+
+    private func iCloudStatusColor(_ status: ScriptSyncStatus) -> Color {
+        switch status {
+        case .idle:        return palette.statusSuccess
+        case .syncing:     return palette.accent
+        case .offline:     return palette.statusWarning
+        case .unavailable: return palette.textTertiary
+        case .disabled:    return palette.textTertiary
+        }
+    }
+
     private func syncPreviewVisibility() {
+        previewCursorTask?.cancel()
+        previewCursorTask = nil
         guard shouldRenderOverlayPreview else {
-            previewController.hide()
+            previewController.dismiss()
             return
         }
         previewController.show(settings: settings)
         if settings.followCursorWhenUndocked && settings.overlayMode == .floating {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            previewCursorTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(100))
+                guard !Task.isCancelled, shouldRenderOverlayPreview,
+                      settings.followCursorWhenUndocked,
+                      settings.overlayMode == .floating else { return }
                 previewController.animateToCursor(settings: settings)
             }
         }
     }
 
     private func loadSupportedLocalesIfNeeded() async {
-        guard supportedLocales.isEmpty else { return }
+        let currentIdentifier = Locale.current.identifier
+        if !Self.cachedLocales.isEmpty && Self.cachedLocaleIdentifier == currentIdentifier {
+            supportedLocales = Self.cachedLocales
+            return
+        }
         let locales = await Task.detached(priority: .userInitiated) {
             let current = Locale.current
-            return SFSpeechRecognizer.supportedLocales().sorted { lhs, rhs in
-                let left = current.localizedString(forIdentifier: lhs.identifier) ?? lhs.identifier
-                let right = current.localizedString(forIdentifier: rhs.identifier) ?? rhs.identifier
-                return left.localizedStandardCompare(right) == .orderedAscending
-            }
+            return SFSpeechRecognizer.supportedLocales()
+                .map { locale in
+                    LocalizedSpeechLocale(
+                        id: locale.identifier,
+                        displayName: current.localizedString(forIdentifier: locale.identifier) ?? locale.identifier
+                    )
+                }
+                .sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
         }.value
         guard !Task.isCancelled else { return }
+        Self.cachedLocales = locales
+        Self.cachedLocaleIdentifier = currentIdentifier
         supportedLocales = locales
     }
 
@@ -1658,18 +1879,21 @@ struct SettingsView: View {
 
     func refreshScreens() {
         availableScreens = NSScreen.screens.filter { $0 != NSScreen.main }
-        if settings.externalScreenID == 0, let first = availableScreens.first {
+        if let first = availableScreens.first,
+           !availableScreens.contains(where: { $0.displayID == settings.externalScreenID }) {
             settings.externalScreenID = first.displayID
         }
     }
 
     func refreshOverlayScreens() {
         overlayScreens = NSScreen.screens
-        if settings.pinnedScreenID == 0, let main = NSScreen.main {
-            settings.pinnedScreenID = main.displayID
-        }
-        if settings.fullscreenScreenID == 0, let main = NSScreen.main {
-            settings.fullscreenScreenID = main.displayID
+        if let main = NSScreen.main ?? overlayScreens.first {
+            if !overlayScreens.contains(where: { $0.displayID == settings.pinnedScreenID }) {
+                settings.pinnedScreenID = main.displayID
+            }
+            if !overlayScreens.contains(where: { $0.displayID == settings.fullscreenScreenID }) {
+                settings.fullscreenScreenID = main.displayID
+            }
         }
     }
 }
@@ -1697,4 +1921,5 @@ private enum AutoAdvanceDelayOption: Int, CaseIterable, Identifiable {
         }
     }
 }
+
 

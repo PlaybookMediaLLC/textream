@@ -171,6 +171,17 @@ struct ContentView: View {
 
     private var rootLayer: some View {
         ZStack {
+            Group {
+                if settings.directorModeEnabled {
+                    directorOverlay
+                } else {
+                    studioShell
+                }
+            }
+            .opacity(showSettings ? 0 : 1)
+            .allowsHitTesting(!showSettings)
+            .accessibilityHidden(showSettings)
+
             if showSettings {
                 SettingsView(
                     settings: settings,
@@ -182,13 +193,8 @@ struct ContentView: View {
                         }
                     }
                 )
-                .id(settingsInitialTab)
                 .transition(.opacity)
                 .zIndex(40)
-            } else if settings.directorModeEnabled {
-                directorOverlay
-            } else {
-                studioShell
             }
 
             if showQuickComposer && !showSettings {
@@ -198,12 +204,13 @@ struct ContentView: View {
             }
         }
         .background(palette.sidebarBackground)
-        .frame(minWidth: 760, minHeight: 500)
+        .frame(minWidth: 840, minHeight: 540)
     }
 
     private func openSettings(tab: SettingsTab = .general) {
         if isRecording { stopRecording() }
         if showQuickComposer { showQuickComposer = false }
+        isTextFocused = false
         settingsInitialTab = tab
         withAnimation(.easeInOut(duration: 0.16)) {
             showSettings = true
@@ -341,6 +348,7 @@ struct ContentView: View {
                 showOnboarding = true
             }
             .onReceive(NotificationCenter.default.publisher(for: .newScript)) { _ in
+                guard !showSettings, !showOnboarding else { return }
                 createNewScript()
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in

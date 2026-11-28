@@ -19,6 +19,7 @@ jobs:
         env:
           TEST_RUNNER_DANTE_CAPTURE_SCREENSHOTS: "1"
         run: |
+          set -o pipefail
           OUT="${{ github.workspace }}/screenshots/macos"
           mkdir -p "$OUT"
           xcodebuild test \
