@@ -282,6 +282,21 @@ def validate_manifest(
             tts = manifest.get("tts")
             if not isinstance(tts, dict) or not str(tts.get("provider") or "").strip():
                 errors.append("Narrated video evidence must record 'tts.provider' (e.g., 'kokoro').")
+            else:
+                tts_provider = str(tts.get("provider") or "").strip().lower()
+                is_robotic = tts_provider in {"espeak-ng", "espeak"} or tts.get("human_grade") is False
+                if is_robotic:
+                    raw_reason = tts.get("fallback_reason")
+                    fallback_reason = raw_reason.strip() if isinstance(raw_reason, str) else ""
+                    if len(fallback_reason) < 12:
+                        errors.append(
+                            "Robotic or non-human-grade TTS ('espeak-ng') is disallowed without a documented "
+                            "string 'tts.fallback_reason' (>=12 chars). Use full-precision Kokoro ONNX neural TTS."
+                        )
+                    else:
+                        warnings.append(
+                            f"Robotic fallback TTS ('{tts_provider}') was used: {fallback_reason}"
+                        )
 
     # 4. Acceptance criteria & assertions
     criteria = manifest.get("acceptance_criteria")

@@ -243,9 +243,10 @@ Make it immediately apparent which part of the interface is under discussion:
 - Annotations must never obscure critical text, values, or results. Preserve unmodified raw footage alongside the annotated/final render.
 
 ## 9. Spoken Narration
-- Default local TTS engine: **Kokoro ONNX** (`kokoro-onnx` via `tooling/pr-video-evidence/tts.py`).
-- Local OS fallbacks: `macos-say` (Darwin) or `espeak-ng` (Linux).
-- Optional approved cloud fallback: `--tts-provider openai` (only when explicitly configured with `OPENAI_API_KEY`; never transmit sensitive data).
+- Narration **must sound genuinely human** — warm, calm, conversational, and free of robotic cadence, mispronounced acronyms, or audio clipping.
+- Default local TTS engine: full-precision **FP32 Kokoro ONNX** (`kokoro-v1.0.onnx` via `tooling/pr-video-evidence/tts.py`) using a blended Grade-A neural voice (`af_heart:0.65+af_bella:0.35`), natural pace (`0.98`), prosodic sentence/clause pauses, spoken technical-term normalization (captions stay verbatim), and `-16 LUFS` broadcast loudness mastering.
+- Local fallback on macOS: enhanced/neural `macos-say` voices. Never silently degrade to robotic `espeak-ng` (explicit emergency fallback requires a documented `tts.fallback_reason` and triggers a validator warning).
+- Optional approved cloud neural fallback: `--tts-provider openai` (`gpt-4o-mini-tts`, only when explicitly configured with `OPENAI_API_KEY`; pre-flight secret scanning blocks sensitive data).
 - Generate narration per beat, measure exact audio duration, and drive scene timing from actual speech duration.
 - Use direct, factual engineering language explaining what changed, why, what the user does, what the app does in response, which acceptance criterion is verified, and any edge cases or limitations. Zero promotional fluff.
 
