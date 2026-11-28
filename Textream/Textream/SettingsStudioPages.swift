@@ -97,32 +97,17 @@ extension SettingsView {
                                 .controlSize(.small)
                                 .accessibilityLabel("Loading speech languages")
                         } else {
-                            Menu {
-                                ForEach(supportedLocales) { locale in
-                                    Button {
-                                        settings.speechLocale = locale.id
-                                    } label: {
-                                        HStack {
-                                            Text(locale.displayName)
-                                            if settings.speechLocale == locale.id {
-                                                Image(systemName: "checkmark")
-                                            }
-                                        }
-                                    }
-                                }
-                            } label: {
-                                SettingsDropdownPillLabel(
-                                    text: selectedLocaleDisplayName,
-                                    minWidth: 160,
-                                    maxWidth: 220,
-                                    palette: palette
-                                )
-                            }
-                            .menuStyle(.borderlessButton)
-                            .menuIndicator(.hidden)
-                            .fixedSize()
-                            .accessibilityLabel("Speech language")
-                            .accessibilityValue(selectedLocaleDisplayName)
+                            SettingsStringMenuPicker(
+                                options: supportedLocales.map {
+                                    SettingsDropdownOption(id: $0.id, label: $0.displayName)
+                                },
+                                selectedID: $settings.speechLocale,
+                                placeholder: selectedLocaleDisplayName,
+                                minWidth: 168,
+                                maxWidth: 224,
+                                accessibilityTitle: "Speech language",
+                                palette: palette
+                            )
                         }
                     }
 
@@ -176,42 +161,16 @@ extension SettingsView {
                         icon: "mic",
                         palette: palette
                     ) {
-                        Menu {
-                            Button {
-                                settings.selectedMicUID = ""
-                            } label: {
-                                HStack {
-                                    Text("System Default")
-                                    if settings.selectedMicUID.isEmpty {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                            ForEach(availableMics) { mic in
-                                Button {
-                                    settings.selectedMicUID = mic.uid
-                                } label: {
-                                    HStack {
-                                        Text(mic.name)
-                                        if settings.selectedMicUID == mic.uid {
-                                            Image(systemName: "checkmark")
-                                        }
-                                    }
-                                }
-                            }
-                        } label: {
-                            SettingsDropdownPillLabel(
-                                text: selectedMicrophoneName,
-                                minWidth: 160,
-                                maxWidth: 220,
-                                palette: palette
-                            )
-                        }
-                        .menuStyle(.borderlessButton)
-                        .menuIndicator(.hidden)
-                        .fixedSize()
-                        .accessibilityLabel("Microphone input")
-                        .accessibilityValue(selectedMicrophoneName)
+                        SettingsStringMenuPicker(
+                            options: [SettingsDropdownOption(id: "", label: "System Default")]
+                                + availableMics.map { SettingsDropdownOption(id: $0.uid, label: $0.name) },
+                            selectedID: $settings.selectedMicUID,
+                            placeholder: "System Default",
+                            minWidth: 168,
+                            maxWidth: 224,
+                            accessibilityTitle: "Microphone input",
+                            palette: palette
+                        )
                     }
                 }
 
@@ -257,32 +216,17 @@ extension SettingsView {
         ) {
             HStack(spacing: 8) {
                 if hasAnyInstalled {
-                    Menu {
-                        ForEach(modelStore.models) { model in
-                            Button {
-                                settings.localModelFilename = model.filename
-                            } label: {
-                                HStack {
-                                    Text("\(model.displayName) — \(model.sizeMB) MB")
-                                    if settings.localModelFilename == model.filename {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    } label: {
-                        SettingsDropdownPillLabel(
-                            text: installed?.displayName ?? "Select model…",
-                            minWidth: 132,
-                            maxWidth: 190,
-                            palette: palette
-                        )
-                    }
-                    .menuStyle(.borderlessButton)
-                    .menuIndicator(.hidden)
-                    .fixedSize()
-                    .accessibilityLabel("Active local speech model")
-                    .accessibilityValue(installed?.displayName ?? "None selected")
+                    SettingsStringMenuPicker(
+                        options: modelStore.models.map {
+                            SettingsDropdownOption(id: $0.filename, label: "\($0.displayName) — \($0.sizeMB) MB")
+                        },
+                        selectedID: $settings.localModelFilename,
+                        placeholder: "Select model…",
+                        minWidth: 140,
+                        maxWidth: 196,
+                        accessibilityTitle: "Active local speech model",
+                        palette: palette
+                    )
                 }
 
                 SettingsActionButton("Manage…", palette: palette) {
@@ -394,32 +338,17 @@ extension SettingsView {
                         subtitle: "Active model loaded when Word Tracking starts in Local Model mode.",
                         palette: palette
                     ) {
-                        Menu {
-                            ForEach(modelStore.models) { model in
-                                Button {
-                                    settings.localModelFilename = model.filename
-                                } label: {
-                                    HStack {
-                                        Text("\(model.displayName) — \(model.sizeMB) MB")
-                                        if settings.localModelFilename == model.filename {
-                                            Image(systemName: "checkmark")
-                                        }
-                                    }
-                                }
-                            }
-                        } label: {
-                            SettingsDropdownPillLabel(
-                                text: installedModel?.displayName ?? "Select a model…",
-                                minWidth: 160,
-                                maxWidth: 220,
-                                palette: palette
-                            )
-                        }
-                        .menuStyle(.borderlessButton)
-                        .menuIndicator(.hidden)
-                        .fixedSize()
-                        .accessibilityLabel("Selected local speech model")
-                        .accessibilityValue(installedModel?.displayName ?? "None selected")
+                        SettingsStringMenuPicker(
+                            options: modelStore.models.map {
+                                SettingsDropdownOption(id: $0.filename, label: "\($0.displayName) — \($0.sizeMB) MB")
+                            },
+                            selectedID: $settings.localModelFilename,
+                            placeholder: "Select a model…",
+                            minWidth: 168,
+                            maxWidth: 224,
+                            accessibilityTitle: "Selected local speech model",
+                            palette: palette
+                        )
                     }
                 }
 
@@ -518,6 +447,8 @@ extension SettingsView {
     // MARK: - Remote Page
 
     var browserTab: some View {
+        let _ = browserRestartNonce
+        let browserIsRunning = service.browserServer.isRunning
         let remoteURL = "http://\(localIP):\(settings.browserServerPort)"
         let parsedPort = SettingsNetworkValidator.parseLANPort(browserPortDraft)
         let hasCollision = parsedPort.map {
@@ -551,18 +482,16 @@ extension SettingsView {
                     HStack(spacing: 12) {
                         SettingsStatusPill(
                             label: settings.browserServerEnabled
-                                ? (service.browserServer.isRunning ? "Running" : "Starting")
+                                ? (browserIsRunning ? "Running" : "Starting")
                                 : "Off",
                             color: settings.browserServerEnabled
-                                ? (service.browserServer.isRunning ? palette.statusSuccess : palette.statusWarning)
+                                ? (browserIsRunning ? palette.statusSuccess : palette.statusWarning)
                                 : palette.textTertiary,
                             palette: palette
                         )
                         Toggle("", isOn: $settings.browserServerEnabled)
                             .labelsHidden()
-                            .toggleStyle(.switch)
-                            .tint(palette.accent)
-                            .controlSize(.small)
+                            .toggleStyle(SettingsSwitchToggleStyle(palette: palette))
                             .accessibilityLabel("Enable remote connection")
                     }
                 }
@@ -679,9 +608,7 @@ extension SettingsView {
                         )
                         Toggle("", isOn: $settings.directorModeEnabled)
                             .labelsHidden()
-                            .toggleStyle(.switch)
-                            .tint(palette.accent)
-                            .controlSize(.small)
+                            .toggleStyle(SettingsSwitchToggleStyle(palette: palette))
                             .accessibilityLabel("Enable Director Mode")
                     }
                 }
@@ -850,9 +777,7 @@ extension SettingsView {
                         )
                         Toggle("", isOn: $settings.obsWebSocketEnabled)
                             .labelsHidden()
-                            .toggleStyle(.switch)
-                            .tint(palette.accent)
-                            .controlSize(.small)
+                            .toggleStyle(SettingsSwitchToggleStyle(palette: palette))
                             .accessibilityLabel("Connect to OBS WebSocket")
                     }
                 }
@@ -1248,12 +1173,14 @@ extension SettingsView {
         settings.browserServerPort = port
         browserPortDraft = String(port)
         service.browserServer.stop()
+        browserRestartNonce &+= 1
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(120))
             if settings.browserServerEnabled {
                 service.browserServer.start()
             }
             localIP = BrowserServer.localIPAddress() ?? "localhost"
+            browserRestartNonce &+= 1
         }
     }
 
@@ -1290,11 +1217,6 @@ extension SettingsView {
             return match.displayName
         }
         return Locale.current.localizedString(forIdentifier: settings.speechLocale) ?? settings.speechLocale
-    }
-
-    private var selectedMicrophoneName: String {
-        guard !settings.selectedMicUID.isEmpty else { return "System Default" }
-        return availableMics.first(where: { $0.uid == settings.selectedMicUID })?.name ?? "System Default"
     }
 
     private func obsStateColor(_ state: OBSConnectionState) -> Color {

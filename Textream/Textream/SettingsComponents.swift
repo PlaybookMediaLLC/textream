@@ -218,6 +218,48 @@ struct SettingsRow<Control: View>: View {
     }
 }
 
+// MARK: - Cobalt Switch Toggle Style
+
+struct SettingsSwitchToggleStyle: ToggleStyle {
+    let palette: DantePalette
+
+    func makeBody(configuration: Configuration) -> some View {
+        let isOn = configuration.isOn
+        Button {
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.85)) {
+                configuration.isOn.toggle()
+            }
+        } label: {
+            ZStack(alignment: isOn ? .trailing : .leading) {
+                Capsule()
+                    .fill(
+                        isOn
+                            ? palette.accent
+                            : (palette.isDark ? Color.white.opacity(0.16) : Color.black.opacity(0.14))
+                    )
+                    .frame(width: 34, height: 20)
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(
+                                isOn ? Color.clear : palette.borderSubtle,
+                                lineWidth: 0.75
+                            )
+                    )
+
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 16, height: 16)
+                    .shadow(color: Color.black.opacity(0.18), radius: 1.5, x: 0, y: 1)
+                    .padding(2)
+            }
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(isOn ? "On" : "Off")
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
 // MARK: - Toggle Switch Row
 
 struct SettingsToggleRow: View {
@@ -254,15 +296,13 @@ struct SettingsToggleRow: View {
         ) {
             Toggle("", isOn: $isOn)
                 .labelsHidden()
-                .toggleStyle(.switch)
-                .tint(palette.accent)
-                .controlSize(.small)
+                .toggleStyle(SettingsSwitchToggleStyle(palette: palette))
                 .accessibilityLabel(title)
         }
     }
 }
 
-// MARK: - Bordered Dropdown Menu Picker
+// MARK: - Bordered Dropdown Picker (SwiftUI Popover — Preserves Pill Chrome on macOS 26)
 
 struct SettingsMenuPicker<Option: Hashable & Identifiable>: View {
     let options: [Option]
@@ -273,6 +313,9 @@ struct SettingsMenuPicker<Option: Hashable & Identifiable>: View {
     let maxWidth: CGFloat
     let accessibilityTitle: String?
     let palette: DantePalette
+
+    @State private var isPresented = false
+    @State private var hoveredID: Option.ID?
 
     init(
         options: [Option],
@@ -295,23 +338,8 @@ struct SettingsMenuPicker<Option: Hashable & Identifiable>: View {
     }
 
     var body: some View {
-        Menu {
-            ForEach(options) { option in
-                Button {
-                    selection = option
-                } label: {
-                    HStack {
-                        if let icon = iconForOption?(option) {
-                            Label(labelForOption(option), systemImage: icon)
-                        } else {
-                            Text(labelForOption(option))
-                        }
-                        if option == selection {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
+        Button {
+            isPresented.toggle()
         } label: {
             SettingsDropdownPillLabel(
                 text: labelForOption(selection),
@@ -321,15 +349,179 @@ struct SettingsMenuPicker<Option: Hashable & Identifiable>: View {
                 palette: palette
             )
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
+        .buttonStyle(.plain)
         .fixedSize()
         .accessibilityLabel(accessibilityTitle ?? labelForOption(selection))
         .accessibilityValue(labelForOption(selection))
+        .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+            ScrollView(.vertical, showsIndicators: options.count > 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(options) { option in
+                        let isSelected = option == selection
+                        let isHovered = hoveredID == option.id
+                        Button {
+                            selection = option
+                            isPresented = false
+                        } label: {
+                            HStack(spacing: 8) {
+                                if let icon = iconForOption?(option) {
+                                    Image(systemName: icon)
+                                        .font(.system(size: 11.5, weight: .medium))
+                                        .foregroundStyle(isSelected ? palette.accent : palette.textSecondary)
+                                        .frame(width: 15)
+                                }
+                                Text(labelForOption(option))
+                                    .font(.system(size: 12.5, weight: isSelected ? .semibold : .regular))
+                                    .foregroundStyle(palette.textPrimary)
+                                    .lineLimit(1)
+                                Spacer(minLength: 10)
+                                if isSelected {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 10.5, weight: .semibold))
+                                        .foregroundStyle(palette.accent)
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6.5)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(isHovered ? palette.surfaceHover : (isSelected ? palette.accentSubtle.opacity(0.7) : Color.clear))
+                            )
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in
+                            hoveredID = hovering ? option.id : (hoveredID == option.id ? nil : hoveredID)
+                        }
+                    }
+                }
+                .padding(6)
+            }
+            .frame(minWidth: max(minWidth + 24, 196), maxWidth: 280)
+            .frame(maxHeight: 300)
+            .background(palette.elevatedSurface)
+        }
     }
 }
 
-/// Shared bordered dropdown pill surface used across `SettingsMenuPicker` and custom menus.
+/// String-keyed dropdown option for dynamic lists (locales, microphones, local models).
+struct SettingsDropdownOption: Identifiable, Hashable, Sendable {
+    let id: String
+    let label: String
+    let icon: String?
+
+    init(id: String, label: String, icon: String? = nil) {
+        self.id = id
+        self.label = label
+        self.icon = icon
+    }
+}
+
+struct SettingsStringMenuPicker: View {
+    let options: [SettingsDropdownOption]
+    @Binding var selectedID: String
+    let placeholder: String
+    let minWidth: CGFloat
+    let maxWidth: CGFloat
+    let accessibilityTitle: String
+    let palette: DantePalette
+
+    @State private var isPresented = false
+    @State private var hoveredID: String?
+
+    init(
+        options: [SettingsDropdownOption],
+        selectedID: Binding<String>,
+        placeholder: String = "Select…",
+        minWidth: CGFloat = 160,
+        maxWidth: CGFloat = 220,
+        accessibilityTitle: String,
+        palette: DantePalette
+    ) {
+        self.options = options
+        self._selectedID = selectedID
+        self.placeholder = placeholder
+        self.minWidth = minWidth
+        self.maxWidth = maxWidth
+        self.accessibilityTitle = accessibilityTitle
+        self.palette = palette
+    }
+
+    private var activeOption: SettingsDropdownOption? {
+        options.first(where: { $0.id == selectedID })
+    }
+
+    var body: some View {
+        let displayLabel = activeOption?.label ?? placeholder
+        Button {
+            isPresented.toggle()
+        } label: {
+            SettingsDropdownPillLabel(
+                text: displayLabel,
+                icon: activeOption?.icon,
+                minWidth: minWidth,
+                maxWidth: maxWidth,
+                palette: palette
+            )
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .accessibilityLabel(accessibilityTitle)
+        .accessibilityValue(displayLabel)
+        .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+            ScrollView(.vertical, showsIndicators: options.count > 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(options) { option in
+                        let isSelected = option.id == selectedID
+                        let isHovered = hoveredID == option.id
+                        Button {
+                            selectedID = option.id
+                            isPresented = false
+                        } label: {
+                            HStack(spacing: 8) {
+                                if let icon = option.icon {
+                                    Image(systemName: icon)
+                                        .font(.system(size: 11.5, weight: .medium))
+                                        .foregroundStyle(isSelected ? palette.accent : palette.textSecondary)
+                                        .frame(width: 15)
+                                }
+                                Text(option.label)
+                                    .font(.system(size: 12.5, weight: isSelected ? .semibold : .regular))
+                                    .foregroundStyle(palette.textPrimary)
+                                    .lineLimit(1)
+                                Spacer(minLength: 10)
+                                if isSelected {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 10.5, weight: .semibold))
+                                        .foregroundStyle(palette.accent)
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6.5)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(isHovered ? palette.surfaceHover : (isSelected ? palette.accentSubtle.opacity(0.7) : Color.clear))
+                            )
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hovering in
+                            hoveredID = hovering ? option.id : (hoveredID == option.id ? nil : hoveredID)
+                        }
+                    }
+                }
+                .padding(6)
+            }
+            .frame(minWidth: max(minWidth + 24, 210), maxWidth: 300)
+            .frame(maxHeight: 300)
+            .background(palette.elevatedSurface)
+        }
+    }
+}
+
+/// Shared bordered dropdown pill surface used across settings pickers.
 struct SettingsDropdownPillLabel: View {
     let text: String
     let icon: String?
@@ -379,6 +571,7 @@ struct SettingsDropdownPillLabel: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(palette.borderSubtle, lineWidth: 1)
         )
+        .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }
 

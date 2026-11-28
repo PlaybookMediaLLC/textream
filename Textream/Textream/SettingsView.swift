@@ -446,6 +446,7 @@ struct SettingsView: View {
     @State private var hoveredTab: SettingsTab?
     @State private var hoveredSearchResultID: String?
     @State private var showLivePreview: Bool
+    @State private var showWorkspaceMenu = false
     @State private var library = ScriptLibraryStore.shared
     @FocusState private var isSearchFocused: Bool
 
@@ -458,6 +459,7 @@ struct SettingsView: View {
     @State var localIP: String = "localhost"
     @State var directorLocalIP: String = "localhost"
     @State var directorPairingCode: String = ""
+    @State var browserRestartNonce: Int = 0
     @State var browserPortDraft: String = ""
     @State var directorPortDraft: String = ""
     @State var obsHostDraft: String = ""
@@ -586,7 +588,9 @@ struct SettingsView: View {
                         isSidebarVisible = true
                     }
                 }
-                isSearchFocused = true
+                Task { @MainActor in
+                    isSearchFocused = true
+                }
             }
             .keyboardShortcut("f", modifiers: .command)
             .opacity(0)
@@ -849,35 +853,14 @@ struct SettingsView: View {
                 .fill(palette.borderSubtle)
                 .frame(height: 1)
 
-            Menu {
-                Button {
-                    searchQuery = ""
-                    selectedTab = .about
-                } label: {
-                    Label("About & Reset", systemImage: "info.circle")
-                }
-                Button {
-                    activeSheet = .acknowledgements
-                } label: {
-                    Label("Open Source Acknowledgements", systemImage: "doc.text")
-                }
-                Button {
-                    closeSettings()
-                    NotificationCenter.default.post(name: .openOnboarding, object: nil)
-                } label: {
-                    Label("Creator Setup Guide", systemImage: "sparkles")
-                }
-                Divider()
-                Button {
-                    NSWorkspace.shared.open(DanteAppLinks.supportURL)
-                } label: {
-                    Label("Dante Support", systemImage: "questionmark.circle")
-                }
+            Button {
+                showWorkspaceMenu.toggle()
             } label: {
                 HStack(spacing: 9) {
                     if let icon = NSImage(named: "AppIcon") {
                         Image(nsImage: icon)
                             .resizable()
+                            .scaledToFit()
                             .frame(width: 26, height: 26)
                             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     } else {
@@ -907,12 +890,62 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
+            .buttonStyle(.plain)
             .accessibilityLabel("\(DanteAppLinks.appName) menu")
+            .popover(isPresented: $showWorkspaceMenu, arrowEdge: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    workspaceMenuRow(title: "About & Reset", icon: "info.circle") {
+                        showWorkspaceMenu = false
+                        searchQuery = ""
+                        selectedTab = .about
+                    }
+                    workspaceMenuRow(title: "Open Source Acknowledgements", icon: "doc.text") {
+                        showWorkspaceMenu = false
+                        activeSheet = .acknowledgements
+                    }
+                    workspaceMenuRow(title: "Creator Setup Guide", icon: "sparkles") {
+                        showWorkspaceMenu = false
+                        closeSettings()
+                        NotificationCenter.default.post(name: .openOnboarding, object: nil)
+                    }
+                    Rectangle()
+                        .fill(palette.settingsDivider)
+                        .frame(height: 1)
+                        .padding(.vertical, 4)
+                    workspaceMenuRow(title: "Dante Support", icon: "questionmark.circle") {
+                        showWorkspaceMenu = false
+                        NSWorkspace.shared.open(DanteAppLinks.supportURL)
+                    }
+                }
+                .padding(6)
+                .frame(width: 224)
+                .background(palette.elevatedSurface)
+            }
         }
+    }
+
+    private func workspaceMenuRow(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(palette.textSecondary)
+                    .frame(width: 15)
+                Text(title)
+                    .font(.system(size: 12.5, weight: .regular))
+                    .foregroundStyle(palette.textPrimary)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6.5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func sidebarNavRow(for tab: SettingsTab) -> some View {
@@ -1288,9 +1321,7 @@ struct SettingsView: View {
                         }
                         Toggle("", isOn: $settings.iCloudSyncEnabled)
                             .labelsHidden()
-                            .toggleStyle(.switch)
-                            .tint(palette.accent)
-                            .controlSize(.small)
+                            .toggleStyle(SettingsSwitchToggleStyle(palette: palette))
                             .accessibilityLabel("iCloud Script Sync")
                     }
                 }
